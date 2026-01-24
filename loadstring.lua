@@ -1,201 +1,419 @@
--- Teen Titans Battlegrounds: Glassmorphic Suite
+-- Murder Mystery 2 Exploit Script
+-- Features: AutoFarm, ESP, Teleport, Notifications, Coin Farm, Shoot Murderer, Noclip, Fling & More
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("MM2 Exploit Hub", "DarkTheme")
 
 -- Services
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Player & Camera
 local LocalPlayer = Players.LocalPlayer
-local Camera = game.Workspace.CurrentCamera
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- GUI Creation
-local function CreateGUI()
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "GlassmorphicSuiteGUI"
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.ResetOnSpawn = false -- Make GUI persistent on death
+-- Variables
+local AutoFarmEnabled = false
+local ESPEnabled = false
+local CoinFarmEnabled = false
+local NoclipEnabled = false
+local ShootMurdererEnabled = false
+local FlingEnabled = false
+local TeleportSpeed = 1
 
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    MainFrame.BackgroundTransparency = 0.4 -- Glassmorphic transparency
-    MainFrame.BorderColor3 = Color3.fromRGB(150, 80, 255)
-    MainFrame.BorderSizePixel = 1
-    MainFrame.Position = UDim2.new(-0.5, 0, 0.5, -150)
-    MainFrame.Size = UDim2.new(0, 280, 0, 320)
-    MainFrame.Draggable = true
-    MainFrame.Active = true
-    MainFrame.ClipsDescendants = true
+-- ESP Functions
+local ESPObjects = {}
 
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 12)
-    UICorner.Parent = MainFrame
-
-    local UIBlur = Instance.new("UIBlur") -- Frosted glass effect
-    UIBlur.Parent = MainFrame
-    UIBlur.Size = 24
-
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Name = "TitleLabel"
-    TitleLabel.Parent = MainFrame
-    TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.BackgroundTransparency = 0.9
-    TitleLabel.Size = UDim2.new(1, 0, 0, 35)
-    TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.Text = "TTB Glass Suite"
-    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextSize = 20
-
-    local TabsFrame = Instance.new("Frame")
-    TabsFrame.Name = "TabsFrame"
-    TabsFrame.Parent = MainFrame
-    TabsFrame.BackgroundTransparency = 1
-    TabsFrame.Position = UDim2.new(0, 0, 0, 35)
-    TabsFrame.Size = UDim2.new(1, 0, 1, -35)
-
-    return ScreenGui, MainFrame
-end
-
-local function CreateButton(parent, text, position)
-    local Button = Instance.new("TextButton")
-    Button.Parent = parent
-    Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Button.BackgroundTransparency = 0.85
-    Button.Position = position
-    Button.Size = UDim2.new(0.8, 0, 0, 35)
-    Button.Font = Enum.Font.Gotham
-    Button.Text = text
-    Button.TextColor3 = Color3.fromRGB(230, 230, 230)
-    Button.TextSize = 16
-    Button.AnchorPoint = Vector2.new(0.5, 0)
-    Button.Position = UDim2.new(0.5, 0, position.Y.Scale, position.Y.Offset)
-
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 8)
-    UICorner.Parent = Button
-
-    -- 3D Animation on Hover
-    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.7, Size = UDim2.new(0.85, 0, 0, 40)}):Play()
-    end)
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.85, Size = UDim2.new(0.8, 0, 0, 35)}):Play()
-    end)
-
-    return Button
-end
-
--- Initialize GUI
-local GUI, MainFrame = CreateGUI()
-local TabsFrame = MainFrame.TabsFrame
-
--- Toggles
-local Toggles = { AutoFarm = false, Aimbot = false, Speed = false, InfiniteJump = false, Reach = false, Shaders = false }
-
--- Create Buttons
-local AutoFarmButton = CreateButton(TabsFrame, "Auto Farm: OFF", UDim2.new(0.5, 0, 0.05, 0))
-local AimbotButton = CreateButton(TabsFrame, "Aimbot: OFF", UDim2.new(0.5, 0, 0.20, 0))
-local SpeedButton = CreateButton(TabsFrame, "Speed: OFF", UDim2.new(0.5, 0, 0.35, 0))
-local JumpButton = CreateButton(TabsFrame, "Infinite Jump: OFF", UDim2.new(0.5, 0, 0.50, 0))
-local ReachButton = CreateButton(TabsFrame, "Reach: OFF", UDim2.new(0.5, 0, 0.65, 0))
-local ShadersButton = CreateButton(TabsFrame, "Shaders: OFF", UDim2.new(0.5, 0, 0.80, 0))
-
--- Button Click Logic
-local function ToggleFeature(button, featureName)
-    Toggles[featureName] = not Toggles[featureName]
-    button.Text = featureName .. ": " .. (Toggles[featureName] and "ON" or "OFF")
-    local color = Toggles[featureName] and Color3.fromRGB(120, 255, 120) or Color3.fromRGB(230, 230, 230)
-    TweenService:Create(button, TweenInfo.new(0.2), {TextColor3 = color}):Play()
-end
-
-AutoFarmButton.MouseButton1Click:Connect(function() ToggleFeature(AutoFarmButton, "AutoFarm") end)
-AimbotButton.MouseButton1Click:Connect(function() ToggleFeature(AimbotButton, "Aimbot") end)
-SpeedButton.MouseButton1Click:Connect(function() ToggleFeature(SpeedButton, "Speed") end)
-JumpButton.MouseButton1Click:Connect(function() ToggleFeature(JumpButton, "InfiniteJump") end)
-ReachButton.MouseButton1Click:Connect(function() ToggleFeature(ReachButton, "Reach") end)
-
--- GUI Toggle Button
-local ToggleButton = CreateButton(GUI, "Show", UDim2.new(0.02, 0, 0.5, -15))
-local guiVisible = false
-ToggleButton.Size = UDim2.new(0, 80, 0, 30)
-ToggleButton.AnchorPoint = Vector2.new(0, 0.5)
-ToggleButton.MouseButton1Click:Connect(function()
-    guiVisible = not guiVisible
-    local goal = guiVisible and UDim2.new(0.02, 0, 0.5, 0) or UDim2.new(-0.5, 0, 0.5, 0)
-    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-    TweenService:Create(MainFrame, tweenInfo, {Position = goal}):Play()
-    ToggleButton.Text = guiVisible and "Hide" or "Show"
-end)
-
--- Shaders
-local bloom = Instance.new("BloomEffect")
-bloom.Parent = Camera
-bloom.Enabled = false
-ShadersButton.MouseButton1Click:Connect(function()
-    Toggles.Shaders = not Toggles.Shaders
-    bloom.Enabled = Toggles.Shaders
-    ShadersButton.Text = "Shaders: " .. (Toggles.Shaders and "ON" or "OFF")
-end)
-
--- Main Loop
-RunService.RenderStepped:Connect(function()
-    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-    local myRoot = LocalPlayer.Character.HumanoidRootPart
-
-    LocalPlayer.Character.Humanoid.WalkSpeed = Toggles.Speed and 100 or 16
-    if Toggles.InfiniteJump then UserInputService.JumpRequest:Connect(function() if Toggles.InfiniteJump then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end end) end
-
-    local nearestEnemy, minDist = nil, math.huge
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.Humanoid.Health > 0 then
-            local dist = (myRoot.Position - player.Character.HumanoidRootPart.Position).Magnitude
-            if dist < minDist then minDist = dist; nearestEnemy = player end
-        end
-    end
-
-    if Toggles.Aimbot and nearestEnemy and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, nearestEnemy.Character.HumanoidRootPart.Position)
-    end
-
-    if Toggles.AutoFarm then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local enemyRoot = player.Character.HumanoidRootPart
-                enemyRoot.CFrame = myRoot.CFrame * CFrame.new(0, 0, -5)
-                player.Character.Humanoid.WalkSpeed = 0; player.Character.Humanoid.JumpPower = 0
-            end
-        end
-        if nearestEnemy then
-            local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
-            if tool then
-                LocalPlayer.Character.Humanoid:EquipTool(tool)
-                myRoot.CFrame = CFrame.new(myRoot.Position, nearestEnemy.Character.HumanoidRootPart.Position)
-                tool:Activate()
-            end
+local function CreateESP(player)
+    if player == LocalPlayer then return end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = player.Character
+    highlight.Adornee = player.Character
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    
+    local role = player.Character:FindFirstChild("Role")
+    if role then
+        if role.Value == "Murderer" then
+            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+            highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+        elseif role.Value == "Sheriff" then
+            highlight.FillColor = Color3.fromRGB(0, 0, 255)
+            highlight.OutlineColor = Color3.fromRGB(0, 0, 255)
+        else
+            highlight.FillColor = Color3.fromRGB(0, 255, 0)
+            highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
         end
     else
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid.WalkSpeed = 16; player.Character.Humanoid.JumpPower = 50
+        highlight.FillColor = Color3.fromRGB(255, 255, 255)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    end
+    
+    ESPObjects[player] = highlight
+end
+
+local function RemoveESP(player)
+    if ESPObjects[player] then
+        ESPObjects[player]:Destroy()
+        ESPObjects[player] = nil
+    end
+end
+
+local function UpdateESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and ESPEnabled then
+            if not ESPObjects[player] then
+                CreateESP(player)
+            end
+        else
+            RemoveESP(player)
+        end
+    end
+end
+
+-- Coin Farm Function
+local function FarmCoins()
+    for _, coin in pairs(Workspace:GetDescendants()) do
+        if coin.Name == "Coin" or coin.Name == "CoinContainer" then
+            if coin:IsA("BasePart") or coin:FindFirstChild("Coin") then
+                local coinPart = coin:IsA("BasePart") and coin or coin:FindFirstChild("Coin")
+                if coinPart then
+                    RootPart.CFrame = coinPart.CFrame
+                    wait(0.1)
+                end
             end
         end
     end
+end
 
-    if Toggles.Reach and nearestEnemy and minDist < 50 then
-        if LocalPlayer.Character:FindFirstChildOfClass("Tool") then
-            game.ReplicatedStorage.DefaultRemotes.Damage:FireServer(nearestEnemy.Character.Humanoid, 20)
+-- Get Murderer Function
+local function GetMurderer()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("Role") then
+            if player.Character.Role.Value == "Murderer" then
+                return player
+            end
+        end
+    end
+    return nil
+end
+
+-- Shoot Murderer Function
+local function ShootMurderer()
+    local murderer = GetMurderer()
+    if murderer and murderer.Character and murderer.Character:FindFirstChild("HumanoidRootPart") then
+        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("Shoot") then
+            local args = {
+                [1] = 1,
+                [2] = murderer.Character.HumanoidRootPart.Position,
+                [3] = "AH"
+            }
+            tool.Shoot:FireServer(unpack(args))
+            
+            Library:Notification({
+                Title = "Shot Fired!",
+                Text = "Attempted to shoot " .. murderer.Name,
+                Time = 3
+            })
+        end
+    end
+end
+
+-- Noclip Function
+local function Noclip()
+    for _, part in pairs(Character:GetDescendants()) do
+        if part:IsA("BasePart") and part.CanCollide then
+            part.CanCollide = false
+        end
+    end
+end
+
+-- Fling Function
+local function FlingPlayer(targetPlayer)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local targetRoot = targetPlayer.Character.HumanoidRootPart
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
+        bodyVelocity.Velocity = Vector3.new(math.random(-100, 100), 100, math.random(-100, 100))
+        bodyVelocity.Parent = targetRoot
+        
+        wait(0.5)
+        bodyVelocity:Destroy()
+    end
+end
+
+-- Main Tab
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Main Features")
+
+MainSection:NewToggle("Auto Farm", "Automatically farm coins and objectives", function(state)
+    AutoFarmEnabled = state
+    if state then
+        Library:Notification({
+            Title = "Auto Farm",
+            Text = "Auto Farm Enabled!",
+            Time = 3
+        })
+    end
+end)
+
+MainSection:NewToggle("ESP", "See all players through walls", function(state)
+    ESPEnabled = state
+    if state then
+        Library:Notification({
+            Title = "ESP",
+            Text = "ESP Enabled!",
+            Time = 3
+        })
+        UpdateESP()
+    else
+        for player, _ in pairs(ESPObjects) do
+            RemoveESP(player)
         end
     end
 end)
 
--- Initial GUI animation
-wait(1)
-local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-TweenService:Create(MainFrame, tweenInfo, {Position = UDim2.new(0.02, 0, 0.5, 0)}):Play()
-guiVisible = true
-ToggleButton.Text = "Hide"
+MainSection:NewToggle("Coin Farm", "Automatically collect all coins", function(state)
+    CoinFarmEnabled = state
+    if state then
+        Library:Notification({
+            Title = "Coin Farm",
+            Text = "Coin Farm Enabled!",
+            Time = 3
+        })
+        spawn(function()
+            while CoinFarmEnabled do
+                FarmCoins()
+                wait(1)
+            end
+        end)
+    end
+end)
+
+MainSection:NewButton("Shoot Murderer", "Automatically shoot the murderer", function()
+    ShootMurderer()
+end)
+
+MainSection:NewToggle("Auto Shoot Murderer", "Continuously shoot murderer", function(state)
+    ShootMurdererEnabled = state
+    if state then
+        spawn(function()
+            while ShootMurdererEnabled do
+                ShootMurderer()
+                wait(0.5)
+            end
+        end)
+    end
+end)
+
+-- Movement Tab
+local MovementTab = Window:NewTab("Movement")
+local MovementSection = MovementTab:NewSection("Movement Features")
+
+MovementSection:NewToggle("Noclip", "Walk through walls", function(state)
+    NoclipEnabled = state
+    if state then
+        Library:Notification({
+            Title = "Noclip",
+            Text = "Noclip Enabled!",
+            Time = 3
+        })
+    end
+end)
+
+MovementSection:NewSlider("Walk Speed", "Change your walk speed", 500, 16, function(value)
+    Humanoid.WalkSpeed = value
+end)
+
+MovementSection:NewSlider("Jump Power", "Change your jump power", 500, 50, function(value)
+    Humanoid.JumpPower = value
+end)
+
+MovementSection:NewButton("Infinite Jump", "Enable infinite jump", function()
+    local InfiniteJumpEnabled = true
+    UserInputService.JumpRequest:Connect(function()
+        if InfiniteJumpEnabled then
+            Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end)
+    Library:Notification({
+        Title = "Infinite Jump",
+        Text = "Infinite Jump Enabled!",
+        Time = 3
+    })
+end)
+
+-- Teleport Tab
+local TeleportTab = Window:NewTab("Teleport")
+local TeleportSection = TeleportTab:NewSection("Teleport Features")
+
+TeleportSection:NewButton("TP to Murderer", "Teleport to the murderer", function()
+    local murderer = GetMurderer()
+    if murderer and murderer.Character and murderer.Character:FindFirstChild("HumanoidRootPart") then
+        RootPart.CFrame = murderer.Character.HumanoidRootPart.CFrame
+        Library:Notification({
+            Title = "Teleported",
+            Text = "Teleported to " .. murderer.Name,
+            Time = 3
+        })
+    else
+        Library:Notification({
+            Title = "Error",
+            Text = "Murderer not found!",
+            Time = 3
+        })
+    end
+end)
+
+TeleportSection:NewButton("TP to Lobby", "Teleport to lobby", function()
+    RootPart.CFrame = CFrame.new(0, 100, 0)
+end)
+
+TeleportSection:NewDropdown("TP to Player", "Teleport to selected player", Players:GetPlayers(), function(selectedPlayer)
+    local player = Players:FindFirstChild(selectedPlayer)
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        RootPart.CFrame = player.Character.HumanoidRootPart.CFrame
+        Library:Notification({
+            Title = "Teleported",
+            Text = "Teleported to " .. player.Name,
+            Time = 3
+        })
+    end
+end)
+
+-- Fling Tab
+local FlingTab = Window:NewTab("Fling")
+local FlingSection = FlingTab:NewSection("Fling Features")
+
+FlingSection:NewToggle("Fling Aura", "Fling nearby players", function(state)
+    FlingEnabled = state
+    if state then
+        spawn(function()
+            while FlingEnabled do
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local distance = (RootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < 20 then
+                            FlingPlayer(player)
+                        end
+                    end
+                end
+                wait(1)
+            end
+        end)
+    end
+end)
+
+FlingSection:NewDropdown("Fling Player", "Fling selected player", Players:GetPlayers(), function(selectedPlayer)
+    local player = Players:FindFirstChild(selectedPlayer)
+    if player then
+        FlingPlayer(player)
+        Library:Notification({
+            Title = "Fling",
+            Text = "Flung " .. player.Name,
+            Time = 3
+        })
+    end
+end)
+
+-- Misc Tab
+local MiscTab = Window:NewTab("Misc")
+local MiscSection = MiscTab:NewSection("Miscellaneous")
+
+MiscSection:NewButton("Collect All Coins", "Instantly collect all coins", function()
+    FarmCoins()
+    Library:Notification({
+        Title = "Coins",
+        Text = "Collecting all coins!",
+        Time = 3
+    })
+end)
+
+MiscSection:NewButton("God Mode", "Enable god mode (may not work)", function()
+    Humanoid.Name = "1"
+    local newHumanoid = Humanoid:Clone()
+    newHumanoid.Parent = Character
+    newHumanoid.Name = "Humanoid"
+    Workspace.CurrentCamera.CameraSubject = newHumanoid
+    Humanoid:Destroy()
+    Library:Notification({
+        Title = "God Mode",
+        Text = "God Mode Attempted!",
+        Time = 3
+    })
+end)
+
+MiscSection:NewButton("Remove Fog", "Remove fog effects", function()
+    game:GetService("Lighting").FogEnd = 100000
+    Library:Notification({
+        Title = "Fog",
+        Text = "Fog Removed!",
+        Time = 3
+    })
+end)
+
+MiscSection:NewButton("Full Bright", "Enable full brightness", function()
+    game:GetService("Lighting").Brightness = 2
+    game:GetService("Lighting").ClockTime = 14
+    game:GetService("Lighting").GlobalShadows = false
+    game:GetService("Lighting").OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    Library:Notification({
+        Title = "Full Bright",
+        Text = "Full Bright Enabled!",
+        Time = 3
+    })
+end)
+
+-- Credits Tab
+local CreditsTab = Window:NewTab("Credits")
+local CreditsSection = CreditsTab:NewSection("Script Info")
+CreditsSection:NewLabel("MM2 Exploit Script")
+CreditsSection:NewLabel("Made for Manus User")
+CreditsSection:NewLabel("Version 1.0")
+
+-- RunService Loops
+RunService.Stepped:Connect(function()
+    if NoclipEnabled then
+        Noclip()
+    end
+    
+    if ESPEnabled then
+        UpdateESP()
+    end
+end)
+
+-- Player Events
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        if ESPEnabled then
+            wait(1)
+            CreateESP(player)
+        end
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    RemoveESP(player)
+end)
+
+-- Character Respawn Handler
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    Humanoid = Character:WaitForChild("Humanoid")
+    RootPart = Character:WaitForChild("HumanoidRootPart")
+end)
+
+-- Initial Notification
+Library:Notification({
+    Title = "MM2 Exploit Hub",
+    Text = "Script Loaded Successfully!",
+    Time = 5
+})
+
+print("MM2 Exploit Script Loaded!")
