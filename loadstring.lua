@@ -1,165 +1,201 @@
--- Teen Titans Battlegrounds Cheat Script (Enhanced)
+-- Teen Titans Battlegrounds: Glassmorphic Suite
 
--- Create the GUI
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local TitleLabel = Instance.new("TextLabel")
-local TokenFarmButton = Instance.new("TextButton")
-local SpeedButton = Instance.new("TextButton")
-local JumpButton = Instance.new("TextButton")
-local UnlockButton = Instance.new("TextButton")
-local ToggleButton = Instance.new("TextButton")
+-- Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
--- Properties
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- Player & Camera
+local LocalPlayer = Players.LocalPlayer
+local Camera = game.Workspace.CurrentCamera
 
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BorderSizePixel = 2
-MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 200, 0, 250)
-MainFrame.Draggable = true
-MainFrame.Active = true
+-- GUI Creation
+local function CreateGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "GlassmorphicSuiteGUI"
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.ResetOnSpawn = false -- Make GUI persistent on death
 
-TitleLabel.Parent = MainFrame
-TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-TitleLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-TitleLabel.BorderSizePixel = 2
-TitleLabel.Size = UDim2.new(1, 0, 0, 30)
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.Text = "Teen Titans BG Cheats"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 18
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.BackgroundTransparency = 0.4 -- Glassmorphic transparency
+    MainFrame.BorderColor3 = Color3.fromRGB(150, 80, 255)
+    MainFrame.BorderSizePixel = 1
+    MainFrame.Position = UDim2.new(-0.5, 0, 0.5, -150)
+    MainFrame.Size = UDim2.new(0, 280, 0, 320)
+    MainFrame.Draggable = true
+    MainFrame.Active = true
+    MainFrame.ClipsDescendants = true
 
-TokenFarmButton.Parent = MainFrame
-TokenFarmButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-TokenFarmButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-TokenFarmButton.BorderSizePixel = 1
-TokenFarmButton.Position = UDim2.new(0.1, 0, 0.15, 0)
-TokenFarmButton.Size = UDim2.new(0.8, 0, 0, 30)
-TokenFarmButton.Font = Enum.Font.SourceSans
-TokenFarmButton.Text = "Token Farm: OFF"
-TokenFarmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-TokenFarmButton.TextSize = 16
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.Parent = MainFrame
 
-SpeedButton.Parent = MainFrame
-SpeedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SpeedButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-SpeedButton.BorderSizePixel = 1
-SpeedButton.Position = UDim2.new(0.1, 0, 0.3, 0)
-SpeedButton.Size = UDim2.new(0.8, 0, 0, 30)
-SpeedButton.Font = Enum.Font.SourceSans
-SpeedButton.Text = "Speed: OFF"
-SpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedButton.TextSize = 16
+    local UIBlur = Instance.new("UIBlur") -- Frosted glass effect
+    UIBlur.Parent = MainFrame
+    UIBlur.Size = 24
 
-JumpButton.Parent = MainFrame
-JumpButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-JumpButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-JumpButton.BorderSizePixel = 1
-JumpButton.Position = UDim2.new(0.1, 0, 0.45, 0)
-JumpButton.Size = UDim2.new(0.8, 0, 0, 30)
-JumpButton.Font = Enum.Font.SourceSans
-JumpButton.Text = "Infinite Jump: OFF"
-JumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpButton.TextSize = 16
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Name = "TitleLabel"
+    TitleLabel.Parent = MainFrame
+    TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.BackgroundTransparency = 0.9
+    TitleLabel.Size = UDim2.new(1, 0, 0, 35)
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.Text = "TTB Glass Suite"
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextSize = 20
 
-UnlockButton.Parent = MainFrame
-UnlockButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-UnlockButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-UnlockButton.BorderSizePixel = 1
-UnlockButton.Position = UDim2.new(0.1, 0, 0.6, 0)
-UnlockButton.Size = UDim2.new(0.8, 0, 0, 30)
-UnlockButton.Font = Enum.Font.SourceSans
-UnlockButton.Text = "Add 1M Tokens"
-UnlockButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-UnlockButton.TextSize = 16
+    local TabsFrame = Instance.new("Frame")
+    TabsFrame.Name = "TabsFrame"
+    TabsFrame.Parent = MainFrame
+    TabsFrame.BackgroundTransparency = 1
+    TabsFrame.Position = UDim2.new(0, 0, 0, 35)
+    TabsFrame.Size = UDim2.new(1, 0, 1, -35)
 
-ToggleButton.Parent = ScreenGui
-ToggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-ToggleButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-ToggleButton.BorderSizePixel = 2
-ToggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+    return ScreenGui, MainFrame
+end
+
+local function CreateButton(parent, text, position)
+    local Button = Instance.new("TextButton")
+    Button.Parent = parent
+    Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Button.BackgroundTransparency = 0.85
+    Button.Position = position
+    Button.Size = UDim2.new(0.8, 0, 0, 35)
+    Button.Font = Enum.Font.Gotham
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(230, 230, 230)
+    Button.TextSize = 16
+    Button.AnchorPoint = Vector2.new(0.5, 0)
+    Button.Position = UDim2.new(0.5, 0, position.Y.Scale, position.Y.Offset)
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = Button
+
+    -- 3D Animation on Hover
+    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.7, Size = UDim2.new(0.85, 0, 0, 40)}):Play()
+    end)
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.85, Size = UDim2.new(0.8, 0, 0, 35)}):Play()
+    end)
+
+    return Button
+end
+
+-- Initialize GUI
+local GUI, MainFrame = CreateGUI()
+local TabsFrame = MainFrame.TabsFrame
+
+-- Toggles
+local Toggles = { AutoFarm = false, Aimbot = false, Speed = false, InfiniteJump = false, Reach = false, Shaders = false }
+
+-- Create Buttons
+local AutoFarmButton = CreateButton(TabsFrame, "Auto Farm: OFF", UDim2.new(0.5, 0, 0.05, 0))
+local AimbotButton = CreateButton(TabsFrame, "Aimbot: OFF", UDim2.new(0.5, 0, 0.20, 0))
+local SpeedButton = CreateButton(TabsFrame, "Speed: OFF", UDim2.new(0.5, 0, 0.35, 0))
+local JumpButton = CreateButton(TabsFrame, "Infinite Jump: OFF", UDim2.new(0.5, 0, 0.50, 0))
+local ReachButton = CreateButton(TabsFrame, "Reach: OFF", UDim2.new(0.5, 0, 0.65, 0))
+local ShadersButton = CreateButton(TabsFrame, "Shaders: OFF", UDim2.new(0.5, 0, 0.80, 0))
+
+-- Button Click Logic
+local function ToggleFeature(button, featureName)
+    Toggles[featureName] = not Toggles[featureName]
+    button.Text = featureName .. ": " .. (Toggles[featureName] and "ON" or "OFF")
+    local color = Toggles[featureName] and Color3.fromRGB(120, 255, 120) or Color3.fromRGB(230, 230, 230)
+    TweenService:Create(button, TweenInfo.new(0.2), {TextColor3 = color}):Play()
+end
+
+AutoFarmButton.MouseButton1Click:Connect(function() ToggleFeature(AutoFarmButton, "AutoFarm") end)
+AimbotButton.MouseButton1Click:Connect(function() ToggleFeature(AimbotButton, "Aimbot") end)
+SpeedButton.MouseButton1Click:Connect(function() ToggleFeature(SpeedButton, "Speed") end)
+JumpButton.MouseButton1Click:Connect(function() ToggleFeature(JumpButton, "InfiniteJump") end)
+ReachButton.MouseButton1Click:Connect(function() ToggleFeature(ReachButton, "Reach") end)
+
+-- GUI Toggle Button
+local ToggleButton = CreateButton(GUI, "Show", UDim2.new(0.02, 0, 0.5, -15))
+local guiVisible = false
 ToggleButton.Size = UDim2.new(0, 80, 0, 30)
-ToggleButton.Font = Enum.Font.SourceSansBold
-ToggleButton.Text = "Toggle GUI"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 14
-
--- Script Logic
-local tokenFarm = false
-local speedEnabled = false
-local infiniteJump = false
-local originalSpeed = 16
-
-local player = game.Players.LocalPlayer
-
--- Token Farm (Teleport, Freeze, Attack)
-TokenFarmButton.MouseButton1Click:Connect(function()
-    tokenFarm = not tokenFarm
-    if tokenFarm then
-        TokenFarmButton.Text = "Token Farm: ON"
-        while tokenFarm do
-            local playerPos = player.Character.HumanoidRootPart.Position
-            for _, enemy in pairs(game.Players:GetPlayers()) do
-                if enemy ~= player and enemy.Character and enemy.Character:FindFirstChild("HumanoidRootPart") then
-                    local enemyRoot = enemy.Character.HumanoidRootPart
-                    enemyRoot.CFrame = CFrame.new(playerPos)
-                    enemy.Character.Humanoid.WalkSpeed = 0
-                    enemy.Character.Humanoid.JumpPower = 0
-                    game.ReplicatedStorage.DefaultRemotes.Damage:FireServer(enemy.Character.Humanoid, 25)
-                end
-            end
-            wait(0.2)
-        end
-    else
-        TokenFarmButton.Text = "Token Farm: OFF"
-        -- Restore players
-        for _, enemy in pairs(game.Players:GetPlayers()) do
-            if enemy ~= player and enemy.Character and enemy.Character:FindFirstChild("Humanoid") then
-                enemy.Character.Humanoid.WalkSpeed = 16
-                enemy.Character.Humanoid.JumpPower = 50
-            end
-        end
-    end
-end)
-
--- Speed
-SpeedButton.MouseButton1Click:Connect(function()
-    speedEnabled = not speedEnabled
-    if speedEnabled then
-        SpeedButton.Text = "Speed: ON"
-        player.Character.Humanoid.WalkSpeed = 50
-    else
-        SpeedButton.Text = "Speed: OFF"
-        player.Character.Humanoid.WalkSpeed = originalSpeed
-    end
-end)
-
--- Infinite Jump
-JumpButton.MouseButton1Click:Connect(function()
-    infiniteJump = not infiniteJump
-    if infiniteJump then
-        JumpButton.Text = "Infinite Jump: ON"
-        game:GetService("UserInputService").JumpRequest:Connect(function()
-            if infiniteJump then
-                player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-        end)
-    else
-        JumpButton.Text = "Infinite Jump: OFF"
-    end
-end)
-
--- Add Tokens (for unlocking characters)
-UnlockButton.MouseButton1Click:Connect(function()
-    local tokens = player:WaitForChild("leaderstats"):WaitForChild("Tokens")
-    tokens.Value = tokens.Value + 1000000
-end)
-
--- Toggle GUI
+ToggleButton.AnchorPoint = Vector2.new(0, 0.5)
 ToggleButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
+    guiVisible = not guiVisible
+    local goal = guiVisible and UDim2.new(0.02, 0, 0.5, 0) or UDim2.new(-0.5, 0, 0.5, 0)
+    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    TweenService:Create(MainFrame, tweenInfo, {Position = goal}):Play()
+    ToggleButton.Text = guiVisible and "Hide" or "Show"
 end)
+
+-- Shaders
+local bloom = Instance.new("BloomEffect")
+bloom.Parent = Camera
+bloom.Enabled = false
+ShadersButton.MouseButton1Click:Connect(function()
+    Toggles.Shaders = not Toggles.Shaders
+    bloom.Enabled = Toggles.Shaders
+    ShadersButton.Text = "Shaders: " .. (Toggles.Shaders and "ON" or "OFF")
+end)
+
+-- Main Loop
+RunService.RenderStepped:Connect(function()
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+    local myRoot = LocalPlayer.Character.HumanoidRootPart
+
+    LocalPlayer.Character.Humanoid.WalkSpeed = Toggles.Speed and 100 or 16
+    if Toggles.InfiniteJump then UserInputService.JumpRequest:Connect(function() if Toggles.InfiniteJump then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end end) end
+
+    local nearestEnemy, minDist = nil, math.huge
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.Humanoid.Health > 0 then
+            local dist = (myRoot.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then minDist = dist; nearestEnemy = player end
+        end
+    end
+
+    if Toggles.Aimbot and nearestEnemy and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, nearestEnemy.Character.HumanoidRootPart.Position)
+    end
+
+    if Toggles.AutoFarm then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local enemyRoot = player.Character.HumanoidRootPart
+                enemyRoot.CFrame = myRoot.CFrame * CFrame.new(0, 0, -5)
+                player.Character.Humanoid.WalkSpeed = 0; player.Character.Humanoid.JumpPower = 0
+            end
+        end
+        if nearestEnemy then
+            local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+            if tool then
+                LocalPlayer.Character.Humanoid:EquipTool(tool)
+                myRoot.CFrame = CFrame.new(myRoot.Position, nearestEnemy.Character.HumanoidRootPart.Position)
+                tool:Activate()
+            end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.WalkSpeed = 16; player.Character.Humanoid.JumpPower = 50
+            end
+        end
+    end
+
+    if Toggles.Reach and nearestEnemy and minDist < 50 then
+        if LocalPlayer.Character:FindFirstChildOfClass("Tool") then
+            game.ReplicatedStorage.DefaultRemotes.Damage:FireServer(nearestEnemy.Character.Humanoid, 20)
+        end
+    end
+end)
+
+-- Initial GUI animation
+wait(1)
+local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+TweenService:Create(MainFrame, tweenInfo, {Position = UDim2.new(0.02, 0, 0.5, 0)}):Play()
+guiVisible = true
+ToggleButton.Text = "Hide"
