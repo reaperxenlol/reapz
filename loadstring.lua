@@ -1,4 +1,4 @@
--- Teen Titans Battlegrounds: Glassmorphic Suite (Fixed & Compatible)
+-- Teen Titans Battlegrounds: Glassmorphic Suite
 
 -- Services
 local Players = game:GetService("Players")
@@ -10,13 +10,8 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = game.Workspace.CurrentCamera
 
--- GUI Creation (with error handling)
-local success, guiElements = pcall(function()
-    -- Check for existing GUI and remove it to prevent duplicates
-    if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("GlassmorphicSuiteGUI") then
-        LocalPlayer.PlayerGui.GlassmorphicSuiteGUI:Destroy()
-    end
-
+-- GUI Creation
+local function CreateGUI()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "GlassmorphicSuiteGUI"
     ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
@@ -26,12 +21,12 @@ local success, guiElements = pcall(function()
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45) -- Darker base
-    MainFrame.BackgroundTransparency = 0.2 -- Less transparent base for better readability
-    MainFrame.BorderColor3 = Color3.fromRGB(180, 100, 255)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.BackgroundTransparency = 0.4 -- Glassmorphic transparency
+    MainFrame.BorderColor3 = Color3.fromRGB(150, 80, 255)
     MainFrame.BorderSizePixel = 1
-    MainFrame.Position = UDim2.new(-0.5, 0, 0.5, -160)
-    MainFrame.Size = UDim2.new(0, 280, 0, 340)
+    MainFrame.Position = UDim2.new(-0.5, 0, 0.5, -150)
+    MainFrame.Size = UDim2.new(0, 280, 0, 320)
     MainFrame.Draggable = true
     MainFrame.Active = true
     MainFrame.ClipsDescendants = true
@@ -40,46 +35,37 @@ local success, guiElements = pcall(function()
     UICorner.CornerRadius = UDim.new(0, 12)
     UICorner.Parent = MainFrame
 
-    -- Fake Glass Effect with Gradient (Roblox Compatible)
-    local UIGradient = Instance.new("UIGradient")
-    UIGradient.Parent = MainFrame
-    UIGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))})
-    UIGradient.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.85), NumberSequenceKeypoint.new(1, 0.95)})
-    UIGradient.Rotation = 60
+    local UIBlur = Instance.new("UIBlur") -- Frosted glass effect
+    UIBlur.Parent = MainFrame
+    UIBlur.Size = 24
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "TitleLabel"
     TitleLabel.Parent = MainFrame
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+    TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.BackgroundTransparency = 0.9
+    TitleLabel.Size = UDim2.new(1, 0, 0, 35)
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = "TTB Glass Suite"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextSize = 24
-    TitleLabel.TextStrokeTransparency = 0.4
+    TitleLabel.TextSize = 20
 
     local TabsFrame = Instance.new("Frame")
     TabsFrame.Name = "TabsFrame"
     TabsFrame.Parent = MainFrame
     TabsFrame.BackgroundTransparency = 1
-    TabsFrame.Position = UDim2.new(0, 0, 0, 40)
-    TabsFrame.Size = UDim2.new(1, 0, 1, -40)
+    TabsFrame.Position = UDim2.new(0, 0, 0, 35)
+    TabsFrame.Size = UDim2.new(1, 0, 1, -35)
 
-    return {ScreenGui = ScreenGui, MainFrame = MainFrame, TabsFrame = TabsFrame}
-end)
-
-if not success then
-    warn("GUI Failed to load:", guiElements) -- Error message
-    return
+    return ScreenGui, MainFrame
 end
-
-local GUI, MainFrame, TabsFrame = guiElements.ScreenGui, guiElements.MainFrame, guiElements.TabsFrame
 
 local function CreateButton(parent, text, position)
     local Button = Instance.new("TextButton")
     Button.Parent = parent
     Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Button.BackgroundTransparency = 0.92
+    Button.BackgroundTransparency = 0.85
+    Button.Position = position
     Button.Size = UDim2.new(0.8, 0, 0, 35)
     Button.Font = Enum.Font.Gotham
     Button.Text = text
@@ -95,17 +81,23 @@ local function CreateButton(parent, text, position)
     -- 3D Animation on Hover
     local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     Button.MouseEnter:Connect(function()
-        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.8, Size = UDim2.new(0.85, 0, 0, 40), Rotation = 5}):Play()
+        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.7, Size = UDim2.new(0.85, 0, 0, 40)}):Play()
     end)
     Button.MouseLeave:Connect(function()
-        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.92, Size = UDim2.new(0.8, 0, 0, 35), Rotation = 0}):Play()
+        TweenService:Create(Button, tweenInfo, {BackgroundTransparency = 0.85, Size = UDim2.new(0.8, 0, 0, 35)}):Play()
     end)
 
     return Button
 end
 
--- Toggles & Buttons
+-- Initialize GUI
+local GUI, MainFrame = CreateGUI()
+local TabsFrame = MainFrame.TabsFrame
+
+-- Toggles
 local Toggles = { AutoFarm = false, Aimbot = false, Speed = false, InfiniteJump = false, Reach = false, Shaders = false }
+
+-- Create Buttons
 local AutoFarmButton = CreateButton(TabsFrame, "Auto Farm: OFF", UDim2.new(0.5, 0, 0.05, 0))
 local AimbotButton = CreateButton(TabsFrame, "Aimbot: OFF", UDim2.new(0.5, 0, 0.20, 0))
 local SpeedButton = CreateButton(TabsFrame, "Speed: OFF", UDim2.new(0.5, 0, 0.35, 0))
@@ -128,14 +120,13 @@ JumpButton.MouseButton1Click:Connect(function() ToggleFeature(JumpButton, "Infin
 ReachButton.MouseButton1Click:Connect(function() ToggleFeature(ReachButton, "Reach") end)
 
 -- GUI Toggle Button
-local ToggleButton = CreateButton(GUI, "Show", UDim2.new(0.02, 0, 0.5, 0))
+local ToggleButton = CreateButton(GUI, "Show", UDim2.new(0.02, 0, 0.5, -15))
 local guiVisible = false
 ToggleButton.Size = UDim2.new(0, 80, 0, 30)
 ToggleButton.AnchorPoint = Vector2.new(0, 0.5)
-ToggleButton.Position = UDim2.new(0.02, 0, 0.5, 0)
 ToggleButton.MouseButton1Click:Connect(function()
     guiVisible = not guiVisible
-    local goal = guiVisible and UDim2.new(0.02, 0, 0.5, -160) or UDim2.new(-0.5, 0, 0.5, -160)
+    local goal = guiVisible and UDim2.new(0.02, 0, 0.5, 0) or UDim2.new(-0.5, 0, 0.5, 0)
     local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
     TweenService:Create(MainFrame, tweenInfo, {Position = goal}):Play()
     ToggleButton.Text = guiVisible and "Hide" or "Show"
@@ -205,6 +196,6 @@ end)
 -- Initial GUI animation
 wait(1)
 local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-TweenService:Create(MainFrame, tweenInfo, {Position = UDim2.new(0.02, 0, 0.5, -160)}):Play()
+TweenService:Create(MainFrame, tweenInfo, {Position = UDim2.new(0.02, 0, 0.5, 0)}):Play()
 guiVisible = true
 ToggleButton.Text = "Hide"
