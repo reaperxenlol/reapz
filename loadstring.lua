@@ -1,4 +1,4 @@
--- Murder Mystery 2 Exploit Script (Enhanced)
+-- Murder Mystery 2 Exploit Script (Final)
 -- Features: AutoFarm, ESP, Teleport, Shaders, Coin Farm, Shoot Murderer, Noclip, Fling & More
 
 -- Services
@@ -33,7 +33,7 @@ ScreenGui.Name = "MM2ExploitGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Main Frame (Better Design)
+-- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 380, 0, 420)
@@ -69,7 +69,7 @@ UIGradient.Color = ColorSequence.new{
 UIGradient.Rotation = 45
 UIGradient.Parent = MainFrame
 
--- Title Bar (Better Design)
+-- Title Bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 35)
@@ -94,7 +94,7 @@ Title.Name = "Title"
 Title.Size = UDim2.new(1, -80, 1, 0)
 Title.Position = UDim2.new(0, 12, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "🔪 MM2 EXPLOIT HUB"
+Title.Text = "MM2 EXPLOIT HUB"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16
 Title.Font = Enum.Font.GothamBold
@@ -107,7 +107,7 @@ MinimizeButton.Name = "MinimizeButton"
 MinimizeButton.Size = UDim2.new(0, 28, 0, 28)
 MinimizeButton.Position = UDim2.new(1, -63, 0, 3.5)
 MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
-MinimizeButton.Text = "—"
+MinimizeButton.Text = "-"
 MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeButton.TextSize = 16
 MinimizeButton.Font = Enum.Font.GothamBold
@@ -123,7 +123,7 @@ CloseButton.Name = "CloseButton"
 CloseButton.Size = UDim2.new(0, 28, 0, 28)
 CloseButton.Position = UDim2.new(1, -32, 0, 3.5)
 CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 80)
-CloseButton.Text = "✕"
+CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.TextSize = 16
 CloseButton.Font = Enum.Font.GothamBold
@@ -139,9 +139,9 @@ MinimizedButton.Name = "MinimizedButton"
 MinimizedButton.Size = UDim2.new(0, 50, 0, 50)
 MinimizedButton.Position = UDim2.new(0, 10, 0, 10)
 MinimizedButton.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
-MinimizedButton.Text = "🔪"
+MinimizedButton.Text = "MM2"
 MinimizedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizedButton.TextSize = 24
+MinimizedButton.TextSize = 14
 MinimizedButton.Font = Enum.Font.GothamBold
 MinimizedButton.Visible = false
 MinimizedButton.Active = true
@@ -187,7 +187,7 @@ local tabButtons = {}
 local tabFrames = {}
 local currentTab = nil
 
-local function CreateTab(name, icon)
+local function CreateTab(name)
     local tabIndex = #tabButtons + 1
     
     -- Tab Button
@@ -196,7 +196,7 @@ local function CreateTab(name, icon)
     TabButton.Size = UDim2.new(0.25, -4, 1, 0)
     TabButton.Position = UDim2.new(0.25 * (tabIndex - 1), 2 * (tabIndex - 1), 0, 0)
     TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    TabButton.Text = icon .. " " .. name
+    TabButton.Text = name
     TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
     TabButton.TextSize = 12
     TabButton.Font = Enum.Font.GothamBold
@@ -237,13 +237,10 @@ local function CreateTab(name, icon)
 end
 
 -- Create Tabs
-local MainTab, MainTabData = CreateTab("Main", "🏠")
-local MoveTab, MoveTabData = CreateTab("Move", "⚡")
-local ShaderTab, ShaderTabData = CreateTab("Shader", "🌈")
-local MiscTab, MiscTabData = CreateTab("Misc", "⚙️")
-
--- Activate first tab
-tabButtons[1]:Fire("MouseButton1Click")
+local MainTab, MainTabData = CreateTab("Main")
+local MoveTab, MoveTabData = CreateTab("Move")
+local ShaderTab, ShaderTabData = CreateTab("Shader")
+local MiscTab, MiscTabData = CreateTab("Misc")
 
 -- Function to create buttons
 local function CreateButton(text, callback, tabData)
@@ -389,7 +386,7 @@ local function Notify(title, text)
     end)
 end
 
--- FIXED ESP and Role Detection
+-- ESP and Role Detection
 local function GetPlayerRole(player)
     if not player.Character then return "Innocent" end
     
@@ -495,7 +492,7 @@ local function ShootMurderer()
         if tool and (tool.Name == "Gun" or tool.Name == "Revolver") then
             if tool:FindFirstChild("Shoot") then
                 tool.Shoot:FireServer(1, murderer.Character.HumanoidRootPart.Position, "AH")
-                Notify("🎯 Shot!", "Shot at " .. murderer.Name)
+                Notify("Shot Fired", "Shot at " .. murderer.Name)
             end
         end
     end
@@ -636,7 +633,7 @@ local function SetupRealisticSky()
     atmosphere.Haze = 0
     atmosphere.Parent = Lighting
     
-    Notify("🌤️ Sky", "Realistic sky loaded!")
+    Notify("Sky Loaded", "Realistic sky loaded!")
 end
 
 -- Create GUI Elements
@@ -645,20 +642,20 @@ end
 CreateToggle("ESP (Red=Murd, Blue=Sheriff)", function(state)
     ESPEnabled = state
     if state then
-        Notify("👁️ ESP", "ESP Enabled!")
+        Notify("ESP", "ESP Enabled!")
         UpdateESP()
     else
         for player, _ in pairs(ESPObjects) do
             RemoveESP(player)
         end
-        Notify("👁️ ESP", "ESP Disabled!")
+        Notify("ESP", "ESP Disabled!")
     end
 end, MainTabData)
 
 CreateToggle("Coin Farm", function(state)
     CoinFarmEnabled = state
     if state then
-        Notify("💰 Coins", "Coin Farm ON!")
+        Notify("Coin Farm", "Coin Farm ON!")
         spawn(function()
             while CoinFarmEnabled do
                 pcall(FarmCoins)
@@ -666,12 +663,12 @@ CreateToggle("Coin Farm", function(state)
             end
         end)
     else
-        Notify("💰 Coins", "Coin Farm OFF!")
+        Notify("Coin Farm", "Coin Farm OFF!")
     end
 end, MainTabData)
 
 CreateButton("Collect All Coins", function()
-    Notify("💰 Coins", "Collecting coins!")
+    Notify("Coins", "Collecting coins!")
     spawn(function() pcall(FarmCoins) end)
 end, MainTabData)
 
@@ -682,7 +679,7 @@ end, MainTabData)
 CreateToggle("Auto Shoot Murderer", function(state)
     ShootMurdererEnabled = state
     if state then
-        Notify("🎯 Auto Shoot", "Auto Shoot ON!")
+        Notify("Auto Shoot", "Auto Shoot ON!")
         spawn(function()
             while ShootMurdererEnabled do
                 pcall(ShootMurderer)
@@ -690,7 +687,7 @@ CreateToggle("Auto Shoot Murderer", function(state)
             end
         end)
     else
-        Notify("🎯 Auto Shoot", "Auto Shoot OFF!")
+        Notify("Auto Shoot", "Auto Shoot OFF!")
     end
 end, MainTabData)
 
@@ -698,41 +695,41 @@ CreateButton("TP to Murderer", function()
     local murderer = GetMurderer()
     if murderer and murderer.Character and murderer.Character:FindFirstChild("HumanoidRootPart") and RootPart then
         RootPart.CFrame = murderer.Character.HumanoidRootPart.CFrame
-        Notify("📍 TP", "TPed to " .. murderer.Name)
+        Notify("Teleport", "TPed to " .. murderer.Name)
     else
-        Notify("❌ Error", "Murderer not found!")
+        Notify("Error", "Murderer not found!")
     end
 end, MainTabData)
 
 -- MOVE TAB
 CreateToggle("Noclip", function(state)
     NoclipEnabled = state
-    Notify("👻 Noclip", state and "Noclip ON!" or "Noclip OFF!")
+    Notify("Noclip", state and "Noclip ON!" or "Noclip OFF!")
 end, MoveTabData)
 
 CreateButton("Speed 100", function()
     if Humanoid then
         Humanoid.WalkSpeed = 100
-        Notify("⚡ Speed", "Speed set to 100!")
+        Notify("Speed", "Speed set to 100!")
     end
 end, MoveTabData)
 
 CreateButton("Jump 150", function()
     if Humanoid then
         Humanoid.JumpPower = 150
-        Notify("🦘 Jump", "Jump set to 150!")
+        Notify("Jump", "Jump set to 150!")
     end
 end, MoveTabData)
 
 CreateToggle("Infinite Jump", function(state)
     InfiniteJumpEnabled = state
-    Notify("🦘 Inf Jump", state and "Infinite Jump ON!" or "Infinite Jump OFF!")
+    Notify("Infinite Jump", state and "Infinite Jump ON!" or "Infinite Jump OFF!")
 end, MoveTabData)
 
 CreateToggle("Fling Aura", function(state)
     FlingEnabled = state
     if state then
-        Notify("💫 Fling", "Fling Aura ON!")
+        Notify("Fling", "Fling Aura ON!")
         spawn(function()
             while FlingEnabled do
                 for _, player in pairs(Players:GetPlayers()) do
@@ -747,48 +744,48 @@ CreateToggle("Fling Aura", function(state)
             end
         end)
     else
-        Notify("💫 Fling", "Fling Aura OFF!")
+        Notify("Fling", "Fling Aura OFF!")
     end
 end, MoveTabData)
 
 -- SHADER TAB
-CreateButton("🌤️ Load Realistic Sky", function()
+CreateButton("Load Realistic Sky", function()
     SetupRealisticSky()
 end, ShaderTabData)
 
-CreateToggle("🌧️ Rain", function(state)
+CreateToggle("Rain", function(state)
     RainEnabled = state
     if state then
         CreateRain()
-        Notify("🌧️ Rain", "Rain Enabled!")
+        Notify("Rain", "Rain Enabled!")
     else
         if RainPart then RainPart:Destroy() end
-        Notify("🌧️ Rain", "Rain Disabled!")
+        Notify("Rain", "Rain Disabled!")
     end
 end, ShaderTabData)
 
-CreateToggle("❄️ Snow", function(state)
+CreateToggle("Snow", function(state)
     SnowEnabled = state
     if state then
         CreateSnow()
-        Notify("❄️ Snow", "Snow Enabled!")
+        Notify("Snow", "Snow Enabled!")
     else
         if SnowPart then SnowPart:Destroy() end
-        Notify("❄️ Snow", "Snow Disabled!")
+        Notify("Snow", "Snow Disabled!")
     end
 end, ShaderTabData)
 
-CreateButton("☀️ Full Bright", function()
+CreateButton("Full Bright", function()
     Lighting.Brightness = 2
     Lighting.ClockTime = 14
     Lighting.GlobalShadows = false
     Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-    Notify("☀️ Bright", "Full Bright ON!")
+    Notify("Full Bright", "Full Bright ON!")
 end, ShaderTabData)
 
-CreateButton("🌫️ Remove Fog", function()
+CreateButton("Remove Fog", function()
     Lighting.FogEnd = 100000
-    Notify("🌫️ Fog", "Fog Removed!")
+    Notify("Fog", "Fog Removed!")
 end, ShaderTabData)
 
 -- MISC TAB
@@ -796,18 +793,24 @@ CreateToggle("God Mode", function(state)
     GodModeEnabled = state
     if state then
         EnableGodMode()
-        Notify("🛡️ God Mode", "God Mode ON!")
+        Notify("God Mode", "God Mode ON!")
     else
-        Notify("🛡️ God Mode", "God Mode OFF!")
+        Notify("God Mode", "God Mode OFF!")
     end
 end, MiscTabData)
 
 CreateButton("TP to Lobby", function()
     if RootPart then
         RootPart.CFrame = CFrame.new(0, 100, 0)
-        Notify("📍 TP", "TPed to Lobby!")
+        Notify("Teleport", "TPed to Lobby!")
     end
 end, MiscTabData)
+
+-- Activate first tab by default
+wait(0.1)
+tabButtons[1].BackgroundColor3 = Color3.fromRGB(100, 50, 200)
+tabButtons[1].TextColor3 = Color3.fromRGB(255, 255, 255)
+tabFrames[1].frame.Visible = true
 
 -- RunService Loops
 RunService.Stepped:Connect(function()
@@ -861,5 +864,5 @@ end)
 SetupRealisticSky()
 
 -- Initial Notification
-Notify("🔪 MM2 Exploit", "Loaded Successfully!")
+Notify("MM2 Exploit", "Loaded Successfully!")
 print("MM2 Exploit Script Loaded!")
