@@ -1,5 +1,5 @@
 -- ╔══════════════════════════════════════════════════════════════════════════════╗
--- ║                    Zyx MM2 SCRIPT - ULTIMATE EDITION V3                      ║
+-- ║                    ZYX MM2 SCRIPT - ULTIMATE EDITION V3                       ║
 -- ║                     Enhanced by AI • Version 3.0                              ║
 -- ║           Anti-Kick • Modern UI • REAL Shader Effects • 40+ Features          ║
 -- ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -12,6 +12,7 @@ local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local SoundService = game:GetService("SoundService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
@@ -30,7 +31,6 @@ local Settings = {
     SilentAim = false,
     JumpBoost = false,
     KillAura = false,
-    GunMods = false,
     InfiniteJump = false,
     NoFall = false,
     NoVoid = false,
@@ -53,6 +53,7 @@ local Settings = {
     MoonGlowEnabled = false,
     RainIntensity = 200,
     SnowIntensity = 150,
+    SoundVolume = 0.5,
     TimeOfDay = 14,
 }
 
@@ -85,8 +86,19 @@ local State = {
     ThunderstormConnection = nil,
     AuroraConnection = nil,
     LightningConnection = nil,
+    MoonGlowEnabled = false,
     RainFolder = nil,
     SnowFolder = nil,
+    AuroraFolder = nil,
+    
+    -- Sound State
+    RainSound = nil,
+    SnowSound = nil,
+    ThunderSound = nil,
+    
+    -- Sky State
+    CustomSky = nil,
+    OriginalSky = nil,
     OriginalLighting = {},
     
     -- Other State
@@ -98,7 +110,6 @@ local State = {
     LastValidPosition = nil,
     FarmingCoins = false,
     NoclipParts = {},
-    MobileFlyTouching = {},
 }
 
 -- Cleanup old UI
@@ -200,7 +211,7 @@ titleLabel.Name = "Title"
 titleLabel.Size = UDim2.new(1, -50, 1, 0)
 titleLabel.Position = UDim2.new(0, 15, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "⚡ Zyx MM2 ULTIMATE V3"
+titleLabel.Text = "⚡ ZYX MM2 ULTIMATE V3"
 titleLabel.TextColor3 = Color3.new(1, 1, 1)
 titleLabel.TextSize = 16
 titleLabel.Font = Enum.Font.GothamBold
@@ -253,7 +264,6 @@ local tabButtons = {}
 local tabs = {"Main", "Visual", "Misc", "Teleport", "Shaders"}
 
 for i, tabName in ipairs(tabs) do
-    -- Tab Button
     local tabBtn = Instance.new("TextButton")
     tabBtn.Name = tabName .. "Tab"
     tabBtn.Size = UDim2.new(0, 65, 0, 28)
@@ -266,7 +276,6 @@ for i, tabName in ipairs(tabs) do
     Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 6)
     tabButtons[tabName] = tabBtn
     
-    -- Tab Page
     local page = Instance.new("ScrollingFrame")
     page.Name = tabName .. "Page"
     page.Size = UDim2.new(1, 0, 1, 0)
@@ -289,12 +298,10 @@ for i, tabName in ipairs(tabs) do
     
     tabPages[tabName] = page
     
-    -- Auto-size canvas
     pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         page.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 16)
     end)
     
-    -- Tab click
     tabBtn.MouseButton1Click:Connect(function()
         for name, btn in pairs(tabButtons) do
             btn.BackgroundColor3 = THEME.TabIdle
@@ -443,7 +450,8 @@ local function createSlider(tabName, options)
     
     local function updateSlider(input)
         local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
-        local value = math.floor(options.Min + (options.Max - options.Min) * pos)
+        local value = options.Min + (options.Max - options.Min) * pos
+        if not options.Decimal then value = math.floor(value) end
         
         sliderFill.Size = UDim2.new(pos, 0, 1, 0)
         valueLabel.Text = tostring(value) .. (options.Suffix or "")
@@ -634,11 +642,9 @@ local function createNotification(title, message, duration, notifType)
     msgLbl.TextWrapped = true
     msgLbl.Parent = notif
     
-    -- Animate in
     notif.Position = UDim2.new(1, 10, 0, 0)
     TweenService:Create(notif, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0, 0, 0, 0)}):Play()
     
-    -- Remove after duration
     task.delay(duration, function()
         TweenService:Create(notif, TweenInfo.new(0.3), {Position = UDim2.new(1, 10, 0, 0)}):Play()
         task.wait(0.3)
@@ -984,13 +990,11 @@ end
 local function enableAutoGG()
     if State.AutoGGConnection then return end
     
-    State.AutoGGConnection = ReplicatedStorage.ChildAdded:Connect(function(child)
-        if child.Name == "Remotes" or child:IsA("RemoteEvent") then
-            task.wait(2)
-            pcall(function()
-                game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("GG!", "All")
-            end)
-        end
+    State.AutoGGConnection = ReplicatedStorage.ChildAdded:Connect(function()
+        task.wait(2)
+        pcall(function()
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("GG!", "All")
+        end)
     end)
     
     createNotification("Auto GG", "Will say GG after rounds", 3, "success")
@@ -1031,16 +1035,13 @@ end
 -- ╚══════════════════════════════════════════════════════════════════════════════╝
 
 local function getPlayerRole(player)
-    -- MM2 Role Detection
     pcall(function()
         local backpack = player:FindFirstChild("Backpack")
         local char = player.Character
         
-        -- Check for knife (Murderer)
         if backpack and backpack:FindFirstChild("Knife") then return "Murderer" end
         if char and char:FindFirstChild("Knife") then return "Murderer" end
         
-        -- Check for gun (Sheriff)
         if backpack and (backpack:FindFirstChild("Gun") or backpack:FindFirstChild("Revolver")) then return "Sheriff" end
         if char and (char:FindFirstChild("Gun") or char:FindFirstChild("Revolver")) then return "Sheriff" end
     end)
@@ -1055,7 +1056,6 @@ local function createPlayerESP(player)
         local char = player.Character
         if not char then return end
         
-        -- Remove old ESP
         local oldHighlight = char:FindFirstChild("ESPHighlight")
         if oldHighlight then oldHighlight:Destroy() end
         
@@ -1065,7 +1065,6 @@ local function createPlayerESP(player)
             if oldBillboard then oldBillboard:Destroy() end
         end
         
-        -- Create highlight
         local highlight = Instance.new("Highlight")
         highlight.Name = "ESPHighlight"
         highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -1086,7 +1085,6 @@ local function createPlayerESP(player)
         
         highlight.Parent = char
         
-        -- Create name billboard
         if head then
             local billboard = Instance.new("BillboardGui")
             billboard.Name = "ESPBillboard"
@@ -1123,10 +1121,9 @@ local function createPlayerESP(player)
         if Settings.ESPEnabled then updateESP() end
     end)
     
-    -- Update role periodically
     State.ESPConnections[player.Name] = RunService.Heartbeat:Connect(function()
         if not Settings.ESPEnabled then return end
-        if tick() % 2 < 0.03 then -- Update every 2 seconds
+        if tick() % 2 < 0.03 then
             updateESP()
         end
     end)
@@ -1164,7 +1161,6 @@ end
 local function findAllCoins()
     local coins = {}
     
-    -- MM2 specific coin locations
     local containers = {
         workspace:FindFirstChild("Normal"),
         workspace:FindFirstChild("CoinContainer"),
@@ -1186,7 +1182,6 @@ local function findAllCoins()
         end
     end
     
-    -- Fallback: search entire workspace
     if #coins == 0 then
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj:IsA("BasePart") then
@@ -1213,7 +1208,6 @@ local function enableCoinESP()
             highlight.FillColor = Color3.fromRGB(255, 215, 0)
             highlight.OutlineColor = Color3.fromRGB(255, 165, 0)
             highlight.FillTransparency = 0.2
-            highlight.OutlineTransparency = 0
             highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
             highlight.Parent = coin
         end
@@ -1559,19 +1553,43 @@ end
 
 -- ╔══════════════════════════════════════════════════════════════════════════════╗
 -- ║                    SHADER SYSTEM - REAL VISUAL EFFECTS                        ║
--- ║              Camera-following particles visible only to you                   ║
+-- ║         All effects can run SIMULTANEOUSLY + SOUNDS + SKY COLORS              ║
 -- ╚══════════════════════════════════════════════════════════════════════════════╝
 
+-- Sound IDs (Roblox library sounds)
+local SOUND_IDS = {
+    Rain = "rbxassetid://9112854440",      -- Rain ambience
+    Thunder = "rbxassetid://9114488091",   -- Thunder crack
+    Wind = "rbxassetid://9112849858",      -- Wind/snow ambience
+}
+
+local function createWeatherSound(soundType)
+    local sound = Instance.new("Sound")
+    sound.Name = soundType .. "Sound"
+    sound.SoundId = SOUND_IDS[soundType]
+    sound.Volume = Settings.SoundVolume
+    sound.Looped = true
+    sound.Parent = workspace.CurrentCamera
+    return sound
+end
+
 local function storeOriginalLighting()
-    State.OriginalLighting = {
-        Ambient = Lighting.Ambient,
-        Brightness = Lighting.Brightness,
-        ClockTime = Lighting.ClockTime,
-        FogColor = Lighting.FogColor,
-        FogEnd = Lighting.FogEnd,
-        FogStart = Lighting.FogStart,
-        OutdoorAmbient = Lighting.OutdoorAmbient,
-    }
+    if not State.OriginalLighting.Ambient then
+        State.OriginalLighting = {
+            Ambient = Lighting.Ambient,
+            Brightness = Lighting.Brightness,
+            ClockTime = Lighting.ClockTime,
+            FogColor = Lighting.FogColor,
+            FogEnd = Lighting.FogEnd,
+            FogStart = Lighting.FogStart,
+            OutdoorAmbient = Lighting.OutdoorAmbient,
+            ColorShift_Top = Lighting.ColorShift_Top,
+            ColorShift_Bottom = Lighting.ColorShift_Bottom,
+        }
+        
+        -- Store original sky
+        State.OriginalSky = Lighting:FindFirstChildOfClass("Sky")
+    end
 end
 
 local function restoreOriginalLighting()
@@ -1584,12 +1602,67 @@ local function restoreOriginalLighting()
             Lighting.FogEnd = State.OriginalLighting.FogEnd
             Lighting.FogStart = State.OriginalLighting.FogStart
             Lighting.OutdoorAmbient = State.OriginalLighting.OutdoorAmbient
+            Lighting.ColorShift_Top = State.OriginalLighting.ColorShift_Top
+            Lighting.ColorShift_Bottom = State.OriginalLighting.ColorShift_Bottom
         end)
+    end
+    
+    -- Remove custom sky
+    if State.CustomSky then
+        State.CustomSky:Destroy()
+        State.CustomSky = nil
     end
 end
 
+local function createCustomSky(skyType)
+    -- Remove existing custom sky
+    if State.CustomSky then
+        State.CustomSky:Destroy()
+    end
+    
+    local sky = Instance.new("Sky")
+    sky.Name = "ZyxCustomSky"
+    
+    if skyType == "Storm" then
+        -- Dark stormy sky
+        sky.SkyboxBk = "rbxassetid://1012890"
+        sky.SkyboxDn = "rbxassetid://1012891"
+        sky.SkyboxFt = "rbxassetid://1012887"
+        sky.SkyboxLf = "rbxassetid://1012889"
+        sky.SkyboxRt = "rbxassetid://1012888"
+        sky.SkyboxUp = "rbxassetid://1012890"
+        sky.CelestialBodiesShown = false
+        sky.StarCount = 0
+    elseif skyType == "Night" then
+        -- Night sky with stars
+        sky.SkyboxBk = "rbxassetid://159454286"
+        sky.SkyboxDn = "rbxassetid://159454286"
+        sky.SkyboxFt = "rbxassetid://159454286"
+        sky.SkyboxLf = "rbxassetid://159454286"
+        sky.SkyboxRt = "rbxassetid://159454286"
+        sky.SkyboxUp = "rbxassetid://159454286"
+        sky.CelestialBodiesShown = true
+        sky.StarCount = 5000
+        sky.MoonAngularSize = 15
+    elseif skyType == "Winter" then
+        -- Overcast winter sky
+        sky.SkyboxBk = "rbxassetid://252670829"
+        sky.SkyboxDn = "rbxassetid://252670829"
+        sky.SkyboxFt = "rbxassetid://252670829"
+        sky.SkyboxLf = "rbxassetid://252670829"
+        sky.SkyboxRt = "rbxassetid://252670829"
+        sky.SkyboxUp = "rbxassetid://252670829"
+        sky.CelestialBodiesShown = false
+        sky.StarCount = 0
+    end
+    
+    sky.Parent = Lighting
+    State.CustomSky = sky
+    return sky
+end
+
 -- ═══════════════════════════════════════════════════════════════════════════════
--- RAIN EFFECT - Real falling rain particles that follow your camera
+-- RAIN EFFECT - Real falling rain + Sound + Dark stormy sky
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 local function enableRain()
@@ -1600,7 +1673,7 @@ local function enableRain()
     -- Create rain container
     State.RainFolder = Instance.new("Folder")
     State.RainFolder.Name = "RainEffects_Local"
-    State.RainFolder.Parent = workspace.CurrentCamera -- Parent to camera so only you see it
+    State.RainFolder.Parent = workspace.CurrentCamera
     
     local raindrops = {}
     local rainCount = Settings.RainIntensity or 200
@@ -1609,10 +1682,10 @@ local function enableRain()
     for i = 1, rainCount do
         local drop = Instance.new("Part")
         drop.Name = "Raindrop"
-        drop.Size = Vector3.new(0.05, math.random(15, 25) / 10, 0.05) -- Thin long drops
+        drop.Size = Vector3.new(0.05, math.random(15, 25) / 10, 0.05)
         drop.Material = Enum.Material.Neon
-        drop.Color = Color3.fromRGB(180, 200, 220)
-        drop.Transparency = 0.4
+        drop.Color = Color3.fromRGB(150, 180, 220)
+        drop.Transparency = 0.3
         drop.Anchored = true
         drop.CanCollide = false
         drop.CastShadow = false
@@ -1625,21 +1698,37 @@ local function enableRain()
         })
     end
     
-    -- Dark stormy atmosphere
+    -- DARK STORMY SKY COLORS
     Lighting.ClockTime = 16
-    Lighting.Brightness = 0.8
-    Lighting.Ambient = Color3.fromRGB(60, 65, 75)
-    Lighting.OutdoorAmbient = Color3.fromRGB(70, 75, 85)
-    Lighting.FogColor = Color3.fromRGB(100, 105, 115)
-    Lighting.FogEnd = 600
-    Lighting.FogStart = 20
+    Lighting.Brightness = 0.5
+    Lighting.Ambient = Color3.fromRGB(40, 45, 55)
+    Lighting.OutdoorAmbient = Color3.fromRGB(50, 55, 65)
+    Lighting.FogColor = Color3.fromRGB(80, 85, 95)
+    Lighting.FogEnd = 400
+    Lighting.FogStart = 10
+    Lighting.ColorShift_Top = Color3.fromRGB(60, 70, 90)
+    Lighting.ColorShift_Bottom = Color3.fromRGB(40, 50, 70)
     
-    -- Add atmosphere
+    -- Create stormy atmosphere
     local atmo = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting)
-    atmo.Density = 0.4
-    atmo.Color = Color3.fromRGB(120, 130, 145)
-    atmo.Decay = Color3.fromRGB(100, 110, 125)
-    atmo.Haze = 2
+    atmo.Name = "RainAtmosphere"
+    atmo.Density = 0.45
+    atmo.Color = Color3.fromRGB(100, 110, 130)
+    atmo.Decay = Color3.fromRGB(80, 90, 110)
+    atmo.Haze = 2.5
+    atmo.Glare = 0
+    
+    -- Color correction for stormy feel
+    local cc = Lighting:FindFirstChild("RainColorCorrection") or Instance.new("ColorCorrectionEffect", Lighting)
+    cc.Name = "RainColorCorrection"
+    cc.Brightness = -0.05
+    cc.Contrast = 0.15
+    cc.Saturation = -0.2
+    cc.TintColor = Color3.fromRGB(180, 190, 210)
+    
+    -- Rain sound
+    State.RainSound = createWeatherSound("Rain")
+    State.RainSound:Play()
     
     -- Animate rain
     State.RainConnection = RunService.RenderStepped:Connect(function(dt)
@@ -1648,16 +1737,13 @@ local function enableRain()
         for _, data in ipairs(raindrops) do
             local drop = data.part
             if drop and drop.Parent then
-                -- Move drop down
                 local newY = drop.Position.Y - data.speed * dt
                 
-                -- Reset if below camera
                 if newY < camPos.Y - 30 then
                     newY = camPos.Y + math.random(40, 80)
                     data.offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
                 end
                 
-                -- Position relative to camera
                 drop.CFrame = CFrame.new(
                     camPos.X + data.offset.X,
                     newY,
@@ -1667,7 +1753,7 @@ local function enableRain()
         end
     end)
     
-    createNotification("Rain", "Rain effect enabled - visible only to you", 3, "success")
+    createNotification("Rain", "Rain + stormy sky enabled", 3, "success")
 end
 
 local function disableRain()
@@ -1681,16 +1767,29 @@ local function disableRain()
         State.RainFolder = nil
     end
     
-    -- Remove atmosphere
-    local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+    if State.RainSound then
+        State.RainSound:Stop()
+        State.RainSound:Destroy()
+        State.RainSound = nil
+    end
+    
+    -- Remove rain-specific effects
+    local atmo = Lighting:FindFirstChild("RainAtmosphere")
     if atmo then atmo:Destroy() end
     
-    restoreOriginalLighting()
-    createNotification("Rain", "Rain effect disabled", 3, "info")
+    local cc = Lighting:FindFirstChild("RainColorCorrection")
+    if cc then cc:Destroy() end
+    
+    -- Only restore if no other weather effects are active
+    if not Settings.SnowEnabled and not Settings.ThunderstormEnabled and not Settings.AuroraEnabled and not Settings.MoonGlowEnabled then
+        restoreOriginalLighting()
+    end
+    
+    createNotification("Rain", "Rain disabled", 3, "info")
 end
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- SNOW EFFECT - Realistic snowflakes falling around you
+-- SNOW EFFECT - Snowflakes + Sound + Winter sky
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 local function enableSnow()
@@ -1731,29 +1830,38 @@ local function enableSnow()
         })
     end
     
-    -- Winter atmosphere
-    Lighting.ClockTime = 12
-    Lighting.Brightness = 1.2
-    Lighting.Ambient = Color3.fromRGB(180, 190, 210)
-    Lighting.OutdoorAmbient = Color3.fromRGB(190, 200, 220)
+    -- WINTER SKY COLORS - Overcast, cold, gray-blue
+    Lighting.ClockTime = 11
+    Lighting.Brightness = 1.0
+    Lighting.Ambient = Color3.fromRGB(160, 175, 200)
+    Lighting.OutdoorAmbient = Color3.fromRGB(170, 185, 210)
     Lighting.FogColor = Color3.fromRGB(200, 210, 230)
-    Lighting.FogEnd = 500
-    Lighting.FogStart = 50
+    Lighting.FogEnd = 350
+    Lighting.FogStart = 30
+    Lighting.ColorShift_Top = Color3.fromRGB(180, 195, 220)
+    Lighting.ColorShift_Bottom = Color3.fromRGB(200, 210, 235)
     
-    -- Cold atmosphere
-    local atmo = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting)
-    atmo.Density = 0.35
-    atmo.Color = Color3.fromRGB(200, 210, 235)
-    atmo.Decay = Color3.fromRGB(180, 190, 210)
-    atmo.Haze = 1.5
+    -- Winter atmosphere
+    local atmo = Lighting:FindFirstChild("SnowAtmosphere") or Instance.new("Atmosphere", Lighting)
+    atmo.Name = "SnowAtmosphere"
+    atmo.Density = 0.4
+    atmo.Color = Color3.fromRGB(200, 215, 240)
+    atmo.Decay = Color3.fromRGB(180, 195, 220)
+    atmo.Haze = 2
+    atmo.Glare = 0.1
     
-    -- Color correction for cold feel
+    -- Cold color correction
     local cc = Lighting:FindFirstChild("SnowColorCorrection") or Instance.new("ColorCorrectionEffect", Lighting)
     cc.Name = "SnowColorCorrection"
     cc.Brightness = 0.05
     cc.Contrast = 0.1
-    cc.Saturation = -0.15
-    cc.TintColor = Color3.fromRGB(220, 230, 255)
+    cc.Saturation = -0.2
+    cc.TintColor = Color3.fromRGB(210, 225, 255)
+    
+    -- Snow/wind sound
+    State.SnowSound = createWeatherSound("Wind")
+    State.SnowSound.Volume = Settings.SoundVolume * 0.7
+    State.SnowSound:Play()
     
     local time = 0
     
@@ -1765,18 +1873,15 @@ local function enableSnow()
         for _, data in ipairs(snowflakes) do
             local flake = data.part
             if flake and flake.Parent then
-                -- Gentle falling with drift
                 local newY = flake.Position.Y - data.speed * dt
                 local driftX = math.sin(time * data.driftX + data.phase) * 0.3
                 local driftZ = math.cos(time * data.driftZ + data.phase) * 0.3
                 
-                -- Reset if below camera
                 if newY < camPos.Y - 40 then
                     newY = camPos.Y + math.random(60, 100)
                     data.offset = Vector3.new(math.random(-70, 70), 0, math.random(-70, 70))
                 end
                 
-                -- Position relative to camera with drift
                 flake.CFrame = CFrame.new(
                     camPos.X + data.offset.X + driftX,
                     newY,
@@ -1786,7 +1891,7 @@ local function enableSnow()
         end
     end)
     
-    createNotification("Snow", "Snow effect enabled - visible only to you", 3, "success")
+    createNotification("Snow", "Snow + winter sky enabled", 3, "success")
 end
 
 local function disableSnow()
@@ -1800,26 +1905,40 @@ local function disableSnow()
         State.SnowFolder = nil
     end
     
-    -- Remove effects
-    local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+    if State.SnowSound then
+        State.SnowSound:Stop()
+        State.SnowSound:Destroy()
+        State.SnowSound = nil
+    end
+    
+    local atmo = Lighting:FindFirstChild("SnowAtmosphere")
     if atmo then atmo:Destroy() end
     
     local cc = Lighting:FindFirstChild("SnowColorCorrection")
     if cc then cc:Destroy() end
     
-    restoreOriginalLighting()
-    createNotification("Snow", "Snow effect disabled", 3, "info")
+    if not Settings.RainEnabled and not Settings.ThunderstormEnabled and not Settings.AuroraEnabled and not Settings.MoonGlowEnabled then
+        restoreOriginalLighting()
+    end
+    
+    createNotification("Snow", "Snow disabled", 3, "info")
 end
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- THUNDERSTORM - Rain + Lightning flashes
+-- THUNDERSTORM - Rain + Lightning + Thunder sounds
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 local function enableThunderstorm()
     if State.ThunderstormConnection then return end
     
-    -- Enable rain first
-    enableRain()
+    -- Enable rain first (includes stormy sky)
+    if not State.RainConnection then
+        enableRain()
+    end
+    
+    -- Make it even darker for thunderstorm
+    Lighting.Brightness = 0.3
+    Lighting.Ambient = Color3.fromRGB(25, 30, 40)
     
     -- Create lightning flash effect
     local flash = Instance.new("ColorCorrectionEffect")
@@ -1827,54 +1946,78 @@ local function enableThunderstorm()
     flash.Brightness = 0
     flash.Parent = Lighting
     
+    -- Thunder sound (not looped)
+    State.ThunderSound = Instance.new("Sound")
+    State.ThunderSound.Name = "ThunderSound"
+    State.ThunderSound.SoundId = SOUND_IDS.Thunder
+    State.ThunderSound.Volume = Settings.SoundVolume * 1.5
+    State.ThunderSound.Looped = false
+    State.ThunderSound.Parent = workspace.CurrentCamera
+    
     local nextLightning = tick() + math.random(3, 8)
     
     -- Lightning loop
     State.LightningConnection = RunService.Heartbeat:Connect(function()
         if tick() >= nextLightning then
-            nextLightning = tick() + math.random(4, 12)
+            nextLightning = tick() + math.random(5, 15)
+            
+            -- Play thunder sound
+            if State.ThunderSound then
+                State.ThunderSound:Play()
+            end
             
             -- Flash sequence
             spawn(function()
                 -- First flash
-                flash.Brightness = 3
-                Lighting.Brightness = 4
+                flash.Brightness = 4
+                Lighting.Brightness = 5
                 task.wait(0.05)
                 flash.Brightness = 0
-                Lighting.Brightness = 0.8
+                Lighting.Brightness = 0.3
                 task.wait(0.1)
                 -- Second flash
-                flash.Brightness = 2
+                flash.Brightness = 2.5
                 Lighting.Brightness = 3
-                task.wait(0.03)
+                task.wait(0.04)
                 flash.Brightness = 0
-                Lighting.Brightness = 0.8
+                Lighting.Brightness = 0.3
             end)
         end
     end)
     
-    State.ThunderstormConnection = true -- Flag
+    State.ThunderstormConnection = true
+    Settings.ThunderstormEnabled = true
     createNotification("Thunderstorm", "Thunder & lightning enabled", 3, "success")
 end
 
 local function disableThunderstorm()
-    -- Disable rain
-    disableRain()
-    
     if State.LightningConnection then
         State.LightningConnection:Disconnect()
         State.LightningConnection = nil
+    end
+    
+    if State.ThunderSound then
+        State.ThunderSound:Stop()
+        State.ThunderSound:Destroy()
+        State.ThunderSound = nil
     end
     
     local flash = Lighting:FindFirstChild("LightningFlash")
     if flash then flash:Destroy() end
     
     State.ThunderstormConnection = nil
+    Settings.ThunderstormEnabled = false
+    
+    -- Disable rain if it was enabled by thunderstorm
+    if Settings.RainEnabled == false and State.RainConnection then
+        disableRain()
+    end
+    
     createNotification("Thunderstorm", "Thunderstorm disabled", 3, "info")
 end
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- AURORA BOREALIS - Northern lights in the sky
+-- AURORA BOREALIS - Northern lights (can run with other effects)
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 local function enableAurora()
@@ -1882,33 +2025,35 @@ local function enableAurora()
     
     storeOriginalLighting()
     
-    -- Night sky
+    -- Night sky for aurora
     Lighting.ClockTime = 0
     Lighting.Brightness = 0.4
-    Lighting.Ambient = Color3.fromRGB(20, 30, 50)
-    Lighting.OutdoorAmbient = Color3.fromRGB(30, 45, 70)
+    Lighting.Ambient = Color3.fromRGB(15, 25, 45)
+    Lighting.OutdoorAmbient = Color3.fromRGB(25, 40, 65)
+    Lighting.ColorShift_Top = Color3.fromRGB(30, 60, 100)
+    Lighting.ColorShift_Bottom = Color3.fromRGB(20, 40, 70)
     
     -- Create aurora parts
-    local auroraFolder = Instance.new("Folder")
-    auroraFolder.Name = "AuroraEffects"
-    auroraFolder.Parent = workspace
+    State.AuroraFolder = Instance.new("Folder")
+    State.AuroraFolder.Name = "AuroraEffects"
+    State.AuroraFolder.Parent = workspace
     
     local auroraParts = {}
     
-    for i = 1, 12 do
+    for i = 1, 15 do
         local part = Instance.new("Part")
         part.Name = "Aurora_" .. i
         part.Anchored = true
         part.CanCollide = false
         part.Material = Enum.Material.Neon
         part.Transparency = 0.4
-        part.Size = Vector3.new(math.random(80, 200), math.random(150, 400), 8)
+        part.Size = Vector3.new(math.random(100, 250), math.random(200, 500), 10)
         part.CFrame = CFrame.new(
-            math.random(-400, 400),
-            math.random(250, 450),
-            math.random(-400, 400)
-        ) * CFrame.Angles(0, math.rad(math.random(0, 360)), math.rad(math.random(-15, 15)))
-        part.Parent = auroraFolder
+            math.random(-500, 500),
+            math.random(300, 550),
+            math.random(-500, 500)
+        ) * CFrame.Angles(0, math.rad(math.random(0, 360)), math.rad(math.random(-20, 20)))
+        part.Parent = State.AuroraFolder
         
         table.insert(auroraParts, {
             part = part,
@@ -1920,9 +2065,9 @@ local function enableAurora()
     -- Bloom for glow
     local bloom = Lighting:FindFirstChild("AuroraBloom") or Instance.new("BloomEffect", Lighting)
     bloom.Name = "AuroraBloom"
-    bloom.Intensity = 1.5
-    bloom.Size = 40
-    bloom.Threshold = 0.7
+    bloom.Intensity = 2
+    bloom.Size = 50
+    bloom.Threshold = 0.6
     
     local time = 0
     
@@ -1932,21 +2077,17 @@ local function enableAurora()
         for _, data in ipairs(auroraParts) do
             local part = data.part
             if part and part.Parent then
-                -- Wave motion
-                local wave = math.sin(time * 0.3 + data.phase) * 15
+                local wave = math.sin(time * 0.3 + data.phase) * 20
                 part.CFrame = part.CFrame * CFrame.new(0, wave * dt, 0)
                 
-                -- Color shift between green, blue, purple
-                local hue = (math.sin(time * 0.2 + data.colorPhase) + 1) / 2 * 0.4 + 0.4 -- 0.4 to 0.8 (green to purple)
-                part.Color = Color3.fromHSV(hue, 0.8, 1)
+                local hue = (math.sin(time * 0.15 + data.colorPhase) + 1) / 2 * 0.4 + 0.35
+                part.Color = Color3.fromHSV(hue, 0.85, 1)
                 
-                -- Transparency pulse
-                part.Transparency = 0.35 + math.sin(time * 1.5 + data.phase) * 0.15
+                part.Transparency = 0.3 + math.sin(time * 1.5 + data.phase) * 0.2
             end
         end
     end)
     
-    State.AuroraFolder = auroraFolder
     createNotification("Aurora", "Northern lights enabled", 3, "success")
 end
 
@@ -1964,12 +2105,15 @@ local function disableAurora()
     local bloom = Lighting:FindFirstChild("AuroraBloom")
     if bloom then bloom:Destroy() end
     
-    restoreOriginalLighting()
+    if not Settings.RainEnabled and not Settings.SnowEnabled and not Settings.ThunderstormEnabled and not Settings.MoonGlowEnabled then
+        restoreOriginalLighting()
+    end
+    
     createNotification("Aurora", "Aurora disabled", 3, "info")
 end
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- MOON GLOW - Bright moon with bloom effect
+-- MOON GLOW - Bright moon with bloom (can run with other effects)
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 local function enableMoonGlow()
@@ -1978,87 +2122,44 @@ local function enableMoonGlow()
     -- Night time
     Lighting.ClockTime = 0
     Lighting.Brightness = 0.6
-    Lighting.Ambient = Color3.fromRGB(40, 50, 70)
-    Lighting.OutdoorAmbient = Color3.fromRGB(50, 60, 80)
+    Lighting.Ambient = Color3.fromRGB(35, 45, 70)
+    Lighting.OutdoorAmbient = Color3.fromRGB(45, 55, 85)
+    Lighting.ColorShift_Top = Color3.fromRGB(50, 70, 110)
+    Lighting.ColorShift_Bottom = Color3.fromRGB(40, 55, 90)
     
     -- Heavy bloom for moon glow
     local bloom = Lighting:FindFirstChild("MoonBloom") or Instance.new("BloomEffect", Lighting)
     bloom.Name = "MoonBloom"
-    bloom.Intensity = 2
-    bloom.Size = 56
-    bloom.Threshold = 0.6
+    bloom.Intensity = 2.5
+    bloom.Size = 60
+    bloom.Threshold = 0.5
     
-    -- Atmosphere
-    local atmo = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting)
+    -- Night atmosphere
+    local atmo = Lighting:FindFirstChild("MoonAtmosphere") or Instance.new("Atmosphere", Lighting)
+    atmo.Name = "MoonAtmosphere"
     atmo.Density = 0.25
-    atmo.Color = Color3.fromRGB(50, 60, 90)
-    atmo.Decay = Color3.fromRGB(40, 50, 80)
-    atmo.Haze = 1
+    atmo.Color = Color3.fromRGB(45, 55, 90)
+    atmo.Decay = Color3.fromRGB(35, 45, 80)
+    atmo.Haze = 1.2
     
-    createNotification("Moon Glow", "Bright moon with bloom enabled", 3, "success")
+    State.MoonGlowEnabled = true
+    createNotification("Moon Glow", "Bright moon enabled", 3, "success")
 end
 
 local function disableMoonGlow()
     local bloom = Lighting:FindFirstChild("MoonBloom")
     if bloom then bloom:Destroy() end
     
-    local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+    local atmo = Lighting:FindFirstChild("MoonAtmosphere")
     if atmo then atmo:Destroy() end
     
-    restoreOriginalLighting()
-    createNotification("Moon Glow", "Moon glow disabled", 3, "info")
-end
-
--- ═══════════════════════════════════════════════════════════════════════════════
--- WEATHER PRESETS
--- ═══════════════════════════════════════════════════════════════════════════════
-
-local function setWeatherPreset(preset)
-    -- Disable all effects first
-    disableRain()
-    disableSnow()
-    disableThunderstorm()
-    disableAurora()
-    disableMoonGlow()
+    State.MoonGlowEnabled = false
     
-    task.wait(0.1)
-    
-    if preset == "Clear" then
+    if not Settings.RainEnabled and not Settings.SnowEnabled and not Settings.ThunderstormEnabled and not Settings.AuroraEnabled then
         restoreOriginalLighting()
-        Lighting.ClockTime = 14
-        Lighting.Brightness = 2
-        createNotification("Weather", "Clear skies", 3, "success")
-        
-    elseif preset == "Rain" then
-        enableRain()
-        
-    elseif preset == "Snow" then
-        enableSnow()
-        
-    elseif preset == "Thunderstorm" then
-        enableThunderstorm()
-        
-    elseif preset == "Aurora" then
-        enableAurora()
-        
-    elseif preset == "Night + Moon" then
-        enableMoonGlow()
-        
-    elseif preset == "Foggy" then
-        storeOriginalLighting()
-        Lighting.ClockTime = 8
-        Lighting.Brightness = 1
-        Lighting.FogColor = Color3.fromRGB(180, 185, 195)
-        Lighting.FogEnd = 150
-        Lighting.FogStart = 10
-        
-        local atmo = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting)
-        atmo.Density = 0.6
-        atmo.Color = Color3.fromRGB(180, 185, 195)
-        atmo.Haze = 3
-        
-        createNotification("Weather", "Foggy atmosphere", 3, "success")
     end
+    
+    createNotification("Moon Glow", "Moon glow disabled", 3, "info")
 end
 
 -- ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -2318,61 +2419,31 @@ createButton("Teleport", {
 })
 
 -- SHADERS TAB
-createSection("Shaders", "Weather Presets")
-
-createDropdown("Shaders", {
-    Name = "Weather",
-    Options = {"Clear", "Rain", "Snow", "Thunderstorm", "Aurora", "Night + Moon", "Foggy"},
-    Default = "Clear",
-    Callback = function(preset)
-        setWeatherPreset(preset)
-    end
-})
-
-createSection("Shaders", "Individual Effects")
+createSection("Shaders", "Weather Effects (Can Stack!)")
 
 createToggle("Shaders", {
     Name = "Rain",
-    Description = "Falling rain particles (local only)",
+    Description = "Falling rain + stormy sky + sound",
     Callback = function(enabled)
         Settings.RainEnabled = enabled
-        if enabled then
-            disableSnow()
-            disableThunderstorm()
-            enableRain()
-        else
-            disableRain()
-        end
+        if enabled then enableRain() else disableRain() end
     end
 })
 
 createToggle("Shaders", {
     Name = "Snow",
-    Description = "Falling snowflakes (local only)",
+    Description = "Falling snowflakes + winter sky + sound",
     Callback = function(enabled)
         Settings.SnowEnabled = enabled
-        if enabled then
-            disableRain()
-            disableThunderstorm()
-            enableSnow()
-        else
-            disableSnow()
-        end
+        if enabled then enableSnow() else disableSnow() end
     end
 })
 
 createToggle("Shaders", {
     Name = "Thunderstorm",
-    Description = "Rain + Lightning flashes",
+    Description = "Lightning flashes + thunder sounds",
     Callback = function(enabled)
-        Settings.ThunderstormEnabled = enabled
-        if enabled then
-            disableSnow()
-            disableRain()
-            enableThunderstorm()
-        else
-            disableThunderstorm()
-        end
+        if enabled then enableThunderstorm() else disableThunderstorm() end
     end
 })
 
@@ -2417,6 +2488,20 @@ createSlider("Shaders", {
 })
 
 createSlider("Shaders", {
+    Name = "Sound Volume",
+    Min = 0,
+    Max = 100,
+    Default = 50,
+    Suffix = "%",
+    Callback = function(value)
+        Settings.SoundVolume = value / 100
+        if State.RainSound then State.RainSound.Volume = Settings.SoundVolume end
+        if State.SnowSound then State.SnowSound.Volume = Settings.SoundVolume * 0.7 end
+        if State.ThunderSound then State.ThunderSound.Volume = Settings.SoundVolume * 1.5 end
+    end
+})
+
+createSlider("Shaders", {
     Name = "Time of Day",
     Min = 0,
     Max = 24,
@@ -2424,7 +2509,9 @@ createSlider("Shaders", {
     Suffix = "h",
     Callback = function(value)
         Settings.TimeOfDay = value
-        Lighting.ClockTime = value
+        if not Settings.RainEnabled and not Settings.SnowEnabled and not Settings.AuroraEnabled and not Settings.MoonGlowEnabled then
+            Lighting.ClockTime = value
+        end
     end
 })
 
@@ -2432,6 +2519,12 @@ createButton("Shaders", {
     Name = "Reset All Effects",
     Color = THEME.Error,
     Callback = function()
+        Settings.RainEnabled = false
+        Settings.SnowEnabled = false
+        Settings.ThunderstormEnabled = false
+        Settings.AuroraEnabled = false
+        Settings.MoonGlowEnabled = false
+        
         disableRain()
         disableSnow()
         disableThunderstorm()
@@ -2467,9 +2560,9 @@ task.wait(0.5)
 createNotification("⚡ Zyx MM2 Ultimate V3", "Script loaded! Press RightShift or tap ⚡", 5, "success")
 
 print("╔══════════════════════════════════════════════════════════════╗")
-print("║        Zyx MM2 ULTIMATE V3 - LOADED SUCCESSFULLY            ║")
+print("║         ZYX MM2 ULTIMATE V3 - LOADED SUCCESSFULLY            ║")
 print("╠══════════════════════════════════════════════════════════════╣")
 print("║  Press RightShift or click ⚡ button to toggle menu          ║")
-print("║  NEW: Real shader effects - Rain, Snow, Thunder, Aurora      ║")
+print("║  NEW: Stack ALL effects + Sounds + Sky color changes!        ║")
 print("║  All visual effects are LOCAL ONLY (only you see them)       ║")
 print("╚══════════════════════════════════════════════════════════════╝")
