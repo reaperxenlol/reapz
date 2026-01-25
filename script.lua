@@ -1,6 +1,6 @@
 -- ========================================
 -- REAPER HUB | BLADEBALL
--- Modern Futuristic Design + Mobile Support
+-- 3D Animations + Glassmorphic Design
 -- ========================================
 
 local TweenService = game:GetService("TweenService")
@@ -16,13 +16,16 @@ local Workspace = game:GetService("Workspace")
 local Player = Players.LocalPlayer
 local Balls = Workspace:WaitForChild("Balls")
 
--- Modern Color Scheme
+-- Glassmorphic Color Scheme (slightly transparent)
 local Colors = {
-    Background = Color3.fromRGB(12, 12, 15),
-    Card = Color3.fromRGB(18, 18, 22),
-    CardHover = Color3.fromRGB(25, 25, 30),
-    Sidebar = Color3.fromRGB(15, 15, 18),
-    Border = Color3.fromRGB(40, 40, 50),
+    Background = Color3.fromRGB(15, 15, 20),
+    BackgroundTransparency = 0.15,
+    Card = Color3.fromRGB(25, 25, 32),
+    CardTransparency = 0.1,
+    CardHover = Color3.fromRGB(35, 35, 45),
+    Sidebar = Color3.fromRGB(18, 18, 24),
+    SidebarTransparency = 0.1,
+    Border = Color3.fromRGB(50, 50, 65),
     Accent = Color3.fromRGB(99, 102, 241),
     AccentGlow = Color3.fromRGB(129, 132, 255),
     Success = Color3.fromRGB(34, 197, 94),
@@ -33,8 +36,10 @@ local Colors = {
     TextMuted = Color3.fromRGB(80, 80, 100)
 }
 
-local function Tween(obj, props, time)
-    TweenService:Create(obj, TweenInfo.new(time or 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props):Play()
+local function Tween(obj, props, time, style, dir)
+    local tween = TweenService:Create(obj, TweenInfo.new(time or 0.3, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out), props)
+    tween:Play()
+    return tween
 end
 
 -- ========================================
@@ -107,6 +112,7 @@ local MinimizedPill = Instance.new("Frame")
 MinimizedPill.Name = "MinimizedPill"
 MinimizedPill.Parent = ScreenGui
 MinimizedPill.BackgroundColor3 = Colors.Card
+MinimizedPill.BackgroundTransparency = Colors.CardTransparency
 MinimizedPill.BorderSizePixel = 0
 MinimizedPill.Position = UDim2.new(0.5, -120, 0, 15)
 MinimizedPill.Size = UDim2.new(0, 240, 0, 45)
@@ -153,7 +159,6 @@ pillButton.Size = UDim2.new(1, 0, 1, 0)
 pillButton.Text = ""
 pillButton.ZIndex = 3
 
--- Make pill draggable (mobile + pc)
 MakeDraggable(MinimizedPill, pillButton)
 
 pillButton.MouseEnter:Connect(function()
@@ -167,12 +172,13 @@ pillButton.MouseLeave:Connect(function()
 end)
 
 -- =====================
--- MAIN WINDOW
+-- MAIN WINDOW (GLASSMORPHIC)
 -- =====================
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Colors.Background
+MainFrame.BackgroundTransparency = Colors.BackgroundTransparency
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.5, -250, 0.5, -180)
 MainFrame.Size = UDim2.new(0, 500, 0, 360)
@@ -186,6 +192,7 @@ mainCorner.Parent = MainFrame
 local mainStroke = Instance.new("UIStroke")
 mainStroke.Color = Colors.Border
 mainStroke.Thickness = 1
+mainStroke.Transparency = 0.3
 mainStroke.Parent = MainFrame
 
 -- =====================
@@ -195,6 +202,7 @@ local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Parent = MainFrame
 TitleBar.BackgroundColor3 = Colors.Sidebar
+TitleBar.BackgroundTransparency = Colors.SidebarTransparency
 TitleBar.BorderSizePixel = 0
 TitleBar.Size = UDim2.new(1, 0, 0, 50)
 TitleBar.Active = true
@@ -206,6 +214,7 @@ titleCorner.Parent = TitleBar
 local titleFix = Instance.new("Frame")
 titleFix.Parent = TitleBar
 titleFix.BackgroundColor3 = Colors.Sidebar
+titleFix.BackgroundTransparency = Colors.SidebarTransparency
 titleFix.BorderSizePixel = 0
 titleFix.Position = UDim2.new(0, 0, 1, -12)
 titleFix.Size = UDim2.new(1, 0, 0, 12)
@@ -263,6 +272,7 @@ subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Parent = TitleBar
 minimizeBtn.BackgroundColor3 = Colors.Card
+minimizeBtn.BackgroundTransparency = 0.3
 minimizeBtn.BorderSizePixel = 0
 minimizeBtn.Position = UDim2.new(1, -45, 0.5, -12)
 minimizeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -277,42 +287,43 @@ minimizeBtnCorner.CornerRadius = UDim.new(0, 6)
 minimizeBtnCorner.Parent = minimizeBtn
 
 minimizeBtn.MouseEnter:Connect(function()
-    Tween(minimizeBtn, {BackgroundColor3 = Colors.Accent, TextColor3 = Colors.Text}, 0.15)
+    Tween(minimizeBtn, {BackgroundColor3 = Colors.Accent, BackgroundTransparency = 0, TextColor3 = Colors.Text}, 0.15)
 end)
 
 minimizeBtn.MouseLeave:Connect(function()
-    Tween(minimizeBtn, {BackgroundColor3 = Colors.Card, TextColor3 = Colors.TextDim}, 0.15)
+    Tween(minimizeBtn, {BackgroundColor3 = Colors.Card, BackgroundTransparency = 0.3, TextColor3 = Colors.TextDim}, 0.15)
 end)
 
--- Make main window draggable (mobile + pc)
 MakeDraggable(MainFrame, TitleBar)
 
--- Minimize/Restore
+-- Minimize/Restore with 3D animation
 minimizeBtn.MouseButton1Click:Connect(function()
-    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 0)}, 0.35)
+    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     task.wait(0.35)
     MainFrame.Visible = false
     MinimizedPill.Visible = true
     MinimizedPill.Size = UDim2.new(0, 0, 0, 45)
-    Tween(MinimizedPill, {Size = UDim2.new(0, 240, 0, 45)}, 0.35)
+    Tween(MinimizedPill, {Size = UDim2.new(0, 240, 0, 45)}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 end)
 
 pillButton.MouseButton1Click:Connect(function()
-    Tween(MinimizedPill, {Size = UDim2.new(0, 0, 0, 45)}, 0.35)
+    Tween(MinimizedPill, {Size = UDim2.new(0, 0, 0, 45)}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     task.wait(0.35)
     MinimizedPill.Visible = false
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 500, 0, 0)
-    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 360)}, 0.35)
+    MainFrame.BackgroundTransparency = 1
+    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 360), BackgroundTransparency = Colors.BackgroundTransparency}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 end)
 
 -- =====================
--- SIDEBAR
+-- SIDEBAR (GLASSMORPHIC)
 -- =====================
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
 Sidebar.BackgroundColor3 = Colors.Sidebar
+Sidebar.BackgroundTransparency = Colors.SidebarTransparency
 Sidebar.BorderSizePixel = 0
 Sidebar.Position = UDim2.new(0, 0, 0, 50)
 Sidebar.Size = UDim2.new(0, 130, 1, -50)
@@ -320,6 +331,7 @@ Sidebar.Size = UDim2.new(0, 130, 1, -50)
 local sidebarLine = Instance.new("Frame")
 sidebarLine.Parent = Sidebar
 sidebarLine.BackgroundColor3 = Colors.Border
+sidebarLine.BackgroundTransparency = 0.5
 sidebarLine.BorderSizePixel = 0
 sidebarLine.Position = UDim2.new(1, -1, 0, 15)
 sidebarLine.Size = UDim2.new(0, 1, 1, -30)
@@ -348,7 +360,7 @@ ContentArea.Size = UDim2.new(1, -150, 1, -70)
 ContentArea.ClipsDescendants = true
 
 -- ========================================
--- TAB SYSTEM
+-- TAB SYSTEM WITH 3D ANIMATIONS
 -- ========================================
 local Tabs = {}
 local CurrentTab = nil
@@ -431,19 +443,60 @@ local function CreateTab(name, icon)
     Tab.Text = tabText
     Tab.Indicator = activeIndicator
     
+    -- 3D TAB SWITCH ANIMATION
     local function SwitchToTab()
-        for _, t in ipairs(Tabs) do
-            t.Content.Visible = false
-            t.Indicator.Visible = false
-            Tween(t.Button, {BackgroundTransparency = 1}, 0.2)
-            Tween(t.Icon, {TextColor3 = Colors.TextMuted}, 0.2)
-            Tween(t.Text, {TextColor3 = Colors.TextMuted}, 0.2)
+        if CurrentTab == Tab then return end
+        
+        -- Animate out old tab with 3D effect
+        if CurrentTab then
+            local oldContent = CurrentTab.Content
+            -- Slide out + fade + scale down (3D effect)
+            Tween(oldContent, {Position = UDim2.new(-0.1, 0, 0, 0), Size = UDim2.new(0.9, 0, 0.9, 0)}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            for _, child in ipairs(oldContent:GetChildren()) do
+                if child:IsA("Frame") then
+                    Tween(child, {BackgroundTransparency = 1}, 0.15)
+                end
+            end
+            task.delay(0.25, function()
+                oldContent.Visible = false
+                oldContent.Position = UDim2.new(0, 0, 0, 0)
+                oldContent.Size = UDim2.new(1, 0, 1, 0)
+                for _, child in ipairs(oldContent:GetChildren()) do
+                    if child:IsA("Frame") then
+                        child.BackgroundTransparency = Colors.CardTransparency
+                    end
+                end
+            end)
+            
+            CurrentTab.Indicator.Visible = false
+            Tween(CurrentTab.Button, {BackgroundTransparency = 1}, 0.2)
+            Tween(CurrentTab.Icon, {TextColor3 = Colors.TextMuted}, 0.2)
+            Tween(CurrentTab.Text, {TextColor3 = Colors.TextMuted}, 0.2)
         end
         
+        -- Animate in new tab with 3D effect
+        Tab.Content.Position = UDim2.new(0.1, 0, 0, 0)
+        Tab.Content.Size = UDim2.new(0.9, 0, 0.9, 0)
+        for _, child in ipairs(Tab.Content:GetChildren()) do
+            if child:IsA("Frame") then
+                child.BackgroundTransparency = 1
+            end
+        end
         Tab.Content.Visible = true
+        
+        -- Slide in + fade + scale up (3D effect)
+        Tween(Tab.Content, {Position = UDim2.new(0, 0, 0, 0), Size = UDim2.new(1, 0, 1, 0)}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        task.delay(0.1, function()
+            for _, child in ipairs(Tab.Content:GetChildren()) do
+                if child:IsA("Frame") then
+                    Tween(child, {BackgroundTransparency = Colors.CardTransparency}, 0.25)
+                end
+            end
+        end)
+        
         Tab.Indicator.Visible = true
         CurrentTab = Tab
-        Tween(Tab.Button, {BackgroundTransparency = 0}, 0.2)
+        Tween(Tab.Button, {BackgroundTransparency = 0.5}, 0.2)
         Tween(Tab.Icon, {TextColor3 = Colors.Accent}, 0.2)
         Tween(Tab.Text, {TextColor3 = Colors.Text}, 0.2)
     end
@@ -465,7 +518,12 @@ local function CreateTab(name, icon)
     table.insert(Tabs, Tab)
     
     if #Tabs == 1 then
-        SwitchToTab()
+        Tab.Content.Visible = true
+        Tab.Indicator.Visible = true
+        CurrentTab = Tab
+        Tab.Button.BackgroundTransparency = 0.5
+        Tab.Icon.TextColor3 = Colors.Accent
+        Tab.Text.TextColor3 = Colors.Text
     end
     
     -- Section creator
@@ -493,13 +551,14 @@ local function CreateTab(name, icon)
         sectionTitle.TextSize = 13
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
         
-        -- Toggle creator
+        -- Toggle creator (GLASSMORPHIC)
         function Section:AddToggle(config)
             local Toggle = {State = config.Default or false}
             
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Parent = sectionFrame
             toggleFrame.BackgroundColor3 = Colors.Card
+            toggleFrame.BackgroundTransparency = Colors.CardTransparency
             toggleFrame.BorderSizePixel = 0
             toggleFrame.Size = UDim2.new(1, 0, 0, 45)
             
@@ -555,7 +614,7 @@ local function CreateTab(name, icon)
             toggleBtn.MouseButton1Click:Connect(function()
                 Toggle.State = not Toggle.State
                 Tween(switchBg, {BackgroundColor3 = Toggle.State and Colors.Success or Colors.Border}, 0.25)
-                Tween(knob, {Position = Toggle.State and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)}, 0.25)
+                Tween(knob, {Position = Toggle.State and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)}, 0.25, Enum.EasingStyle.Back)
                 if config.Callback then pcall(config.Callback, Toggle.State) end
             end)
             
@@ -570,13 +629,14 @@ local function CreateTab(name, icon)
             return Toggle
         end
         
-        -- Slider creator
+        -- Slider creator (GLASSMORPHIC)
         function Section:AddSlider(config)
             local Slider = {Value = config.Default or config.Min or 0}
             
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Parent = sectionFrame
             sliderFrame.BackgroundColor3 = Colors.Card
+            sliderFrame.BackgroundTransparency = Colors.CardTransparency
             sliderFrame.BorderSizePixel = 0
             sliderFrame.Size = UDim2.new(1, 0, 0, 60)
             
@@ -679,11 +739,12 @@ local function CreateTab(name, icon)
             return Slider
         end
         
-        -- Button creator
+        -- Button creator (GLASSMORPHIC)
         function Section:AddButton(config)
             local buttonFrame = Instance.new("TextButton")
             buttonFrame.Parent = sectionFrame
             buttonFrame.BackgroundColor3 = Colors.Card
+            buttonFrame.BackgroundTransparency = Colors.CardTransparency
             buttonFrame.BorderSizePixel = 0
             buttonFrame.Size = UDim2.new(1, 0, 0, 45)
             buttonFrame.Font = Enum.Font.GothamSemibold
@@ -697,9 +758,9 @@ local function CreateTab(name, icon)
             buttonCorner.Parent = buttonFrame
             
             buttonFrame.MouseButton1Click:Connect(function()
-                Tween(buttonFrame, {BackgroundColor3 = Colors.Accent}, 0.1)
+                Tween(buttonFrame, {BackgroundColor3 = Colors.Accent, BackgroundTransparency = 0}, 0.1)
                 task.wait(0.1)
-                Tween(buttonFrame, {BackgroundColor3 = Colors.CardHover}, 0.1)
+                Tween(buttonFrame, {BackgroundColor3 = Colors.CardHover, BackgroundTransparency = Colors.CardTransparency}, 0.1)
                 if config.Callback then pcall(config.Callback) end
             end)
             
@@ -712,7 +773,7 @@ local function CreateTab(name, icon)
             end)
         end
         
-        -- Dropdown creator
+        -- Dropdown creator (GLASSMORPHIC)
         function Section:AddDropdown(config)
             local Dropdown = {Value = config.Default or config.Options[1]}
             local open = false
@@ -720,6 +781,7 @@ local function CreateTab(name, icon)
             local dropFrame = Instance.new("Frame")
             dropFrame.Parent = sectionFrame
             dropFrame.BackgroundColor3 = Colors.Card
+            dropFrame.BackgroundTransparency = Colors.CardTransparency
             dropFrame.BorderSizePixel = 0
             dropFrame.Size = UDim2.new(1, 0, 0, 45)
             dropFrame.ClipsDescendants = true
@@ -780,6 +842,7 @@ local function CreateTab(name, icon)
                 local optBtn = Instance.new("TextButton")
                 optBtn.Parent = optionContainer
                 optBtn.BackgroundColor3 = Colors.CardHover
+                optBtn.BackgroundTransparency = 0.3
                 optBtn.BorderSizePixel = 0
                 optBtn.Size = UDim2.new(1, 0, 0, 30)
                 optBtn.Font = Enum.Font.Gotham
@@ -801,7 +864,7 @@ local function CreateTab(name, icon)
                         end
                     end
                     open = false
-                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 45)}, 0.25)
+                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 45)}, 0.25, Enum.EasingStyle.Back)
                     Tween(dropArrow, {Rotation = 0}, 0.25)
                     if config.Callback then pcall(config.Callback, opt) end
                 end)
@@ -810,10 +873,10 @@ local function CreateTab(name, icon)
             dropBtn.MouseButton1Click:Connect(function()
                 open = not open
                 if open then
-                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 55 + #config.Options * 35)}, 0.25)
+                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 55 + #config.Options * 35)}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                     Tween(dropArrow, {Rotation = 180}, 0.25)
                 else
-                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 45)}, 0.25)
+                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 45)}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In)
                     Tween(dropArrow, {Rotation = 0}, 0.25)
                 end
             end)
@@ -828,11 +891,11 @@ local function CreateTab(name, icon)
 end
 
 -- ========================================
--- FEATURES (ORIGINAL AUTO PARRY)
+-- YOUR EXACT ORIGINAL AUTO PARRY
 -- ========================================
 
 local Features = {
-    AutoParry = {Enabled = false, Connection = nil, Distance = 0.75},
+    AutoParry = {Enabled = false, Connection = nil},
     ManualSpam = {Enabled = false},
     BallESP = {Enabled = false, Items = {}},
     ESP = {Enabled = false, Items = {}},
@@ -843,12 +906,13 @@ local Features = {
     InfiniteJump = {Enabled = false, Connection = nil}
 }
 
--- ORIGINAL AUTO PARRY
+-- YOUR EXACT ORIGINAL AUTO PARRY CODE
 local parryDistance = 0.75
+local parrySpeed = 20
 local parryCooldown = 0.5
 local Cooldown = tick()
 local Parried = false
-local TargetConnection = nil
+local ParryConnection = nil
 
 local function GetBall()
     for _, Ball in ipairs(Balls:GetChildren()) do
@@ -858,18 +922,18 @@ local function GetBall()
     end
 end
 
-local function ResetConnection()
-    if TargetConnection then
-        TargetConnection:Disconnect()
-        TargetConnection = nil
+local function ResetParryConnection()
+    if ParryConnection then
+        ParryConnection:Disconnect()
+        ParryConnection = nil
     end
 end
 
 Balls.ChildAdded:Connect(function()
     local Ball = GetBall()
     if not Ball then return end
-    ResetConnection()
-    TargetConnection = Ball:GetAttributeChangedSignal("target"):Connect(function()
+    ResetParryConnection()
+    ParryConnection = Ball:GetAttributeChangedSignal("target"):Connect(function()
         Parried = false
     end)
 end)
@@ -885,17 +949,11 @@ function Features.AutoParry:Start()
         local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if not Ball or not HRP then return end
         
-        local Speed = 0
-        if Ball:FindFirstChild("zoomies") and Ball.zoomies:FindFirstChild("VectorVelocity") then
-            Speed = Ball.zoomies.VectorVelocity.Magnitude
-        end
-        
+        local Speed = Ball.zoomies.VectorVelocity.Magnitude
         local Distance = (HRP.Position - Ball.Position).Magnitude
         
-        if Ball:GetAttribute("target") == Player.Name and not Parried and Speed > 0 and Distance / Speed <= self.Distance then
+        if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= parryDistance then
             VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-            task.wait(0.05)
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
             Parried = true
             Cooldown = tick()
         end
@@ -912,6 +970,10 @@ function Features.AutoParry:Stop()
         self.Connection:Disconnect()
         self.Connection = nil
     end
+end
+
+function Features.AutoParry:SetDistance(value)
+    parryDistance = value
 end
 
 -- Manual Spam
@@ -1208,7 +1270,7 @@ local MiscTab = CreateTab("Misc", "[+]")
 -- MAIN TAB
 local CombatSection = MainTab:AddSection("Combat")
 CombatSection:AddToggle({Title = "Auto Parry", Default = false, Callback = function(state) if state then Features.AutoParry:Start() else Features.AutoParry:Stop() end end})
-CombatSection:AddSlider({Title = "Parry Timing", Min = 25, Max = 150, Default = 75, Callback = function(value) Features.AutoParry.Distance = value / 100 end})
+CombatSection:AddSlider({Title = "Parry Timing", Min = 25, Max = 150, Default = 75, Callback = function(value) Features.AutoParry:SetDistance(value / 100) end})
 CombatSection:AddToggle({Title = "Manual Spam", Default = false, Callback = function(state) if state then Features.ManualSpam:Start() else Features.ManualSpam:Stop() end end})
 
 -- PLAY TAB
@@ -1241,14 +1303,15 @@ UtilSection:AddButton({Title = "Rejoin Server", Callback = function() game:GetSe
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Reaper Hub",
-        Text = "Loaded! Drag anywhere.",
+        Text = "Loaded! 3D Animations enabled.",
         Duration = 3
     })
 end)
 
 print("========================================")
 print("[R] REAPER HUB | BLADEBALL v2.0")
+print("[+] 3D Tab Animations")
+print("[+] Glassmorphic Design")
+print("[+] Your Original Auto Parry")
 print("[+] Mobile + PC Support")
-print("[+] Original Auto Parry")
-print("[+] Ball ESP + Auto Play")
 print("========================================")
