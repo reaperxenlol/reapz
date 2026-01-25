@@ -1,1033 +1,581 @@
 --[[
-╔══════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                  ║
-║   ██████╗ ██╗      █████╗ ██████╗ ███████╗    ██████╗  █████╗ ██╗     ██╗        ║
-║   ██╔══██╗██║     ██╔══██╗██╔══██╗██╔════╝    ██╔══██╗██╔══██╗██║     ██║        ║
-║   ██████╔╝██║     ███████║██║  ██║█████╗      ██████╔╝███████║██║     ██║        ║
-║   ██╔══██╗██║     ██╔══██║██║  ██║██╔══╝      ██╔══██╗██╔══██║██║     ██║        ║
-║   ██████╔╝███████╗██║  ██║██████╔╝███████╗    ██████╔╝██║  ██║███████╗███████╗   ║
-║   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝   ║
-║                                                                                  ║
-║                         NEXUS PRO v4.0 - COMPETITIVE EDITION                     ║
-║                                                                                  ║
-╚══════════════════════════════════════════════════════════════════════════════════╝
+    ██████╗ ███████╗ █████╗ ██████╗ ███████╗██████╗     ██╗  ██╗██╗   ██╗██████╗ 
+    ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗    ██║  ██║██║   ██║██╔══██╗
+    ██████╔╝█████╗  ███████║██████╔╝█████╗  ██████╔╝    ███████║██║   ██║██████╔╝
+    ██╔══██╗██╔══╝  ██╔══██║██╔═══╝ ██╔══╝  ██╔══██╗    ██╔══██║██║   ██║██╔══██╗
+    ██║  ██║███████╗██║  ██║██║     ███████╗██║  ██║    ██║  ██║╚██████╔╝██████╔╝
+    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ 
+                            BLADE BALL EDITION v1.0
 ]]
 
--- ════════════════════════════════════════════════════════════════════════════════
--- SERVICES
--- ════════════════════════════════════════════════════════════════════════════════
+-- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local VirtualUser = game:GetService("VirtualUser")
 local StarterGui = game:GetService("StarterGui")
-local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 
--- ════════════════════════════════════════════════════════════════════════════════
--- PLAYER
--- ════════════════════════════════════════════════════════════════════════════════
+-- Player
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- ════════════════════════════════════════════════════════════════════════════════
--- GAME REFERENCES
--- ════════════════════════════════════════════════════════════════════════════════
+-- Game
 local Balls = Workspace:WaitForChild("Balls")
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- ════════════════════════════════════════════════════════════════════════════════
--- CONFIGURATION
--- ════════════════════════════════════════════════════════════════════════════════
-getgenv().NexusConfig = getgenv().NexusConfig or {
-    -- PARRY SYSTEM
+-- Settings
+local Settings = {
     AutoParry = true,
-    ParryMethod = "Velocity", -- Velocity, Distance, Hybrid
-    BaseDistance = 15,
-    MinDistance = 3,
-    
-    -- ADVANCED PARRY
+    ParryDistance = 15,
+    ParryMethod = "Velocity",
     VelocityMultiplier = 1.0,
-    ReactionTime = 0.0, -- Add delay to seem human (0 = instant)
-    PredictionFrames = 3,
     
-    -- CLASH HANDLING
     AntiClash = true,
-    ClashSpamSpeed = 0.05,
-    ClashDetectionRange = 8,
-    AutoSpamOnClash = true,
+    ClashSpam = true,
+    ClashSpeed = 0.05,
+    ClashRange = 8,
     
-    -- SPAM SYSTEM
     AutoSpam = false,
-    SpamCPS = 20, -- Clicks per second
-    SmartSpam = true, -- Only spam when needed
+    SpamCPS = 20,
     
-    -- ESP
     BallESP = true,
-    PlayerESP = false,
-    TrajectoryLine = true,
-    DangerIndicator = true,
+    ShowDistance = true,
+    TrajectoryESP = true,
     
-    -- MOVEMENT
-    SpeedHack = false,
-    WalkSpeed = 16,
-    JumpPower = 50,
+    SpeedEnabled = false,
+    WalkSpeed = 50,
     
-    -- AUTO PLAY
     AutoPlay = false,
-    PlayStyle = "Aggressive", -- Aggressive, Defensive, Balanced
+    PlayStyle = "Balanced",
     
-    -- MISC
     AntiAFK = true,
-    Notifications = true,
-    DebugMode = false,
     
-    -- GUI
-    ToggleKey = Enum.KeyCode.RightShift
+    GUIKey = Enum.KeyCode.RightControl
 }
 
-local Config = getgenv().NexusConfig
-
--- ════════════════════════════════════════════════════════════════════════════════
--- VARIABLES
--- ════════════════════════════════════════════════════════════════════════════════
+-- Variables
 local CurrentBall = nil
-local BallVelocity = Vector3.new()
-local BallSpeed = 0
-local LastBallPos = Vector3.new()
 local IsClashing = false
-local ClashStartTime = 0
 local ParryCount = 0
-local LastParryTime = 0
+local GUIVisible = true
 
--- ════════════════════════════════════════════════════════════════════════════════
--- UTILITY FUNCTIONS
--- ════════════════════════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
+-- PARRY FUNCTION - PRESS F
+-- ══════════════════════════════════════════════════════════════
 
-local function Notify(title, text, duration)
-    if not Config.Notifications then return end
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {
-            Title = title,
-            Text = text,
-            Duration = duration or 3
-        })
-    end)
-end
-
-local function DebugPrint(...)
-    if Config.DebugMode then
-        print("[NEXUS DEBUG]", ...)
-    end
-end
-
-local function GetDistance(pos)
-    if not HumanoidRootPart then return math.huge end
-    return (HumanoidRootPart.Position - pos).Magnitude
-end
-
-local function Lerp(a, b, t)
-    return a + (b - a) * t
-end
-
--- ════════════════════════════════════════════════════════════════════════════════
--- ADVANCED PARRY SYSTEM
--- ════════════════════════════════════════════════════════════════════════════════
-
-local function PressF()
-    -- Method 1: VirtualInputManager (Best for most executors)
-    pcall(function()
+local function PressParry()
+    -- Method 1: VirtualInputManager
+    local success1 = pcall(function()
         local VIM = game:GetService("VirtualInputManager")
         VIM:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-        task.spawn(function()
-            task.wait()
+        task.delay(0.05, function()
             VIM:SendKeyEvent(false, Enum.KeyCode.F, false, game)
         end)
     end)
     
-    -- Method 2: keypress (Synapse, KRNL, etc.)
+    -- Method 2: keypress (Synapse, KRNL, Fluxus)
     pcall(function()
         if keypress then
             keypress(0x46)
-            task.spawn(function()
-                task.wait()
-                keyrelease(0x46)
+            task.delay(0.05, function()
+                if keyrelease then keyrelease(0x46) end
             end)
         end
     end)
     
-    -- Method 3: Input library
+    -- Method 3: Remote
     pcall(function()
-        if Input then
-            Input.KeyPress(Enum.KeyCode.F)
-        end
-    end)
-    
-    -- Method 4: Remote fallback
-    pcall(function()
-        if Remotes:FindFirstChild("ParryButtonPress") then
-            Remotes.ParryButtonPress:Fire()
+        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+        if remotes then
+            local parryRemote = remotes:FindFirstChild("ParryButtonPress")
+            if parryRemote then
+                parryRemote:Fire()
+            end
         end
     end)
 end
 
-local function CalculateBallData(ball)
+-- ══════════════════════════════════════════════════════════════
+-- BALL FUNCTIONS
+-- ══════════════════════════════════════════════════════════════
+
+local function GetBallData(ball)
     if not ball or not ball.Parent then return nil end
+    if not HumanoidRootPart then return nil end
     
-    local currentPos = ball.Position
-    local velocity = ball.AssemblyLinearVelocity or ball.Velocity or Vector3.new()
-    local speed = velocity.Magnitude
+    local pos = ball.Position
+    local vel = ball.AssemblyLinearVelocity or Vector3.new()
+    local speed = vel.Magnitude
+    local dist = (HumanoidRootPart.Position - pos).Magnitude
     
-    -- Calculate direction
-    local direction = speed > 1 and velocity.Unit or Vector3.new()
-    
-    -- Check if targeting player
-    local toPlayer = HumanoidRootPart and (HumanoidRootPart.Position - currentPos).Unit or Vector3.new()
-    local dotProduct = direction:Dot(toPlayer)
-    local isTargeting = dotProduct > 0.3
-    
-    -- Predict future position
-    local timeToReach = GetDistance(currentPos) / math.max(speed, 1)
-    local predictedPos = currentPos + velocity * math.min(timeToReach, 1)
-    local predictedDistance = GetDistance(predictedPos)
+    local dir = speed > 1 and vel.Unit or Vector3.new()
+    local toPlayer = (HumanoidRootPart.Position - pos).Unit
+    local dot = dir:Dot(toPlayer)
+    local targeting = dot > 0.3
     
     return {
-        Position = currentPos,
-        Velocity = velocity,
+        Position = pos,
+        Velocity = vel,
         Speed = speed,
-        Direction = direction,
-        IsTargeting = isTargeting,
-        Distance = GetDistance(currentPos),
-        PredictedDistance = predictedDistance,
-        TimeToReach = timeToReach,
-        DotProduct = dotProduct
+        Distance = dist,
+        Direction = dir,
+        IsTargeting = targeting,
+        Dot = dot
     }
 end
 
-local function ShouldParry(ballData)
-    if not ballData or not ballData.IsTargeting then return false end
+local function ShouldParry(data)
+    if not data or not data.IsTargeting then return false end
     
-    local distance = ballData.Distance
-    local speed = ballData.Speed
-    local predictedDist = ballData.PredictedDistance
+    local dist = data.Distance
+    local speed = data.Speed
     
-    -- Calculate dynamic parry distance based on ball speed
-    local dynamicDistance = Config.BaseDistance
-    
-    if Config.ParryMethod == "Velocity" then
-        -- Faster ball = parry earlier
-        dynamicDistance = Config.BaseDistance + (speed * Config.VelocityMultiplier * 0.08)
-        dynamicDistance = math.clamp(dynamicDistance, Config.MinDistance, 35)
-        
-        return distance <= dynamicDistance and distance > Config.MinDistance
-        
-    elseif Config.ParryMethod == "Distance" then
-        return distance <= Config.BaseDistance and distance > Config.MinDistance
-        
-    elseif Config.ParryMethod == "Hybrid" then
-        -- Use both velocity and prediction
-        local velocityDist = Config.BaseDistance + (speed * Config.VelocityMultiplier * 0.06)
-        local shouldParryVelocity = distance <= velocityDist
-        local shouldParryPrediction = predictedDist <= Config.BaseDistance * 0.8
-        
-        return (shouldParryVelocity or shouldParryPrediction) and distance > Config.MinDistance
-    end
-    
-    return false
-end
-
-local function DetectClash(ballData)
-    if not Config.AntiClash or not ballData then return false end
-    
-    -- Clash detection: ball is very close and moving slowly or stopped
-    local isClose = ballData.Distance <= Config.ClashDetectionRange
-    local isSlowOrStopped = ballData.Speed < 50
-    local wasTargeting = ballData.DotProduct > 0.1
-    
-    -- Check if ball has been close for a while (clash situation)
-    if isClose and isSlowOrStopped and wasTargeting then
-        if not IsClashing then
-            IsClashing = true
-            ClashStartTime = tick()
-            DebugPrint("CLASH DETECTED!")
-        end
-        return true
+    if Settings.ParryMethod == "Velocity" then
+        local dynamicDist = Settings.ParryDistance + (speed * Settings.VelocityMultiplier * 0.07)
+        dynamicDist = math.clamp(dynamicDist, 5, 35)
+        return dist <= dynamicDist and dist > 3
     else
-        IsClashing = false
+        return dist <= Settings.ParryDistance and dist > 3
     end
-    
-    return false
 end
 
--- ════════════════════════════════════════════════════════════════════════════════
--- MAIN PARRY LOOP
--- ════════════════════════════════════════════════════════════════════════════════
-
-local ParryConnection = nil
-
-local function StartParrySystem(ball)
-    if ParryConnection then ParryConnection:Disconnect() end
-    
-    local lastParry = 0
-    local clashSpamActive = false
-    
-    ParryConnection = RunService.Heartbeat:Connect(function()
-        if not Config.AutoParry then return end
-        if not ball or not ball.Parent then return end
-        if not HumanoidRootPart then return end
-        
-        local ballData = CalculateBallData(ball)
-        if not ballData then return end
-        
-        -- Store for ESP
-        BallVelocity = ballData.Velocity
-        BallSpeed = ballData.Speed
-        
-        local currentTime = tick()
-        
-        -- CLASH HANDLING (Priority)
-        if DetectClash(ballData) then
-            if Config.AutoSpamOnClash then
-                -- Spam parry during clash
-                if currentTime - lastParry >= Config.ClashSpamSpeed then
-                    PressF()
-                    lastParry = currentTime
-                    ParryCount = ParryCount + 1
-                    DebugPrint("CLASH SPAM - Distance:", math.floor(ballData.Distance))
-                end
-            end
-            return
-        end
-        
-        -- NORMAL PARRY
-        if ShouldParry(ballData) then
-            -- Add reaction time delay if configured
-            if Config.ReactionTime > 0 then
-                task.wait(Config.ReactionTime)
-            end
-            
-            -- Cooldown check
-            if currentTime - lastParry >= 0.15 then
-                PressF()
-                lastParry = currentTime
-                ParryCount = ParryCount + 1
-                
-                DebugPrint(string.format("PARRY #%d | Dist: %.1f | Speed: %.0f | Method: %s", 
-                    ParryCount, ballData.Distance, ballData.Speed, Config.ParryMethod))
-            end
-        end
-        
-        -- AUTO SPAM (if enabled separately)
-        if Config.AutoSpam and not IsClashing then
-            if Config.SmartSpam then
-                -- Only spam when ball is close
-                if ballData.Distance <= Config.BaseDistance + 5 and ballData.IsTargeting then
-                    if currentTime - lastParry >= (1 / Config.SpamCPS) then
-                        PressF()
-                        lastParry = currentTime
-                    end
-                end
-            else
-                -- Always spam
-                if currentTime - lastParry >= (1 / Config.SpamCPS) then
-                    PressF()
-                    lastParry = currentTime
-                end
-            end
-        end
-    end)
-    
-    ball.Destroying:Connect(function()
-        if ParryConnection then ParryConnection:Disconnect() end
-    end)
+local function IsClashSituation(data)
+    if not Settings.AntiClash or not data then return false end
+    return data.Distance <= Settings.ClashRange and data.Speed < 50 and data.Dot > 0.1
 end
 
--- ════════════════════════════════════════════════════════════════════════════════
--- ESP SYSTEM
--- ════════════════════════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
+-- GUI CREATION
+-- ══════════════════════════════════════════════════════════════
 
-local ESPObjects = {}
-
-local function CreateModernESP(ball)
-    if not Config.BallESP then return end
-    
-    -- Cleanup old ESP
-    if ESPObjects[ball] then
-        for _, obj in pairs(ESPObjects[ball]) do
-            pcall(function() obj:Destroy() end)
-        end
-    end
-    ESPObjects[ball] = {}
-    
-    -- Main Highlight
-    local highlight = Instance.new("Highlight")
-    highlight.Parent = ball
-    highlight.FillTransparency = 0.3
-    highlight.OutlineTransparency = 0
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    table.insert(ESPObjects[ball], highlight)
-    
-    -- Info Billboard
-    local billboard = Instance.new("BillboardGui")
-    billboard.Parent = ball
-    billboard.Size = UDim2.new(0, 180, 0, 80)
-    billboard.StudsOffset = Vector3.new(0, 4, 0)
-    billboard.AlwaysOnTop = true
-    table.insert(ESPObjects[ball], billboard)
-    
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Parent = billboard
-    mainFrame.Size = UDim2.new(1, 0, 1, 0)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    mainFrame.BackgroundTransparency = 0.2
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = mainFrame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Parent = mainFrame
-    stroke.Thickness = 2
-    
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Parent = mainFrame
-    statusLabel.Size = UDim2.new(1, 0, 0.4, 0)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Font = Enum.Font.GothamBold
-    statusLabel.TextSize = 16
-    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    
-    local infoLabel = Instance.new("TextLabel")
-    infoLabel.Parent = mainFrame
-    infoLabel.Position = UDim2.new(0, 0, 0.4, 0)
-    infoLabel.Size = UDim2.new(1, 0, 0.6, 0)
-    infoLabel.BackgroundTransparency = 1
-    infoLabel.Font = Enum.Font.Gotham
-    infoLabel.TextSize = 12
-    infoLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    
-    -- Trajectory Line
-    local trajectoryPart = nil
-    if Config.TrajectoryLine then
-        trajectoryPart = Instance.new("Part")
-        trajectoryPart.Parent = Workspace
-        trajectoryPart.Anchored = true
-        trajectoryPart.CanCollide = false
-        trajectoryPart.Material = Enum.Material.Neon
-        trajectoryPart.Transparency = 0.3
-        table.insert(ESPObjects[ball], trajectoryPart)
-    end
-    
-    -- Update Loop
-    local updateConn
-    updateConn = RunService.RenderStepped:Connect(function()
-        if not ball or not ball.Parent then
-            updateConn:Disconnect()
-            return
-        end
-        
-        local ballData = CalculateBallData(ball)
-        if not ballData then return end
-        
-        local distance = ballData.Distance
-        local speed = ballData.Speed
-        local isTargeting = ballData.IsTargeting
-        
-        -- Dynamic colors based on danger level
-        local dangerLevel = 0
-        if isTargeting then
-            if distance <= Config.MinDistance then
-                dangerLevel = 3 -- CRITICAL
-            elseif distance <= Config.BaseDistance then
-                dangerLevel = 2 -- DANGER
-            elseif distance <= Config.BaseDistance + 15 then
-                dangerLevel = 1 -- WARNING
-            end
-        end
-        
-        local colors = {
-            [0] = {fill = Color3.fromRGB(100, 200, 100), stroke = Color3.fromRGB(150, 255, 150), status = "SAFE"},
-            [1] = {fill = Color3.fromRGB(255, 200, 50), stroke = Color3.fromRGB(255, 220, 100), status = "WARNING"},
-            [2] = {fill = Color3.fromRGB(255, 100, 50), stroke = Color3.fromRGB(255, 150, 100), status = "DANGER"},
-            [3] = {fill = Color3.fromRGB(255, 50, 50), stroke = Color3.fromRGB(255, 100, 100), status = "PARRY NOW"}
-        }
-        
-        local colorData = colors[dangerLevel]
-        
-        highlight.FillColor = colorData.fill
-        highlight.OutlineColor = colorData.stroke
-        stroke.Color = colorData.stroke
-        
-        statusLabel.Text = colorData.status
-        statusLabel.TextColor3 = colorData.stroke
-        
-        infoLabel.Text = string.format("Distance: %.1f\nSpeed: %.0f\n%s", 
-            distance, speed, IsClashing and "⚔️ CLASHING" or (isTargeting and "🎯 Targeting" or ""))
-        
-        -- Update trajectory
-        if trajectoryPart and Config.TrajectoryLine and speed > 10 then
-            local futurePos = ball.Position + ballData.Velocity * 0.3
-            local midPoint = (ball.Position + futurePos) / 2
-            local length = (ball.Position - futurePos).Magnitude
-            
-            trajectoryPart.Size = Vector3.new(0.2, 0.2, length)
-            trajectoryPart.CFrame = CFrame.new(midPoint, futurePos)
-            trajectoryPart.Color = colorData.fill
-            trajectoryPart.Transparency = 0.4
-        elseif trajectoryPart then
-            trajectoryPart.Transparency = 1
-        end
-    end)
-    
-    table.insert(ESPObjects[ball], updateConn)
-    
-    ball.Destroying:Connect(function()
-        updateConn:Disconnect()
-        if ESPObjects[ball] then
-            for _, obj in pairs(ESPObjects[ball]) do
-                if typeof(obj) == "RBXScriptConnection" then
-                    obj:Disconnect()
-                else
-                    pcall(function() obj:Destroy() end)
-                end
-            end
-        end
-    end)
+-- Destroy old GUI if exists
+if game.CoreGui:FindFirstChild("ReaperHub") then
+    game.CoreGui:FindFirstChild("ReaperHub"):Destroy()
 end
-
--- ════════════════════════════════════════════════════════════════════════════════
--- AUTO PLAY SYSTEM
--- ════════════════════════════════════════════════════════════════════════════════
-
-local AutoPlayConn = nil
-
-local function StartAutoPlay()
-    if AutoPlayConn then AutoPlayConn:Disconnect() end
-    if not Config.AutoPlay then return end
-    
-    local angle = 0
-    
-    AutoPlayConn = RunService.Heartbeat:Connect(function()
-        if not Config.AutoPlay or not Humanoid or not CurrentBall then return end
-        
-        local ballData = CalculateBallData(CurrentBall)
-        if not ballData then return end
-        
-        local ballPos = CurrentBall.Position
-        local distance = ballData.Distance
-        
-        if Config.PlayStyle == "Aggressive" then
-            -- Stay close to ball, ready to parry
-            if distance > Config.BaseDistance + 5 then
-                Humanoid:MoveTo(ballPos)
-            else
-                angle = angle + 0.04
-                local offset = Vector3.new(math.cos(angle) * 12, 0, math.sin(angle) * 12)
-                Humanoid:MoveTo(ballPos + offset)
-            end
-            
-        elseif Config.PlayStyle == "Defensive" then
-            -- Keep distance, only approach when needed
-            if ballData.IsTargeting and distance > Config.BaseDistance + 10 then
-                Humanoid:MoveTo(ballPos)
-            elseif not ballData.IsTargeting then
-                angle = angle + 0.02
-                local offset = Vector3.new(math.cos(angle) * 25, 0, math.sin(angle) * 25)
-                Humanoid:MoveTo(ballPos + offset)
-            end
-            
-        elseif Config.PlayStyle == "Balanced" then
-            angle = angle + 0.03
-            local radius = ballData.IsTargeting and 15 or 20
-            local offset = Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
-            Humanoid:MoveTo(ballPos + offset)
-        end
-    end)
-end
-
--- ════════════════════════════════════════════════════════════════════════════════
--- BEAUTIFUL GUI
--- ════════════════════════════════════════════════════════════════════════════════
-
--- Color Palette
-local Colors = {
-    Background = Color3.fromRGB(12, 12, 18),
-    Surface = Color3.fromRGB(22, 22, 30),
-    SurfaceLight = Color3.fromRGB(32, 32, 42),
-    Primary = Color3.fromRGB(139, 92, 246), -- Purple
-    PrimaryDark = Color3.fromRGB(109, 62, 216),
-    Accent = Color3.fromRGB(236, 72, 153), -- Pink
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(250, 204, 21),
-    Danger = Color3.fromRGB(239, 68, 68),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextDim = Color3.fromRGB(156, 163, 175),
-    Border = Color3.fromRGB(55, 55, 70)
-}
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NexusProGUI"
+ScreenGui.Name = "ReaperHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- Try different parent methods
+local guiParent = game.CoreGui
 pcall(function()
-    if gethui then
-        ScreenGui.Parent = gethui()
-    elseif syn and syn.protect_gui then
+    if syn and syn.protect_gui then
         syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game.CoreGui
-    else
-        ScreenGui.Parent = game.CoreGui
     end
 end)
+pcall(function()
+    if gethui then
+        guiParent = gethui()
+    end
+end)
+ScreenGui.Parent = guiParent
 
--- Main Container
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "Main"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Colors.Background
-MainFrame.Position = UDim2.new(0.5, -240, 0.5, -220)
-MainFrame.Size = UDim2.new(0, 480, 0, 440)
-MainFrame.Active = true
-MainFrame.Draggable = true
+-- Colors
+local C = {
+    Bg = Color3.fromRGB(15, 15, 20),
+    Bg2 = Color3.fromRGB(25, 25, 32),
+    Accent = Color3.fromRGB(180, 50, 50),
+    Accent2 = Color3.fromRGB(220, 70, 70),
+    Text = Color3.fromRGB(255, 255, 255),
+    TextDim = Color3.fromRGB(150, 150, 150),
+    Green = Color3.fromRGB(50, 200, 100),
+    Border = Color3.fromRGB(60, 60, 70)
+}
+
+-- Main Frame
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Parent = ScreenGui
+Main.BackgroundColor3 = C.Bg
+Main.BorderSizePixel = 0
+Main.Position = UDim2.new(0.5, -220, 0.5, -180)
+Main.Size = UDim2.new(0, 440, 0, 360)
+Main.Active = true
+Main.Draggable = true
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 16)
-MainCorner.Parent = MainFrame
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = Main
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Parent = MainFrame
-MainStroke.Color = Colors.Border
-MainStroke.Thickness = 1
-
--- Gradient Background Effect
-local GradientFrame = Instance.new("Frame")
-GradientFrame.Parent = MainFrame
-GradientFrame.Size = UDim2.new(1, 0, 0, 100)
-GradientFrame.BackgroundColor3 = Colors.Primary
-GradientFrame.BackgroundTransparency = 0.85
-GradientFrame.BorderSizePixel = 0
-
-local GradientCorner = Instance.new("UICorner")
-GradientCorner.CornerRadius = UDim.new(0, 16)
-GradientCorner.Parent = GradientFrame
-
-local Gradient = Instance.new("UIGradient")
-Gradient.Parent = GradientFrame
-Gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Colors.Primary),
-    ColorSequenceKeypoint.new(1, Colors.Accent)
-})
-Gradient.Rotation = 45
-Gradient.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 0.7),
-    NumberSequenceKeypoint.new(1, 1)
-})
+local MainBorder = Instance.new("UIStroke")
+MainBorder.Parent = Main
+MainBorder.Color = C.Accent
+MainBorder.Thickness = 2
 
 -- Header
 local Header = Instance.new("Frame")
-Header.Parent = MainFrame
-Header.BackgroundTransparency = 1
-Header.Size = UDim2.new(1, 0, 0, 60)
+Header.Name = "Header"
+Header.Parent = Main
+Header.BackgroundColor3 = C.Accent
+Header.BorderSizePixel = 0
+Header.Size = UDim2.new(1, 0, 0, 45)
 
-local Logo = Instance.new("TextLabel")
-Logo.Parent = Header
-Logo.BackgroundTransparency = 1
-Logo.Position = UDim2.new(0, 20, 0, 10)
-Logo.Size = UDim2.new(0, 200, 0, 25)
-Logo.Font = Enum.Font.GothamBold
-Logo.Text = "⚔️ NEXUS PRO"
-Logo.TextColor3 = Colors.Text
-Logo.TextSize = 20
-Logo.TextXAlignment = Enum.TextXAlignment.Left
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 12)
+HeaderCorner.Parent = Header
 
-local Version = Instance.new("TextLabel")
-Version.Parent = Header
-Version.BackgroundTransparency = 1
-Version.Position = UDim2.new(0, 20, 0, 35)
-Version.Size = UDim2.new(0, 200, 0, 15)
-Logo.Font = Enum.Font.Gotham
-Version.Text = "v4.0 Competitive Edition"
-Version.TextColor3 = Colors.TextDim
-Version.TextSize = 11
-Version.TextXAlignment = Enum.TextXAlignment.Left
+local HeaderFix = Instance.new("Frame")
+HeaderFix.Parent = Header
+HeaderFix.BackgroundColor3 = C.Accent
+HeaderFix.BorderSizePixel = 0
+HeaderFix.Position = UDim2.new(0, 0, 0.5, 0)
+HeaderFix.Size = UDim2.new(1, 0, 0.5, 0)
 
--- Stats Display
-local StatsFrame = Instance.new("Frame")
-StatsFrame.Parent = Header
-StatsFrame.BackgroundColor3 = Colors.Surface
-StatsFrame.Position = UDim2.new(1, -160, 0, 15)
-StatsFrame.Size = UDim2.new(0, 140, 0, 35)
+local Title = Instance.new("TextLabel")
+Title.Parent = Header
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "☠️ REAPER HUB"
+Title.TextColor3 = C.Text
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
-local StatsCorner = Instance.new("UICorner")
-StatsCorner.CornerRadius = UDim.new(0, 8)
-StatsCorner.Parent = StatsFrame
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Parent = Header
+Subtitle.BackgroundTransparency = 1
+Subtitle.Position = UDim2.new(0, 140, 0, 0)
+Subtitle.Size = UDim2.new(0, 100, 1, 0)
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.Text = "Blade Ball"
+Subtitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+Subtitle.TextSize = 12
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
-local ParryCountLabel = Instance.new("TextLabel")
-ParryCountLabel.Parent = StatsFrame
-ParryCountLabel.BackgroundTransparency = 1
-ParryCountLabel.Size = UDim2.new(1, 0, 1, 0)
-ParryCountLabel.Font = Enum.Font.GothamBold
-ParryCountLabel.Text = "Parries: 0"
-ParryCountLabel.TextColor3 = Colors.Success
-ParryCountLabel.TextSize = 14
+-- Stats
+local Stats = Instance.new("TextLabel")
+Stats.Name = "Stats"
+Stats.Parent = Header
+Stats.BackgroundTransparency = 1
+Stats.Position = UDim2.new(0.5, 0, 0, 0)
+Stats.Size = UDim2.new(0.3, 0, 1, 0)
+Stats.Font = Enum.Font.GothamBold
+Stats.Text = "Parries: 0"
+Stats.TextColor3 = C.Green
+Stats.TextSize = 14
 
--- Update parry count
-task.spawn(function()
-    while wait(0.5) do
-        if ParryCountLabel and ParryCountLabel.Parent then
-            ParryCountLabel.Text = "Parries: " .. ParryCount
-        end
-    end
-end)
-
--- Close & Minimize Buttons
+-- Close Button
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = Header
-CloseBtn.BackgroundColor3 = Colors.Danger
-CloseBtn.Position = UDim2.new(1, -45, 0, 15)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.Position = UDim2.new(1, -40, 0, 8)
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.Text = "×"
-CloseBtn.TextColor3 = Colors.Text
-CloseBtn.TextSize = 20
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = C.Text
+CloseBtn.TextSize = 14
 
 local CloseBtnCorner = Instance.new("UICorner")
-CloseBtnCorner.CornerRadius = UDim.new(0, 8)
+CloseBtnCorner.CornerRadius = UDim.new(0, 6)
 CloseBtnCorner.Parent = CloseBtn
 
-local MinBtn = Instance.new("TextButton")
-MinBtn.Parent = Header
-MinBtn.BackgroundColor3 = Colors.Warning
-MinBtn.Position = UDim2.new(1, -80, 0, 15)
-MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.Text = "−"
-MinBtn.TextColor3 = Colors.Background
-MinBtn.TextSize = 20
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
-local MinBtnCorner = Instance.new("UICorner")
-MinBtnCorner.CornerRadius = UDim.new(0, 8)
-MinBtnCorner.Parent = MinBtn
+-- Tab Container
+local TabContainer = Instance.new("Frame")
+TabContainer.Parent = Main
+TabContainer.BackgroundColor3 = C.Bg2
+TabContainer.BorderSizePixel = 0
+TabContainer.Position = UDim2.new(0, 10, 0, 55)
+TabContainer.Size = UDim2.new(1, -20, 0, 35)
+
+local TabCorner = Instance.new("UICorner")
+TabCorner.CornerRadius = UDim.new(0, 8)
+TabCorner.Parent = TabContainer
+
+local TabList = Instance.new("UIListLayout")
+TabList.Parent = TabContainer
+TabList.FillDirection = Enum.FillDirection.Horizontal
+TabList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabList.Padding = UDim.new(0, 5)
+TabList.VerticalAlignment = Enum.VerticalAlignment.Center
+
+-- Content Container
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Parent = Main
+Content.BackgroundTransparency = 1
+Content.Position = UDim2.new(0, 10, 0, 100)
+Content.Size = UDim2.new(1, -20, 1, -110)
 
 -- Tab System
-local TabBar = Instance.new("Frame")
-TabBar.Parent = MainFrame
-TabBar.BackgroundColor3 = Colors.Surface
-TabBar.Position = UDim2.new(0, 15, 0, 65)
-TabBar.Size = UDim2.new(1, -30, 0, 40)
-
-local TabBarCorner = Instance.new("UICorner")
-TabBarCorner.CornerRadius = UDim.new(0, 10)
-TabBarCorner.Parent = TabBar
-
-local TabLayout = Instance.new("UIListLayout")
-TabLayout.Parent = TabBar
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-TabLayout.Padding = UDim.new(0, 5)
-
-local TabPadding = Instance.new("UIPadding")
-TabPadding.Parent = TabBar
-TabPadding.PaddingLeft = UDim.new(0, 5)
-TabPadding.PaddingTop = UDim.new(0, 5)
-
--- Content Area
-local ContentArea = Instance.new("Frame")
-ContentArea.Parent = MainFrame
-ContentArea.BackgroundTransparency = 1
-ContentArea.Position = UDim2.new(0, 15, 0, 115)
-ContentArea.Size = UDim2.new(1, -30, 1, -125)
-
+local Tabs = {}
 local Pages = {}
-local CurrentTab = nil
+local ActiveTab = nil
 
-local function CreateTab(name, icon)
-    local tab = Instance.new("TextButton")
-    tab.Parent = TabBar
-    tab.BackgroundColor3 = Colors.SurfaceLight
-    tab.Size = UDim2.new(0, 85, 0, 30)
-    tab.Font = Enum.Font.Gotham
-    tab.Text = icon .. " " .. name
-    tab.TextColor3 = Colors.TextDim
-    tab.TextSize = 12
+local function CreateTab(name)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = TabContainer
+    btn.BackgroundColor3 = C.Bg
+    btn.Size = UDim2.new(0, 80, 0, 28)
+    btn.Font = Enum.Font.Gotham
+    btn.Text = name
+    btn.TextColor3 = C.TextDim
+    btn.TextSize = 12
     
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 8)
-    tabCorner.Parent = tab
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = btn
     
     local page = Instance.new("ScrollingFrame")
-    page.Parent = ContentArea
+    page.Name = name
+    page.Parent = Content
     page.BackgroundTransparency = 1
     page.Size = UDim2.new(1, 0, 1, 0)
-    page.ScrollBarThickness = 3
-    page.ScrollBarImageColor3 = Colors.Primary
+    page.ScrollBarThickness = 4
+    page.ScrollBarImageColor3 = C.Accent
     page.Visible = false
     page.CanvasSize = UDim2.new(0, 0, 0, 0)
     page.AutomaticCanvasSize = Enum.AutomaticSize.Y
     
-    local pageLayout = Instance.new("UIListLayout")
-    pageLayout.Parent = page
-    pageLayout.Padding = UDim.new(0, 10)
+    local pageList = Instance.new("UIListLayout")
+    pageList.Parent = page
+    pageList.Padding = UDim.new(0, 8)
+    pageList.SortOrder = Enum.SortOrder.LayoutOrder
     
-    local pagePadding = Instance.new("UIPadding")
-    pagePadding.Parent = page
-    pagePadding.PaddingTop = UDim.new(0, 5)
-    pagePadding.PaddingRight = UDim.new(0, 10)
+    local pagePad = Instance.new("UIPadding")
+    pagePad.Parent = page
+    pagePad.PaddingRight = UDim.new(0, 5)
     
-    Pages[name] = {Tab = tab, Page = page}
+    Tabs[name] = btn
+    Pages[name] = page
     
-    tab.MouseButton1Click:Connect(function()
-        for _, data in pairs(Pages) do
-            data.Page.Visible = false
-            data.Tab.BackgroundColor3 = Colors.SurfaceLight
-            data.Tab.TextColor3 = Colors.TextDim
+    btn.MouseButton1Click:Connect(function()
+        for n, t in pairs(Tabs) do
+            t.BackgroundColor3 = C.Bg
+            t.TextColor3 = C.TextDim
+            Pages[n].Visible = false
         end
+        btn.BackgroundColor3 = C.Accent
+        btn.TextColor3 = C.Text
         page.Visible = true
-        tab.BackgroundColor3 = Colors.Primary
-        tab.TextColor3 = Colors.Text
-        CurrentTab = name
+        ActiveTab = name
     end)
     
     return page
 end
 
--- UI Element Creators
-local function CreateSection(parent, title)
-    local section = Instance.new("Frame")
-    section.Parent = parent
-    section.BackgroundColor3 = Colors.Surface
-    section.Size = UDim2.new(1, 0, 0, 30)
+-- UI Elements
+local function CreateLabel(parent, text)
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = parent
+    lbl.BackgroundColor3 = C.Accent
+    lbl.BackgroundTransparency = 0.8
+    lbl.Size = UDim2.new(1, 0, 0, 25)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.Text = "  " .. text
+    lbl.TextColor3 = C.Accent2
+    lbl.TextSize = 12
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
     
-    local sectionCorner = Instance.new("UICorner")
-    sectionCorner.CornerRadius = UDim.new(0, 8)
-    sectionCorner.Parent = section
-    
-    local sectionGradient = Instance.new("UIGradient")
-    sectionGradient.Parent = section
-    sectionGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Colors.Primary),
-        ColorSequenceKeypoint.new(1, Colors.Accent)
-    })
-    sectionGradient.Transparency = NumberSequence.new(0.85)
-    
-    local label = Instance.new("TextLabel")
-    label.Parent = section
-    label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 12, 0, 0)
-    label.Size = UDim2.new(1, -12, 1, 0)
-    label.Font = Enum.Font.GothamBold
-    label.Text = title
-    label.TextColor3 = Colors.Text
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Left
+    local lblCorner = Instance.new("UICorner")
+    lblCorner.CornerRadius = UDim.new(0, 6)
+    lblCorner.Parent = lbl
 end
 
-local function CreateToggle(parent, name, configKey, callback)
+local function CreateToggle(parent, text, setting, callback)
     local frame = Instance.new("Frame")
     frame.Parent = parent
-    frame.BackgroundColor3 = Colors.Surface
-    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = C.Bg2
+    frame.Size = UDim2.new(1, 0, 0, 38)
     
     local frameCorner = Instance.new("UICorner")
-    frameCorner.CornerRadius = UDim.new(0, 10)
+    frameCorner.CornerRadius = UDim.new(0, 8)
     frameCorner.Parent = frame
     
-    local label = Instance.new("TextLabel")
-    label.Parent = frame
-    label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 15, 0, 0)
-    label.Size = UDim2.new(1, -80, 1, 0)
-    label.Font = Enum.Font.Gotham
-    label.Text = name
-    label.TextColor3 = Colors.Text
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = frame
+    lbl.BackgroundTransparency = 1
+    lbl.Position = UDim2.new(0, 12, 0, 0)
+    lbl.Size = UDim2.new(1, -70, 1, 0)
+    lbl.Font = Enum.Font.Gotham
+    lbl.Text = text
+    lbl.TextColor3 = C.Text
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
     
     local toggleBg = Instance.new("Frame")
     toggleBg.Parent = frame
-    toggleBg.BackgroundColor3 = Config[configKey] and Colors.Primary or Colors.SurfaceLight
-    toggleBg.Position = UDim2.new(1, -60, 0.5, -12)
-    toggleBg.Size = UDim2.new(0, 48, 0, 24)
+    toggleBg.BackgroundColor3 = Settings[setting] and C.Accent or C.Bg
+    toggleBg.Position = UDim2.new(1, -55, 0.5, -11)
+    toggleBg.Size = UDim2.new(0, 44, 0, 22)
     
-    local toggleBgCorner = Instance.new("UICorner")
-    toggleBgCorner.CornerRadius = UDim.new(1, 0)
-    toggleBgCorner.Parent = toggleBg
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(1, 0)
+    toggleCorner.Parent = toggleBg
     
-    local toggleCircle = Instance.new("Frame")
-    toggleCircle.Parent = toggleBg
-    toggleCircle.BackgroundColor3 = Colors.Text
-    toggleCircle.Position = Config[configKey] and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-    toggleCircle.Size = UDim2.new(0, 20, 0, 20)
+    local circle = Instance.new("Frame")
+    circle.Parent = toggleBg
+    circle.BackgroundColor3 = C.Text
+    circle.Position = Settings[setting] and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    circle.Size = UDim2.new(0, 18, 0, 18)
     
-    local toggleCircleCorner = Instance.new("UICorner")
-    toggleCircleCorner.CornerRadius = UDim.new(1, 0)
-    toggleCircleCorner.Parent = toggleCircle
+    local circleCorner = Instance.new("UICorner")
+    circleCorner.CornerRadius = UDim.new(1, 0)
+    circleCorner.Parent = circle
     
-    local button = Instance.new("TextButton")
-    button.Parent = frame
-    button.BackgroundTransparency = 1
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.Text = ""
+    local btn = Instance.new("TextButton")
+    btn.Parent = frame
+    btn.BackgroundTransparency = 1
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.Text = ""
     
-    button.MouseButton1Click:Connect(function()
-        Config[configKey] = not Config[configKey]
+    btn.MouseButton1Click:Connect(function()
+        Settings[setting] = not Settings[setting]
         
-        local targetPos = Config[configKey] and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-        local targetColor = Config[configKey] and Colors.Primary or Colors.SurfaceLight
+        local pos = Settings[setting] and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+        local col = Settings[setting] and C.Accent or C.Bg
         
-        TweenService:Create(toggleCircle, TweenInfo.new(0.2), {Position = targetPos}):Play()
-        TweenService:Create(toggleBg, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(circle, TweenInfo.new(0.15), {Position = pos}):Play()
+        TweenService:Create(toggleBg, TweenInfo.new(0.15), {BackgroundColor3 = col}):Play()
         
-        if callback then callback(Config[configKey]) end
+        if callback then callback(Settings[setting]) end
     end)
 end
 
-local function CreateSlider(parent, name, configKey, min, max, callback)
+local function CreateSlider(parent, text, setting, min, max, callback)
     local frame = Instance.new("Frame")
     frame.Parent = parent
-    frame.BackgroundColor3 = Colors.Surface
-    frame.Size = UDim2.new(1, 0, 0, 55)
+    frame.BackgroundColor3 = C.Bg2
+    frame.Size = UDim2.new(1, 0, 0, 50)
     
     local frameCorner = Instance.new("UICorner")
-    frameCorner.CornerRadius = UDim.new(0, 10)
+    frameCorner.CornerRadius = UDim.new(0, 8)
     frameCorner.Parent = frame
     
-    local label = Instance.new("TextLabel")
-    label.Parent = frame
-    label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 15, 0, 8)
-    label.Size = UDim2.new(1, -80, 0, 18)
-    label.Font = Enum.Font.Gotham
-    label.Text = name
-    label.TextColor3 = Colors.Text
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = frame
+    lbl.BackgroundTransparency = 1
+    lbl.Position = UDim2.new(0, 12, 0, 5)
+    lbl.Size = UDim2.new(1, -60, 0, 18)
+    lbl.Font = Enum.Font.Gotham
+    lbl.Text = text
+    lbl.TextColor3 = C.Text
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
     
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Parent = frame
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.Position = UDim2.new(1, -65, 0, 8)
-    valueLabel.Size = UDim2.new(0, 50, 0, 18)
-    valueLabel.Font = Enum.Font.GothamBold
-    valueLabel.Text = tostring(Config[configKey])
-    valueLabel.TextColor3 = Colors.Primary
-    valueLabel.TextSize = 14
+    local val = Instance.new("TextLabel")
+    val.Parent = frame
+    val.BackgroundTransparency = 1
+    val.Position = UDim2.new(1, -50, 0, 5)
+    val.Size = UDim2.new(0, 40, 0, 18)
+    val.Font = Enum.Font.GothamBold
+    val.Text = tostring(Settings[setting])
+    val.TextColor3 = C.Accent2
+    val.TextSize = 13
     
     local sliderBg = Instance.new("Frame")
     sliderBg.Parent = frame
-    sliderBg.BackgroundColor3 = Colors.SurfaceLight
-    sliderBg.Position = UDim2.new(0, 15, 0, 35)
-    sliderBg.Size = UDim2.new(1, -30, 0, 8)
+    sliderBg.BackgroundColor3 = C.Bg
+    sliderBg.Position = UDim2.new(0, 12, 0, 32)
+    sliderBg.Size = UDim2.new(1, -24, 0, 8)
     
-    local sliderBgCorner = Instance.new("UICorner")
-    sliderBgCorner.CornerRadius = UDim.new(1, 0)
-    sliderBgCorner.Parent = sliderBg
+    local sliderCorner = Instance.new("UICorner")
+    sliderCorner.CornerRadius = UDim.new(1, 0)
+    sliderCorner.Parent = sliderBg
     
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Parent = sliderBg
-    sliderFill.BackgroundColor3 = Colors.Primary
-    sliderFill.Size = UDim2.new((Config[configKey] - min) / (max - min), 0, 1, 0)
+    local fill = Instance.new("Frame")
+    fill.Parent = sliderBg
+    fill.BackgroundColor3 = C.Accent
+    fill.Size = UDim2.new((Settings[setting] - min) / (max - min), 0, 1, 0)
     
-    local sliderFillCorner = Instance.new("UICorner")
-    sliderFillCorner.CornerRadius = UDim.new(1, 0)
-    sliderFillCorner.Parent = sliderFill
-    
-    local sliderGradient = Instance.new("UIGradient")
-    sliderGradient.Parent = sliderFill
-    sliderGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Colors.Primary),
-        ColorSequenceKeypoint.new(1, Colors.Accent)
-    })
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = fill
     
     local dragging = false
     
     sliderBg.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
         end
     end)
     
     sliderBg.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if dragging then
-            local mousePos = UserInputService:GetMouseLocation().X
-            local sliderPos = sliderBg.AbsolutePosition.X
-            local sliderSize = sliderBg.AbsoluteSize.X
-            local value = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
-            local newValue = math.floor(min + (max - min) * value * 10) / 10
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = UserInputService:GetMouseLocation()
+            local rel = math.clamp((mouse.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+            local newVal = math.floor((min + (max - min) * rel) * 10) / 10
             
-            Config[configKey] = newValue
-            valueLabel.Text = tostring(newValue)
-            sliderFill.Size = UDim2.new(value, 0, 1, 0)
-            if callback then callback(newValue) end
+            Settings[setting] = newVal
+            val.Text = tostring(newVal)
+            fill.Size = UDim2.new(rel, 0, 1, 0)
+            
+            if callback then callback(newVal) end
         end
     end)
 end
 
-local function CreateDropdown(parent, name, configKey, options, callback)
+local function CreateDropdown(parent, text, setting, options, callback)
     local frame = Instance.new("Frame")
     frame.Parent = parent
-    frame.BackgroundColor3 = Colors.Surface
-    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = C.Bg2
+    frame.Size = UDim2.new(1, 0, 0, 38)
     frame.ClipsDescendants = true
     
     local frameCorner = Instance.new("UICorner")
-    frameCorner.CornerRadius = UDim.new(0, 10)
+    frameCorner.CornerRadius = UDim.new(0, 8)
     frameCorner.Parent = frame
     
-    local label = Instance.new("TextLabel")
-    label.Parent = frame
-    label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 15, 0, 0)
-    label.Size = UDim2.new(0.5, -15, 0, 45)
-    label.Font = Enum.Font.Gotham
-    label.Text = name
-    label.TextColor3 = Colors.Text
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = frame
+    lbl.BackgroundTransparency = 1
+    lbl.Position = UDim2.new(0, 12, 0, 0)
+    lbl.Size = UDim2.new(0.5, -12, 0, 38)
+    lbl.Font = Enum.Font.Gotham
+    lbl.Text = text
+    lbl.TextColor3 = C.Text
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
     
     local dropBtn = Instance.new("TextButton")
     dropBtn.Parent = frame
-    dropBtn.BackgroundColor3 = Colors.SurfaceLight
-    dropBtn.Position = UDim2.new(0.5, 0, 0, 8)
-    dropBtn.Size = UDim2.new(0.5, -15, 0, 30)
+    dropBtn.BackgroundColor3 = C.Bg
+    dropBtn.Position = UDim2.new(0.5, 0, 0, 5)
+    dropBtn.Size = UDim2.new(0.5, -12, 0, 28)
     dropBtn.Font = Enum.Font.Gotham
-    dropBtn.Text = Config[configKey] .. " ▼"
-    dropBtn.TextColor3 = Colors.Text
+    dropBtn.Text = Settings[setting] .. " ▼"
+    dropBtn.TextColor3 = C.Text
     dropBtn.TextSize = 12
     
-    local dropBtnCorner = Instance.new("UICorner")
-    dropBtnCorner.CornerRadius = UDim.new(0, 6)
-    dropBtnCorner.Parent = dropBtn
+    local dropCorner = Instance.new("UICorner")
+    dropCorner.CornerRadius = UDim.new(0, 6)
+    dropCorner.Parent = dropBtn
     
-    local expanded = false
+    local open = false
     
     dropBtn.MouseButton1Click:Connect(function()
-        expanded = not expanded
+        open = not open
         
-        if expanded then
-            frame.Size = UDim2.new(1, 0, 0, 45 + (#options * 30))
+        if open then
+            frame.Size = UDim2.new(1, 0, 0, 38 + #options * 28)
             
-            for i, option in ipairs(options) do
+            for i, opt in ipairs(options) do
                 local optBtn = Instance.new("TextButton")
-                optBtn.Name = "Opt_" .. option
+                optBtn.Name = "Opt" .. i
                 optBtn.Parent = frame
-                optBtn.BackgroundColor3 = Colors.SurfaceLight
-                optBtn.Position = UDim2.new(0.5, 0, 0, 40 + (i * 28))
-                optBtn.Size = UDim2.new(0.5, -15, 0, 26)
+                optBtn.BackgroundColor3 = C.Bg
+                optBtn.Position = UDim2.new(0.5, 0, 0, 35 + i * 26)
+                optBtn.Size = UDim2.new(0.5, -12, 0, 24)
                 optBtn.Font = Enum.Font.Gotham
-                optBtn.Text = option
-                optBtn.TextColor3 = Colors.TextDim
+                optBtn.Text = opt
+                optBtn.TextColor3 = C.TextDim
                 optBtn.TextSize = 11
                 
                 local optCorner = Instance.new("UICorner")
@@ -1035,184 +583,399 @@ local function CreateDropdown(parent, name, configKey, options, callback)
                 optCorner.Parent = optBtn
                 
                 optBtn.MouseButton1Click:Connect(function()
-                    Config[configKey] = option
-                    dropBtn.Text = option .. " ▼"
-                    expanded = false
-                    frame.Size = UDim2.new(1, 0, 0, 45)
+                    Settings[setting] = opt
+                    dropBtn.Text = opt .. " ▼"
+                    open = false
+                    frame.Size = UDim2.new(1, 0, 0, 38)
                     
-                    for _, child in pairs(frame:GetChildren()) do
-                        if child.Name:match("Opt_") then child:Destroy() end
+                    for _, c in pairs(frame:GetChildren()) do
+                        if c.Name:match("Opt") then c:Destroy() end
                     end
                     
-                    if callback then callback(option) end
+                    if callback then callback(opt) end
                 end)
             end
         else
-            frame.Size = UDim2.new(1, 0, 0, 45)
-            for _, child in pairs(frame:GetChildren()) do
-                if child.Name:match("Opt_") then child:Destroy() end
+            frame.Size = UDim2.new(1, 0, 0, 38)
+            for _, c in pairs(frame:GetChildren()) do
+                if c.Name:match("Opt") then c:Destroy() end
             end
         end
     end)
 end
 
 -- Create Tabs
-local parryPage = CreateTab("Parry", "⚔️")
-local clashPage = CreateTab("Clash", "💥")
-local espPage = CreateTab("ESP", "👁️")
-local movePage = CreateTab("Move", "🏃")
-local miscPage = CreateTab("Misc", "⚙️")
+local parryPage = CreateTab("Parry")
+local clashPage = CreateTab("Clash")
+local espPage = CreateTab("ESP")
+local movePage = CreateTab("Move")
+local miscPage = CreateTab("Misc")
 
--- PARRY TAB
-CreateSection(parryPage, "AUTO PARRY")
+-- PARRY PAGE
+CreateLabel(parryPage, "AUTO PARRY")
 CreateToggle(parryPage, "Enable Auto Parry", "AutoParry")
-CreateDropdown(parryPage, "Parry Method", "ParryMethod", {"Velocity", "Distance", "Hybrid"})
-CreateSlider(parryPage, "Base Distance", "BaseDistance", 5, 30)
-CreateSlider(parryPage, "Min Distance", "MinDistance", 1, 10)
+CreateDropdown(parryPage, "Parry Method", "ParryMethod", {"Velocity", "Distance"})
+CreateSlider(parryPage, "Parry Distance", "ParryDistance", 5, 30)
 CreateSlider(parryPage, "Velocity Multiplier", "VelocityMultiplier", 0.5, 2.0)
-CreateSlider(parryPage, "Reaction Delay (ms)", "ReactionTime", 0, 0.2)
 
--- CLASH TAB
-CreateSection(clashPage, "CLASH HANDLING")
-CreateToggle(clashPage, "Anti-Clash System", "AntiClash")
-CreateToggle(clashPage, "Auto Spam on Clash", "AutoSpamOnClash")
-CreateSlider(clashPage, "Clash Detection Range", "ClashDetectionRange", 3, 15)
-CreateSlider(clashPage, "Clash Spam Speed", "ClashSpamSpeed", 0.01, 0.2)
+-- CLASH PAGE
+CreateLabel(clashPage, "CLASH SYSTEM")
+CreateToggle(clashPage, "Anti-Clash", "AntiClash")
+CreateToggle(clashPage, "Clash Spam", "ClashSpam")
+CreateSlider(clashPage, "Clash Range", "ClashRange", 3, 15)
+CreateSlider(clashPage, "Clash Speed", "ClashSpeed", 0.01, 0.2)
 
-CreateSection(clashPage, "MANUAL SPAM")
+CreateLabel(clashPage, "SPAM")
 CreateToggle(clashPage, "Auto Spam", "AutoSpam")
-CreateToggle(clashPage, "Smart Spam", "SmartSpam")
 CreateSlider(clashPage, "Spam CPS", "SpamCPS", 5, 50)
 
--- ESP TAB
-CreateSection(espPage, "VISUALS")
-CreateToggle(espPage, "Ball ESP", "BallESP", function(val)
-    if val and CurrentBall then CreateModernESP(CurrentBall) end
-end)
-CreateToggle(espPage, "Trajectory Line", "TrajectoryLine")
-CreateToggle(espPage, "Player ESP", "PlayerESP")
-CreateToggle(espPage, "Danger Indicator", "DangerIndicator")
+-- ESP PAGE
+CreateLabel(espPage, "VISUALS")
+CreateToggle(espPage, "Ball ESP", "BallESP")
+CreateToggle(espPage, "Show Distance", "ShowDistance")
+CreateToggle(espPage, "Trajectory Line", "TrajectoryESP")
 
--- MOVEMENT TAB
-CreateSection(movePage, "SPEED")
-CreateToggle(movePage, "Speed Hack", "SpeedHack", function(val)
+-- MOVE PAGE
+CreateLabel(movePage, "SPEED")
+CreateToggle(movePage, "Speed Enabled", "SpeedEnabled", function(v)
     if Humanoid then
-        Humanoid.WalkSpeed = val and Config.WalkSpeed or 16
+        Humanoid.WalkSpeed = v and Settings.WalkSpeed or 16
     end
 end)
-CreateSlider(movePage, "Walk Speed", "WalkSpeed", 16, 150, function(val)
-    if Config.SpeedHack and Humanoid then
-        Humanoid.WalkSpeed = val
+CreateSlider(movePage, "Walk Speed", "WalkSpeed", 16, 150, function(v)
+    if Settings.SpeedEnabled and Humanoid then
+        Humanoid.WalkSpeed = v
     end
 end)
 
-CreateSection(movePage, "AUTO PLAY")
-CreateToggle(movePage, "Auto Play", "AutoPlay", StartAutoPlay)
-CreateDropdown(movePage, "Play Style", "PlayStyle", {"Aggressive", "Defensive", "Balanced"}, StartAutoPlay)
+CreateLabel(movePage, "AUTO PLAY")
+CreateToggle(movePage, "Auto Play", "AutoPlay")
+CreateDropdown(movePage, "Play Style", "PlayStyle", {"Aggressive", "Defensive", "Balanced"})
 
--- MISC TAB
-CreateSection(miscPage, "UTILITY")
+-- MISC PAGE
+CreateLabel(miscPage, "UTILITY")
 CreateToggle(miscPage, "Anti-AFK", "AntiAFK")
-CreateToggle(miscPage, "Notifications", "Notifications")
-CreateToggle(miscPage, "Debug Mode", "DebugMode")
+
+local keyInfo = Instance.new("TextLabel")
+keyInfo.Parent = miscPage
+keyInfo.BackgroundColor3 = C.Bg2
+keyInfo.Size = UDim2.new(1, 0, 0, 50)
+keyInfo.Font = Enum.Font.Gotham
+keyInfo.Text = "Press RIGHT CTRL to toggle GUI\nPress F to manually parry"
+keyInfo.TextColor3 = C.TextDim
+keyInfo.TextSize = 12
+
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 8)
+keyCorner.Parent = keyInfo
 
 -- Select first tab
-Pages["Parry"].Page.Visible = true
-Pages["Parry"].Tab.BackgroundColor3 = Colors.Primary
-Pages["Parry"].Tab.TextColor3 = Colors.Text
+Tabs["Parry"].BackgroundColor3 = C.Accent
+Tabs["Parry"].TextColor3 = C.Text
+Pages["Parry"].Visible = true
+ActiveTab = "Parry"
 
--- Button Events
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+-- ══════════════════════════════════════════════════════════════
+-- ESP SYSTEM
+-- ══════════════════════════════════════════════════════════════
 
-local minimized = false
-MinBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    ContentArea.Visible = not minimized
-    TabBar.Visible = not minimized
-    MainFrame.Size = minimized and UDim2.new(0, 480, 0, 65) or UDim2.new(0, 480, 0, 440)
-end)
+local ESPItems = {}
 
--- Toggle GUI
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
-    if input.KeyCode == Config.ToggleKey then
-        MainFrame.Visible = not MainFrame.Visible
+local function CreateESP(ball)
+    if ESPItems[ball] then return end
+    ESPItems[ball] = {}
+    
+    -- Highlight
+    local hl = Instance.new("Highlight")
+    hl.Parent = ball
+    hl.FillTransparency = 0.5
+    hl.OutlineTransparency = 0
+    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    table.insert(ESPItems[ball], hl)
+    
+    -- Billboard
+    local bb = Instance.new("BillboardGui")
+    bb.Parent = ball
+    bb.Size = UDim2.new(0, 120, 0, 50)
+    bb.StudsOffset = Vector3.new(0, 3, 0)
+    bb.AlwaysOnTop = true
+    table.insert(ESPItems[ball], bb)
+    
+    local bg = Instance.new("Frame")
+    bg.Parent = bb
+    bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    bg.BackgroundTransparency = 0.3
+    
+    local bgCorner = Instance.new("UICorner")
+    bgCorner.CornerRadius = UDim.new(0, 6)
+    bgCorner.Parent = bg
+    
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.Parent = bg
+    status.Size = UDim2.new(1, 0, 0.5, 0)
+    status.BackgroundTransparency = 1
+    status.Font = Enum.Font.GothamBold
+    status.Text = "SAFE"
+    status.TextColor3 = C.Green
+    status.TextSize = 14
+    
+    local info = Instance.new("TextLabel")
+    info.Name = "Info"
+    info.Parent = bg
+    info.Position = UDim2.new(0, 0, 0.5, 0)
+    info.Size = UDim2.new(1, 0, 0.5, 0)
+    info.BackgroundTransparency = 1
+    info.Font = Enum.Font.Gotham
+    info.Text = "0 studs"
+    info.TextColor3 = C.TextDim
+    info.TextSize = 11
+    
+    -- Update loop
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        if not ball or not ball.Parent then
+            conn:Disconnect()
+            return
+        end
+        
+        if not Settings.BallESP then
+            hl.Enabled = false
+            bb.Enabled = false
+            return
+        end
+        
+        hl.Enabled = true
+        bb.Enabled = true
+        
+        local data = GetBallData(ball)
+        if not data then return end
+        
+        local dist = data.Distance
+        local targeting = data.IsTargeting
+        
+        -- Colors based on danger
+        if targeting then
+            if dist <= 5 then
+                hl.FillColor = Color3.fromRGB(255, 50, 50)
+                hl.OutlineColor = Color3.fromRGB(255, 100, 100)
+                status.Text = "PARRY!"
+                status.TextColor3 = Color3.fromRGB(255, 50, 50)
+            elseif dist <= Settings.ParryDistance then
+                hl.FillColor = Color3.fromRGB(255, 150, 50)
+                hl.OutlineColor = Color3.fromRGB(255, 200, 100)
+                status.Text = "DANGER"
+                status.TextColor3 = Color3.fromRGB(255, 150, 50)
+            else
+                hl.FillColor = Color3.fromRGB(255, 200, 50)
+                hl.OutlineColor = Color3.fromRGB(255, 230, 100)
+                status.Text = "WARNING"
+                status.TextColor3 = Color3.fromRGB(255, 200, 50)
+            end
+        else
+            hl.FillColor = Color3.fromRGB(50, 200, 100)
+            hl.OutlineColor = Color3.fromRGB(100, 255, 150)
+            status.Text = "SAFE"
+            status.TextColor3 = C.Green
+        end
+        
+        if Settings.ShowDistance then
+            info.Text = string.format("%.1f studs | %.0f speed", dist, data.Speed)
+        else
+            info.Text = ""
+        end
+    end)
+    
+    table.insert(ESPItems[ball], conn)
+    
+    ball.Destroying:Connect(function()
+        conn:Disconnect()
+        for _, item in pairs(ESPItems[ball] or {}) do
+            if typeof(item) == "RBXScriptConnection" then
+                item:Disconnect()
+            else
+                pcall(function() item:Destroy() end)
+            end
+        end
+        ESPItems[ball] = nil
+    end)
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- MAIN PARRY LOOP
+-- ══════════════════════════════════════════════════════════════
+
+local lastParry = 0
+
+local function StartParry(ball)
+    CurrentBall = ball
+    CreateESP(ball)
+    
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if not ball or not ball.Parent then
+            conn:Disconnect()
+            return
+        end
+        
+        if not Settings.AutoParry then return end
+        if not HumanoidRootPart then return end
+        
+        local data = GetBallData(ball)
+        if not data then return end
+        
+        local now = tick()
+        
+        -- Clash handling
+        if IsClashSituation(data) then
+            IsClashing = true
+            if Settings.ClashSpam then
+                if now - lastParry >= Settings.ClashSpeed then
+                    PressParry()
+                    lastParry = now
+                    ParryCount = ParryCount + 1
+                end
+            end
+            return
+        else
+            IsClashing = false
+        end
+        
+        -- Normal parry
+        if ShouldParry(data) then
+            if now - lastParry >= 0.1 then
+                PressParry()
+                lastParry = now
+                ParryCount = ParryCount + 1
+            end
+        end
+        
+        -- Auto spam
+        if Settings.AutoSpam then
+            if data.IsTargeting and data.Distance <= Settings.ParryDistance + 10 then
+                if now - lastParry >= (1 / Settings.SpamCPS) then
+                    PressParry()
+                    lastParry = now
+                end
+            end
+        end
+    end)
+    
+    ball.Destroying:Connect(function()
+        conn:Disconnect()
+    end)
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- AUTO PLAY
+-- ══════════════════════════════════════════════════════════════
+
+local angle = 0
+RunService.Heartbeat:Connect(function()
+    if not Settings.AutoPlay then return end
+    if not CurrentBall or not CurrentBall.Parent then return end
+    if not Humanoid or not HumanoidRootPart then return end
+    
+    local ballPos = CurrentBall.Position
+    local dist = (HumanoidRootPart.Position - ballPos).Magnitude
+    
+    angle = angle + 0.03
+    
+    if Settings.PlayStyle == "Aggressive" then
+        if dist > 15 then
+            Humanoid:MoveTo(ballPos)
+        else
+            local offset = Vector3.new(math.cos(angle) * 10, 0, math.sin(angle) * 10)
+            Humanoid:MoveTo(ballPos + offset)
+        end
+    elseif Settings.PlayStyle == "Defensive" then
+        local offset = Vector3.new(math.cos(angle) * 25, 0, math.sin(angle) * 25)
+        Humanoid:MoveTo(ballPos + offset)
+    else
+        local radius = 18
+        local offset = Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+        Humanoid:MoveTo(ballPos + offset)
     end
 end)
 
--- ════════════════════════════════════════════════════════════════════════════════
--- BALL DETECTION & INITIALIZATION
--- ════════════════════════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
+-- INITIALIZATION
+-- ══════════════════════════════════════════════════════════════
 
+-- Ball detection
 Balls.ChildAdded:Connect(function(ball)
     if ball:IsA("BasePart") then
-        CurrentBall = ball
         task.wait(0.1)
-        StartParrySystem(ball)
-        CreateModernESP(ball)
-        DebugPrint("New ball detected!")
+        StartParry(ball)
     end
 end)
 
 for _, ball in pairs(Balls:GetChildren()) do
     if ball:IsA("BasePart") then
-        CurrentBall = ball
-        StartParrySystem(ball)
-        CreateModernESP(ball)
+        StartParry(ball)
     end
 end
 
--- Character Respawn
+-- Character respawn
 LocalPlayer.CharacterAdded:Connect(function(char)
     Character = char
-    HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
     Humanoid = char:WaitForChild("Humanoid")
+    HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
     
     task.wait(1)
     
-    if Config.SpeedHack then
-        Humanoid.WalkSpeed = Config.WalkSpeed
+    if Settings.SpeedEnabled then
+        Humanoid.WalkSpeed = Settings.WalkSpeed
     end
-    
-    StartAutoPlay()
     
     for _, ball in pairs(Balls:GetChildren()) do
         if ball:IsA("BasePart") then
-            CurrentBall = ball
-            StartParrySystem(ball)
-            CreateModernESP(ball)
+            StartParry(ball)
         end
     end
 end)
 
 -- Anti-AFK
-if Config.AntiAFK then
-    LocalPlayer.Idled:Connect(function()
+LocalPlayer.Idled:Connect(function()
+    if Settings.AntiAFK then
         VirtualUser:CaptureController()
         VirtualUser:ClickButton2(Vector2.new())
-    end)
-end
+    end
+end)
 
--- ════════════════════════════════════════════════════════════════════════════════
--- STARTUP
--- ════════════════════════════════════════════════════════════════════════════════
+-- GUI Toggle
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Settings.GUIKey then
+        Main.Visible = not Main.Visible
+    end
+end)
 
-StartAutoPlay()
+-- Stats update
+task.spawn(function()
+    while task.wait(0.5) do
+        if Stats and Stats.Parent then
+            Stats.Text = "Parries: " .. ParryCount
+        end
+    end
+end)
 
-Notify("⚔️ NEXUS PRO", "v4.0 Loaded! Press RightShift to toggle", 5)
+-- Notification
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "☠️ Reaper Hub",
+        Text = "Loaded! Press RIGHT CTRL to toggle",
+        Duration = 5
+    })
+end)
 
 print([[
-╔══════════════════════════════════════════════════════════════════════════════════╗
-║                         NEXUS PRO v4.0 - LOADED                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════╣
-║  ⚔️  Auto Parry: Velocity-based prediction system                               ║
-║  💥  Anti-Clash: Automatic spam when clashing detected                          ║
-║  👁️  ESP: Modern visuals with trajectory prediction                             ║
-║  🏃  Movement: Speed hack & auto play                                           ║
-╠══════════════════════════════════════════════════════════════════════════════════╣
-║  Press RightShift to toggle GUI                                                  ║
-║  Enable Debug Mode to see parry logs                                             ║
-╚══════════════════════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════╗
+║              ☠️ REAPER HUB - BLADE BALL v1.0                 ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Auto Parry: ON          Anti-Clash: ON                      ║
+║  Press RIGHT CTRL to toggle GUI                              ║
+║  Press F to manually parry                                   ║
+╚═══════════════════════════════════════════════════════════════╝
 ]])
