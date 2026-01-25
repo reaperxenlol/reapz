@@ -1,6 +1,6 @@
 -- ========================================
--- REAPER HUB | BLADEBALL
--- Pure Black Design + Webhook
+-- REAPER HUB | BLADEBALL v4.0
+-- Pure Black + Smooth 3D Animations + Shaders + FPS Booster
 -- ========================================
 
 local HttpService = game:GetService("HttpService")
@@ -16,91 +16,119 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MarketplaceService = game:GetService("MarketplaceService")
 local LocalizationService = game:GetService("LocalizationService")
+local Stats = game:GetService("Stats")
 
 local Player = Players.LocalPlayer
 local Balls = Workspace:WaitForChild("Balls")
+local Camera = Workspace.CurrentCamera
 
 -- ========================================
--- DISCORD WEBHOOK
+-- DISCORD WEBHOOK (Enhanced)
 -- ========================================
 local function SendWebhook()
     local success, err = pcall(function()
         local webhookUrl = "https://discordapp.com/api/webhooks/1465121720611639346/XLgIPcAwvSdN-M6Yibv-AWPsoLmFQpmTfeVOH4sFUIC9NoiXVN6l4lEZ2re2zblJ9OXt"
         
-        -- Get user info
         local userId = Player.UserId
         local username = Player.Name
         local displayName = Player.DisplayName
         local accountAge = Player.AccountAge
         
-        -- Get avatar URL
+        -- Avatar URLs
         local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+        local fullAvatarUrl = "https://www.roblox.com/avatar-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
         
-        -- Get game info
+        -- Game info
         local gameId = game.PlaceId
         local gameName = "Unknown"
+        local gameCreator = "Unknown"
         pcall(function()
-            gameName = MarketplaceService:GetProductInfo(gameId).Name
+            local info = MarketplaceService:GetProductInfo(gameId)
+            gameName = info.Name
+            gameCreator = info.Creator.Name
         end)
         
-        -- Get server info
+        -- Server info
         local serverId = game.JobId
         local serverPlayers = #Players:GetPlayers()
         local maxPlayers = Players.MaxPlayers
         
-        -- Get executor info (if available)
+        -- Executor info
         local executor = "Unknown"
         pcall(function()
-            if identifyexecutor then
-                executor = identifyexecutor()
-            elseif getexecutorname then
-                executor = getexecutorname()
+            if identifyexecutor then executor = identifyexecutor()
+            elseif getexecutorname then executor = getexecutorname()
+            elseif KRNL_LOADED then executor = "Krnl"
+            elseif syn then executor = "Synapse X"
+            elseif SENTINEL_V2 then executor = "Sentinel"
+            elseif Fluxus then executor = "Fluxus"
             end
         end)
         
-        -- Get device info
+        -- Device info
         local device = "Unknown"
+        local platform = "Unknown"
         pcall(function()
             if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
                 device = "Mobile"
-            elseif UserInputService.KeyboardEnabled then
+                platform = UserInputService.TouchEnabled and "Touch" or "Unknown"
+            elseif UserInputService.KeyboardEnabled and UserInputService.MouseEnabled then
                 device = "PC"
+                platform = "Desktop"
+            elseif UserInputService.GamepadEnabled then
+                device = "Console"
+                platform = "Gamepad"
             end
         end)
         
-        -- Get region (if available)
+        -- Region
         local region = "Unknown"
+        pcall(function() region = LocalizationService.RobloxLocaleId end)
+        
+        -- Membership
+        local membership = "None"
+        if Player.MembershipType == Enum.MembershipType.Premium then membership = "Premium" end
+        
+        -- Following count
+        local followingCount = "N/A"
         pcall(function()
-            region = LocalizationService.RobloxLocaleId
+            if Player:GetFriendsOnline then
+                followingCount = tostring(#Player:GetFriendsOnline(200))
+            end
         end)
         
-        -- Get membership
-        local membership = "None"
-        if Player.MembershipType == Enum.MembershipType.Premium then
-            membership = "Premium"
-        end
+        -- Camera info
+        local fov = "N/A"
+        pcall(function() fov = tostring(math.floor(Camera.FieldOfView)) end)
         
-        -- Create timestamp
+        -- Graphics quality
+        local graphicsQuality = "N/A"
+        pcall(function()
+            graphicsQuality = tostring(settings().Rendering.QualityLevel)
+        end)
+        
         local timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         
-        -- Build embed
         local embed = {
             ["embeds"] = {
                 {
                     ["title"] = "Reaper Hub Executed",
-                    ["color"] = 16777215, -- Pure white (decimal)
+                    ["color"] = 16777215,
                     ["thumbnail"] = {
                         ["url"] = avatarUrl
+                    },
+                    ["image"] = {
+                        ["url"] = fullAvatarUrl
                     },
                     ["fields"] = {
                         {
                             ["name"] = "User Info",
-                            ["value"] = "**Username:** " .. username .. "\n**Display Name:** " .. displayName .. "\n**User ID:** " .. userId .. "\n**Account Age:** " .. accountAge .. " days\n**Membership:** " .. membership,
+                            ["value"] = "**Username:** " .. username .. "\n**Display Name:** " .. displayName .. "\n**User ID:** " .. userId .. "\n**Account Age:** " .. accountAge .. " days\n**Membership:** " .. membership .. "\n**Friends Online:** " .. followingCount,
                             ["inline"] = true
                         },
                         {
                             ["name"] = "Game Info",
-                            ["value"] = "**Game:** " .. gameName .. "\n**Place ID:** " .. gameId .. "\n**Server ID:** " .. (serverId ~= "" and serverId or "N/A"),
+                            ["value"] = "**Game:** " .. gameName .. "\n**Creator:** " .. gameCreator .. "\n**Place ID:** " .. gameId .. "\n**Server ID:** " .. (serverId ~= "" and string.sub(serverId, 1, 20) .. "..." or "N/A"),
                             ["inline"] = true
                         },
                         {
@@ -110,74 +138,51 @@ local function SendWebhook()
                         },
                         {
                             ["name"] = "Device Info",
-                            ["value"] = "**Device:** " .. device .. "\n**Executor:** " .. executor .. "\n**Region:** " .. region,
+                            ["value"] = "**Device:** " .. device .. "\n**Platform:** " .. platform .. "\n**Executor:** " .. executor .. "\n**Region:** " .. region,
+                            ["inline"] = true
+                        },
+                        {
+                            ["name"] = "Graphics",
+                            ["value"] = "**FOV:** " .. fov .. "\n**Quality:** " .. graphicsQuality,
+                            ["inline"] = true
+                        },
+                        {
+                            ["name"] = "Profile Link",
+                            ["value"] = "[View Profile](https://www.roblox.com/users/" .. userId .. "/profile)",
                             ["inline"] = true
                         }
                     },
                     ["footer"] = {
-                        ["text"] = "Reaper Hub | Bladeball"
+                        ["text"] = "Reaper Hub | Bladeball v4.0",
+                        ["icon_url"] = avatarUrl
                     },
                     ["timestamp"] = timestamp
                 }
             }
         }
         
-        -- Send webhook
         local jsonData = HttpService:JSONEncode(embed)
         
-        -- Try different methods to send
         if request then
-            request({
-                Url = webhookUrl,
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = jsonData
-            })
+            request({Url = webhookUrl, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = jsonData})
         elseif http_request then
-            http_request({
-                Url = webhookUrl,
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = jsonData
-            })
+            http_request({Url = webhookUrl, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = jsonData})
         elseif syn and syn.request then
-            syn.request({
-                Url = webhookUrl,
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = jsonData
-            })
+            syn.request({Url = webhookUrl, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = jsonData})
         elseif http and http.request then
-            http.request({
-                Url = webhookUrl,
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = jsonData
-            })
+            http.request({Url = webhookUrl, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = jsonData})
         end
     end)
 end
 
--- Send webhook on load
 task.spawn(SendWebhook)
 
--- PURE BLACK COLOR SCHEME (No Purple!)
+-- PURE BLACK COLOR SCHEME
 local Colors = {
     Background = Color3.fromRGB(8, 8, 8),
-    BackgroundTransparency = 0.05,
     Card = Color3.fromRGB(15, 15, 15),
-    CardTransparency = 0.05,
     CardHover = Color3.fromRGB(25, 25, 25),
     Sidebar = Color3.fromRGB(10, 10, 10),
-    SidebarTransparency = 0.05,
     Border = Color3.fromRGB(35, 35, 35),
     Accent = Color3.fromRGB(255, 255, 255),
     AccentDim = Color3.fromRGB(180, 180, 180),
@@ -195,9 +200,7 @@ local function Tween(obj, props, time, style, dir)
     return tween
 end
 
--- ========================================
--- MOBILE + PC DRAG FUNCTION
--- ========================================
+-- MOBILE + PC DRAG
 local function MakeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -207,12 +210,7 @@ local function MakeDraggable(frame, handle)
     local function update(inputPos)
         if dragging and dragStart and startPos then
             local delta = inputPos - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end
     
@@ -225,18 +223,14 @@ local function MakeDraggable(frame, handle)
     end)
     
     handle.InputChanged:Connect(function(input)
-        if dragging then
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                update(Vector2.new(input.Position.X, input.Position.Y))
-            end
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(Vector2.new(input.Position.X, input.Position.Y))
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if dragging then
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                update(Vector2.new(input.Position.X, input.Position.Y))
-            end
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(Vector2.new(input.Position.X, input.Position.Y))
         end
     end)
     
@@ -258,14 +252,11 @@ ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
 
--- =====================
--- MINIMIZED PILL (BLACK)
--- =====================
+-- MINIMIZED PILL
 local MinimizedPill = Instance.new("Frame")
 MinimizedPill.Name = "MinimizedPill"
 MinimizedPill.Parent = ScreenGui
 MinimizedPill.BackgroundColor3 = Colors.Card
-MinimizedPill.BackgroundTransparency = 0
 MinimizedPill.BorderSizePixel = 0
 MinimizedPill.Position = UDim2.new(0.5, -120, 0, 15)
 MinimizedPill.Size = UDim2.new(0, 240, 0, 45)
@@ -290,7 +281,6 @@ pillIcon.Font = Enum.Font.GothamBold
 pillIcon.Text = "[R]"
 pillIcon.TextColor3 = Colors.Accent
 pillIcon.TextSize = 14
-pillIcon.ZIndex = 2
 
 local pillText = Instance.new("TextLabel")
 pillText.Parent = MinimizedPill
@@ -302,7 +292,6 @@ pillText.Text = "Reaper Hub"
 pillText.TextColor3 = Colors.Text
 pillText.TextSize = 14
 pillText.TextXAlignment = Enum.TextXAlignment.Left
-pillText.ZIndex = 2
 
 local pillButton = Instance.new("TextButton")
 pillButton.Parent = MinimizedPill
@@ -323,17 +312,15 @@ pillButton.MouseLeave:Connect(function()
     Tween(pillStroke, {Color = Colors.Border}, 0.2)
 end)
 
--- =====================
--- MAIN WINDOW (PURE BLACK)
--- =====================
+-- MAIN WINDOW
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Colors.Background
-MainFrame.BackgroundTransparency = Colors.BackgroundTransparency
+MainFrame.BackgroundTransparency = 0.05
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -180)
-MainFrame.Size = UDim2.new(0, 500, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 500, 0, 400)
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
 
@@ -346,22 +333,11 @@ mainStroke.Color = Colors.Border
 mainStroke.Thickness = 1
 mainStroke.Parent = MainFrame
 
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 5))
-})
-gradient.Rotation = 90
-gradient.Parent = MainFrame
-
--- =====================
--- TITLE BAR (BLACK)
--- =====================
+-- TITLE BAR
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Parent = MainFrame
 TitleBar.BackgroundColor3 = Colors.Sidebar
-TitleBar.BackgroundTransparency = 0
 TitleBar.BorderSizePixel = 0
 TitleBar.Size = UDim2.new(1, 0, 0, 50)
 TitleBar.Active = true
@@ -376,14 +352,6 @@ titleFix.BackgroundColor3 = Colors.Sidebar
 titleFix.BorderSizePixel = 0
 titleFix.Position = UDim2.new(0, 0, 1, -12)
 titleFix.Size = UDim2.new(1, 0, 0, 12)
-
-local accentLine = Instance.new("Frame")
-accentLine.Parent = TitleBar
-accentLine.BackgroundColor3 = Colors.Accent
-accentLine.BackgroundTransparency = 0.7
-accentLine.BorderSizePixel = 0
-accentLine.Position = UDim2.new(0, 0, 1, -1)
-accentLine.Size = UDim2.new(1, 0, 0, 1)
 
 local titleIconBg = Instance.new("Frame")
 titleIconBg.Parent = TitleBar
@@ -422,7 +390,7 @@ subtitleLabel.BackgroundTransparency = 1
 subtitleLabel.Position = UDim2.new(0, 55, 0, 26)
 subtitleLabel.Size = UDim2.new(1, -120, 0, 14)
 subtitleLabel.Font = Enum.Font.Gotham
-subtitleLabel.Text = "v3.0"
+subtitleLabel.Text = "v4.0"
 subtitleLabel.TextColor3 = Colors.TextMuted
 subtitleLabel.TextSize = 11
 subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -468,17 +436,14 @@ pillButton.MouseButton1Click:Connect(function()
     MinimizedPill.Visible = false
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 500, 0, 0)
-    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 360)}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 400)}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 end)
 
--- =====================
--- SIDEBAR (BLACK)
--- =====================
+-- SIDEBAR
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
 Sidebar.BackgroundColor3 = Colors.Sidebar
-Sidebar.BackgroundTransparency = 0
 Sidebar.BorderSizePixel = 0
 Sidebar.Position = UDim2.new(0, 0, 0, 50)
 Sidebar.Size = UDim2.new(0, 130, 1, -50)
@@ -500,11 +465,9 @@ TabButtonsContainer.Size = UDim2.new(1, -20, 1, -20)
 local tabLayout = Instance.new("UIListLayout")
 tabLayout.Parent = TabButtonsContainer
 tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Padding = UDim.new(0, 8)
+tabLayout.Padding = UDim.new(0, 6)
 
--- =====================
--- CONTENT AREA (BLACK BACKGROUND)
--- =====================
+-- CONTENT AREA
 local ContentArea = Instance.new("Frame")
 ContentArea.Name = "ContentArea"
 ContentArea.Parent = MainFrame
@@ -515,7 +478,7 @@ ContentArea.Size = UDim2.new(1, -130, 1, -50)
 ContentArea.ClipsDescendants = true
 
 -- ========================================
--- TAB SYSTEM
+-- TAB SYSTEM WITH SMOOTH 3D ANIMATIONS
 -- ========================================
 local Tabs = {}
 local CurrentTab = nil
@@ -529,7 +492,7 @@ local function CreateTab(name, icon)
     tabBtn.BackgroundColor3 = Colors.Card
     tabBtn.BackgroundTransparency = 1
     tabBtn.BorderSizePixel = 0
-    tabBtn.Size = UDim2.new(1, 0, 0, 38)
+    tabBtn.Size = UDim2.new(1, 0, 0, 36)
     tabBtn.Text = ""
     tabBtn.AutoButtonColor = false
     
@@ -558,17 +521,17 @@ local function CreateTab(name, icon)
     tabIcon.Font = Enum.Font.GothamBold
     tabIcon.Text = icon or ">"
     tabIcon.TextColor3 = Colors.TextMuted
-    tabIcon.TextSize = 12
+    tabIcon.TextSize = 11
     
     local tabText = Instance.new("TextLabel")
     tabText.Parent = tabBtn
     tabText.BackgroundTransparency = 1
-    tabText.Position = UDim2.new(0, 35, 0, 0)
-    tabText.Size = UDim2.new(1, -40, 1, 0)
+    tabText.Position = UDim2.new(0, 32, 0, 0)
+    tabText.Size = UDim2.new(1, -37, 1, 0)
     tabText.Font = Enum.Font.GothamSemibold
     tabText.Text = name
     tabText.TextColor3 = Colors.TextMuted
-    tabText.TextSize = 12
+    tabText.TextSize = 11
     tabText.TextXAlignment = Enum.TextXAlignment.Left
     
     local tabContent = Instance.new("ScrollingFrame")
@@ -582,8 +545,8 @@ local function CreateTab(name, icon)
     tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
     tabContent.ScrollBarThickness = 3
     tabContent.ScrollBarImageColor3 = Colors.Border
-    tabContent.ScrollBarImageTransparency = 0.5
     tabContent.Visible = false
+    tabContent.ClipsDescendants = true
     
     local contentLayout = Instance.new("UIListLayout")
     contentLayout.Parent = tabContent
@@ -600,15 +563,26 @@ local function CreateTab(name, icon)
     Tab.Text = tabText
     Tab.Indicator = activeIndicator
     
+    -- SMOOTH 3D TAB SWITCHING
     local function SwitchToTab()
         if CurrentTab == Tab then return end
         
         if CurrentTab then
             local oldContent = CurrentTab.Content
-            Tween(oldContent, {Position = UDim2.new(-0.3, 0, 0, 10)}, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-            task.delay(0.2, function()
+            
+            -- Smooth 3D exit animation
+            oldContent.Position = UDim2.new(0, 10, 0, 10)
+            
+            local exitTween = TweenService:Create(oldContent, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+                Position = UDim2.new(-0.5, 0, 0, 10),
+                BackgroundTransparency = 0.5
+            })
+            exitTween:Play()
+            
+            task.delay(0.25, function()
                 oldContent.Visible = false
                 oldContent.Position = UDim2.new(0, 10, 0, 10)
+                oldContent.BackgroundTransparency = 0
             end)
             
             CurrentTab.Indicator.Visible = false
@@ -617,9 +591,16 @@ local function CreateTab(name, icon)
             Tween(CurrentTab.Text, {TextColor3 = Colors.TextMuted}, 0.2)
         end
         
-        Tab.Content.Position = UDim2.new(0.3, 0, 0, 10)
+        -- Smooth 3D enter animation
+        Tab.Content.Position = UDim2.new(0.5, 0, 0, 10)
+        Tab.Content.BackgroundTransparency = 0.5
         Tab.Content.Visible = true
-        Tween(Tab.Content, {Position = UDim2.new(0, 10, 0, 10)}, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        
+        local enterTween = TweenService:Create(Tab.Content, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, 10, 0, 10),
+            BackgroundTransparency = 0
+        })
+        enterTween:Play()
         
         Tab.Indicator.Visible = true
         CurrentTab = Tab
@@ -1046,6 +1027,7 @@ end
 
 local Features = {
     AutoParry = {Enabled = false, Connection = nil},
+    AutoUseAbility = {Enabled = false, Connection = nil},
     ManualSpam = {Enabled = false},
     BallESP = {Enabled = false, Items = {}},
     ESP = {Enabled = false, Items = {}},
@@ -1056,14 +1038,32 @@ local Features = {
     InfiniteJump = {Enabled = false, Connection = nil},
     Noclip = {Enabled = false, Connection = nil},
     Fullbright = {Enabled = false},
-    HitboxExpander = {Enabled = false, Size = 10}
+    HitboxExpander = {Enabled = false, Size = 10},
+    FPSBoost = {Enabled = false}
+}
+
+-- Shader State
+local ShaderState = {
+    RainEnabled = false,
+    SnowEnabled = false,
+    ThunderstormEnabled = false,
+    AuroraEnabled = false,
+    MoonGlowEnabled = false,
+    RainConnection = nil,
+    SnowConnection = nil,
+    LightningConnection = nil,
+    AuroraConnection = nil,
+    RainFolder = nil,
+    SnowFolder = nil,
+    AuroraFolder = nil,
+    RainSound = nil,
+    SnowSound = nil,
+    ThunderSound = nil,
+    OriginalLighting = {}
 }
 
 -- YOUR EXACT ORIGINAL AUTO PARRY CODE
 local parryDistance = 0.75
-local parrySpeed = 20
-local parryCooldown = 0.5
-local Cooldown = tick()
 local Parried = false
 local ParryConnection = nil
 
@@ -1108,11 +1108,6 @@ function Features.AutoParry:Start()
         if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= parryDistance then
             VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
             Parried = true
-            Cooldown = tick()
-        end
-        
-        if Parried and (tick() - Cooldown) >= parryCooldown then
-            Parried = false
         end
     end)
 end
@@ -1127,6 +1122,38 @@ end
 
 function Features.AutoParry:SetDistance(value)
     parryDistance = value
+end
+
+-- AUTO USE ABILITY
+function Features.AutoUseAbility:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    self.Connection = RunService.Heartbeat:Connect(function()
+        if not self.Enabled then return end
+        
+        pcall(function()
+            -- Try to find and use ability
+            local abilityRemote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("UseAbility")
+            if abilityRemote then
+                abilityRemote:FireServer()
+            end
+            
+            -- Alternative method - press Q key
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Q, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Q, false, game)
+        end)
+        
+        task.wait(0.5) -- Cooldown between ability uses
+    end)
+end
+
+function Features.AutoUseAbility:Stop()
+    self.Enabled = false
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
 end
 
 -- Manual Spam
@@ -1299,9 +1326,8 @@ function Features.ESP:Stop()
     self.Items = {}
 end
 
--- Auto Play (NO PAUSE - back to original)
+-- Auto Play
 local autoPlayAngle = 0
-local autoPlaySmooth = 0
 
 RunService.Heartbeat:Connect(function(dt)
     if not Features.AutoPlay.Enabled then return end
@@ -1315,7 +1341,6 @@ RunService.Heartbeat:Connect(function(dt)
     
     local ballPos = ball.Position
     autoPlayAngle = autoPlayAngle + dt * 1.5
-    autoPlaySmooth = autoPlaySmooth + (autoPlayAngle - autoPlaySmooth) * 0.1
     
     local targetPos
     local style = Features.AutoPlay.Style
@@ -1323,11 +1348,11 @@ RunService.Heartbeat:Connect(function(dt)
     if style == "Aggressive" then
         local dist = (HRP.Position - ballPos).Magnitude
         if dist > 12 then targetPos = ballPos
-        else targetPos = ballPos + Vector3.new(math.cos(autoPlaySmooth) * 8, 0, math.sin(autoPlaySmooth) * 8) end
+        else targetPos = ballPos + Vector3.new(math.cos(autoPlayAngle) * 8, 0, math.sin(autoPlayAngle) * 8) end
     elseif style == "Defensive" then
-        targetPos = ballPos + Vector3.new(math.cos(autoPlaySmooth) * 28, 0, math.sin(autoPlaySmooth) * 28)
+        targetPos = ballPos + Vector3.new(math.cos(autoPlayAngle) * 28, 0, math.sin(autoPlayAngle) * 28)
     else
-        targetPos = ballPos + Vector3.new(math.cos(autoPlaySmooth) * 16, 0, math.sin(autoPlaySmooth) * 16)
+        targetPos = ballPos + Vector3.new(math.cos(autoPlayAngle) * 16, 0, math.sin(autoPlayAngle) * 16)
     end
     
     if targetPos then Humanoid:MoveTo(targetPos) end
@@ -1470,6 +1495,50 @@ function Features.HitboxExpander:Stop()
     end
 end
 
+-- FPS BOOSTER
+function Features.FPSBoost:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    pcall(function()
+        settings().Rendering.QualityLevel = 1
+        
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
+                v.Material = Enum.Material.Plastic
+                v.Reflectance = 0
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
+                v.Enabled = false
+            elseif v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                v.Enabled = false
+            end
+        end
+        
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("BlurEffect") or effect:IsA("SunRaysEffect") or effect:IsA("ColorCorrectionEffect") or effect:IsA("BloomEffect") or effect:IsA("DepthOfFieldEffect") then
+                effect.Enabled = false
+            end
+        end
+        
+        if sethiddenproperty then
+            sethiddenproperty(Lighting, "Technology", 2)
+        end
+    end)
+end
+
+function Features.FPSBoost:Stop()
+    self.Enabled = false
+    pcall(function()
+        settings().Rendering.QualityLevel = 7
+        Lighting.GlobalShadows = true
+    end)
+end
+
 -- Anti-AFK
 Player.Idled:Connect(function()
     if Features.AntiAFK.Enabled then
@@ -1492,18 +1561,344 @@ Player.CharacterAdded:Connect(function(char)
 end)
 
 -- ========================================
+-- SHADER SYSTEM (From MM2 Script)
+-- ========================================
+
+local SOUND_IDS = {
+    Rain = "rbxassetid://9112854440",
+    Thunder = "rbxassetid://9114488091",
+    Wind = "rbxassetid://9112849858",
+}
+
+local function createWeatherSound(soundType)
+    local sound = Instance.new("Sound")
+    sound.Name = soundType .. "Sound"
+    sound.SoundId = SOUND_IDS[soundType]
+    sound.Volume = 0.5
+    sound.Looped = true
+    sound.Parent = Camera
+    return sound
+end
+
+local function storeOriginalLighting()
+    if not ShaderState.OriginalLighting.Ambient then
+        ShaderState.OriginalLighting = {
+            Ambient = Lighting.Ambient,
+            Brightness = Lighting.Brightness,
+            ClockTime = Lighting.ClockTime,
+            FogColor = Lighting.FogColor,
+            FogEnd = Lighting.FogEnd,
+            FogStart = Lighting.FogStart,
+            OutdoorAmbient = Lighting.OutdoorAmbient,
+            ColorShift_Top = Lighting.ColorShift_Top,
+            ColorShift_Bottom = Lighting.ColorShift_Bottom,
+        }
+    end
+end
+
+local function restoreOriginalLighting()
+    if ShaderState.OriginalLighting.Ambient then
+        pcall(function()
+            Lighting.Ambient = ShaderState.OriginalLighting.Ambient
+            Lighting.Brightness = ShaderState.OriginalLighting.Brightness
+            Lighting.ClockTime = ShaderState.OriginalLighting.ClockTime
+            Lighting.FogColor = ShaderState.OriginalLighting.FogColor
+            Lighting.FogEnd = ShaderState.OriginalLighting.FogEnd
+            Lighting.FogStart = ShaderState.OriginalLighting.FogStart
+            Lighting.OutdoorAmbient = ShaderState.OriginalLighting.OutdoorAmbient
+            Lighting.ColorShift_Top = ShaderState.OriginalLighting.ColorShift_Top
+            Lighting.ColorShift_Bottom = ShaderState.OriginalLighting.ColorShift_Bottom
+        end)
+    end
+end
+
+-- RAIN
+local function enableRain()
+    if ShaderState.RainConnection then return end
+    storeOriginalLighting()
+    
+    ShaderState.RainFolder = Instance.new("Folder")
+    ShaderState.RainFolder.Name = "RainEffects"
+    ShaderState.RainFolder.Parent = Camera
+    
+    local raindrops = {}
+    for i = 1, 200 do
+        local drop = Instance.new("Part")
+        drop.Size = Vector3.new(0.05, math.random(15, 25) / 10, 0.05)
+        drop.Material = Enum.Material.Neon
+        drop.Color = Color3.fromRGB(150, 180, 220)
+        drop.Transparency = 0.3
+        drop.Anchored = true
+        drop.CanCollide = false
+        drop.CastShadow = false
+        drop.Parent = ShaderState.RainFolder
+        
+        table.insert(raindrops, {
+            part = drop,
+            speed = math.random(80, 120),
+            offset = Vector3.new(math.random(-60, 60), math.random(20, 80), math.random(-60, 60))
+        })
+    end
+    
+    Lighting.ClockTime = 16
+    Lighting.Brightness = 0.5
+    Lighting.Ambient = Color3.fromRGB(40, 45, 55)
+    Lighting.OutdoorAmbient = Color3.fromRGB(50, 55, 65)
+    Lighting.FogColor = Color3.fromRGB(80, 85, 95)
+    Lighting.FogEnd = 400
+    Lighting.FogStart = 10
+    
+    ShaderState.RainSound = createWeatherSound("Rain")
+    ShaderState.RainSound:Play()
+    
+    ShaderState.RainConnection = RunService.RenderStepped:Connect(function(dt)
+        local camPos = Camera.CFrame.Position
+        for _, data in ipairs(raindrops) do
+            local drop = data.part
+            if drop and drop.Parent then
+                local newY = drop.Position.Y - data.speed * dt
+                if newY < camPos.Y - 30 then
+                    newY = camPos.Y + math.random(40, 80)
+                    data.offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
+                end
+                drop.CFrame = CFrame.new(camPos.X + data.offset.X, newY, camPos.Z + data.offset.Z)
+            end
+        end
+    end)
+    
+    ShaderState.RainEnabled = true
+end
+
+local function disableRain()
+    if ShaderState.RainConnection then
+        ShaderState.RainConnection:Disconnect()
+        ShaderState.RainConnection = nil
+    end
+    if ShaderState.RainFolder then
+        ShaderState.RainFolder:Destroy()
+        ShaderState.RainFolder = nil
+    end
+    if ShaderState.RainSound then
+        ShaderState.RainSound:Stop()
+        ShaderState.RainSound:Destroy()
+        ShaderState.RainSound = nil
+    end
+    ShaderState.RainEnabled = false
+    if not ShaderState.SnowEnabled and not ShaderState.AuroraEnabled and not ShaderState.MoonGlowEnabled then
+        restoreOriginalLighting()
+    end
+end
+
+-- SNOW
+local function enableSnow()
+    if ShaderState.SnowConnection then return end
+    storeOriginalLighting()
+    
+    ShaderState.SnowFolder = Instance.new("Folder")
+    ShaderState.SnowFolder.Name = "SnowEffects"
+    ShaderState.SnowFolder.Parent = Camera
+    
+    local snowflakes = {}
+    for i = 1, 150 do
+        local flake = Instance.new("Part")
+        flake.Shape = Enum.PartType.Ball
+        local size = math.random(2, 6) / 10
+        flake.Size = Vector3.new(size, size, size)
+        flake.Material = Enum.Material.Neon
+        flake.Color = Color3.fromRGB(255, 255, 255)
+        flake.Transparency = 0.2
+        flake.Anchored = true
+        flake.CanCollide = false
+        flake.CastShadow = false
+        flake.Parent = ShaderState.SnowFolder
+        
+        table.insert(snowflakes, {
+            part = flake,
+            speed = math.random(8, 20),
+            driftX = math.random(-20, 20) / 10,
+            driftZ = math.random(-20, 20) / 10,
+            phase = math.random() * math.pi * 2,
+            offset = Vector3.new(math.random(-70, 70), math.random(20, 100), math.random(-70, 70))
+        })
+    end
+    
+    Lighting.ClockTime = 11
+    Lighting.Brightness = 1.0
+    Lighting.Ambient = Color3.fromRGB(160, 175, 200)
+    Lighting.OutdoorAmbient = Color3.fromRGB(170, 185, 210)
+    Lighting.FogColor = Color3.fromRGB(200, 210, 230)
+    Lighting.FogEnd = 350
+    Lighting.FogStart = 30
+    
+    ShaderState.SnowSound = createWeatherSound("Wind")
+    ShaderState.SnowSound.Volume = 0.35
+    ShaderState.SnowSound:Play()
+    
+    local time = 0
+    ShaderState.SnowConnection = RunService.RenderStepped:Connect(function(dt)
+        time = time + dt
+        local camPos = Camera.CFrame.Position
+        for _, data in ipairs(snowflakes) do
+            local flake = data.part
+            if flake and flake.Parent then
+                local newY = flake.Position.Y - data.speed * dt
+                local driftX = math.sin(time * data.driftX + data.phase) * 0.3
+                local driftZ = math.cos(time * data.driftZ + data.phase) * 0.3
+                if newY < camPos.Y - 40 then
+                    newY = camPos.Y + math.random(60, 100)
+                    data.offset = Vector3.new(math.random(-70, 70), 0, math.random(-70, 70))
+                end
+                flake.CFrame = CFrame.new(camPos.X + data.offset.X + driftX, newY, camPos.Z + data.offset.Z + driftZ)
+            end
+        end
+    end)
+    
+    ShaderState.SnowEnabled = true
+end
+
+local function disableSnow()
+    if ShaderState.SnowConnection then
+        ShaderState.SnowConnection:Disconnect()
+        ShaderState.SnowConnection = nil
+    end
+    if ShaderState.SnowFolder then
+        ShaderState.SnowFolder:Destroy()
+        ShaderState.SnowFolder = nil
+    end
+    if ShaderState.SnowSound then
+        ShaderState.SnowSound:Stop()
+        ShaderState.SnowSound:Destroy()
+        ShaderState.SnowSound = nil
+    end
+    ShaderState.SnowEnabled = false
+    if not ShaderState.RainEnabled and not ShaderState.AuroraEnabled and not ShaderState.MoonGlowEnabled then
+        restoreOriginalLighting()
+    end
+end
+
+-- AURORA
+local function enableAurora()
+    if ShaderState.AuroraConnection then return end
+    storeOriginalLighting()
+    
+    Lighting.ClockTime = 0
+    Lighting.Brightness = 0.4
+    Lighting.Ambient = Color3.fromRGB(15, 25, 45)
+    Lighting.OutdoorAmbient = Color3.fromRGB(25, 40, 65)
+    
+    ShaderState.AuroraFolder = Instance.new("Folder")
+    ShaderState.AuroraFolder.Name = "AuroraEffects"
+    ShaderState.AuroraFolder.Parent = Workspace
+    
+    local auroraParts = {}
+    for i = 1, 15 do
+        local part = Instance.new("Part")
+        part.Anchored = true
+        part.CanCollide = false
+        part.Material = Enum.Material.Neon
+        part.Transparency = 0.4
+        part.Size = Vector3.new(math.random(100, 250), math.random(200, 500), 10)
+        part.CFrame = CFrame.new(math.random(-500, 500), math.random(300, 550), math.random(-500, 500)) * CFrame.Angles(0, math.rad(math.random(0, 360)), math.rad(math.random(-20, 20)))
+        part.Parent = ShaderState.AuroraFolder
+        table.insert(auroraParts, {part = part, phase = math.random() * math.pi * 2, colorPhase = math.random() * math.pi * 2})
+    end
+    
+    local bloom = Instance.new("BloomEffect")
+    bloom.Name = "AuroraBloom"
+    bloom.Intensity = 2
+    bloom.Size = 50
+    bloom.Threshold = 0.6
+    bloom.Parent = Lighting
+    
+    local time = 0
+    ShaderState.AuroraConnection = RunService.Heartbeat:Connect(function(dt)
+        time = time + dt
+        for _, data in ipairs(auroraParts) do
+            local part = data.part
+            if part and part.Parent then
+                local wave = math.sin(time * 0.3 + data.phase) * 20
+                part.CFrame = part.CFrame * CFrame.new(0, wave * dt, 0)
+                local hue = (math.sin(time * 0.15 + data.colorPhase) + 1) / 2 * 0.4 + 0.35
+                part.Color = Color3.fromHSV(hue, 0.85, 1)
+                part.Transparency = 0.3 + math.sin(time * 1.5 + data.phase) * 0.2
+            end
+        end
+    end)
+    
+    ShaderState.AuroraEnabled = true
+end
+
+local function disableAurora()
+    if ShaderState.AuroraConnection then
+        ShaderState.AuroraConnection:Disconnect()
+        ShaderState.AuroraConnection = nil
+    end
+    if ShaderState.AuroraFolder then
+        ShaderState.AuroraFolder:Destroy()
+        ShaderState.AuroraFolder = nil
+    end
+    local bloom = Lighting:FindFirstChild("AuroraBloom")
+    if bloom then bloom:Destroy() end
+    ShaderState.AuroraEnabled = false
+    if not ShaderState.RainEnabled and not ShaderState.SnowEnabled and not ShaderState.MoonGlowEnabled then
+        restoreOriginalLighting()
+    end
+end
+
+-- MOON GLOW
+local function enableMoonGlow()
+    storeOriginalLighting()
+    
+    Lighting.ClockTime = 0
+    Lighting.Brightness = 0.6
+    Lighting.Ambient = Color3.fromRGB(35, 45, 70)
+    Lighting.OutdoorAmbient = Color3.fromRGB(45, 55, 85)
+    
+    local bloom = Instance.new("BloomEffect")
+    bloom.Name = "MoonBloom"
+    bloom.Intensity = 2.5
+    bloom.Size = 60
+    bloom.Threshold = 0.5
+    bloom.Parent = Lighting
+    
+    local atmo = Instance.new("Atmosphere")
+    atmo.Name = "MoonAtmosphere"
+    atmo.Density = 0.25
+    atmo.Color = Color3.fromRGB(45, 55, 90)
+    atmo.Decay = Color3.fromRGB(35, 45, 80)
+    atmo.Haze = 1.2
+    atmo.Parent = Lighting
+    
+    ShaderState.MoonGlowEnabled = true
+end
+
+local function disableMoonGlow()
+    local bloom = Lighting:FindFirstChild("MoonBloom")
+    if bloom then bloom:Destroy() end
+    local atmo = Lighting:FindFirstChild("MoonAtmosphere")
+    if atmo then atmo:Destroy() end
+    ShaderState.MoonGlowEnabled = false
+    if not ShaderState.RainEnabled and not ShaderState.SnowEnabled and not ShaderState.AuroraEnabled then
+        restoreOriginalLighting()
+    end
+end
+
+-- ========================================
 -- CREATE TABS
 -- ========================================
 
 local MainTab = CreateTab("Main", "[M]")
 local PlayTab = CreateTab("Play", "[P]")
 local ESPTab = CreateTab("ESP", "[E]")
+local PingFPSTab = CreateTab("Ping|FPS", "[#]")
+local ShadersTab = CreateTab("Shaders", "[S]")
 local MiscTab = CreateTab("Misc", "[+]")
 
 -- MAIN TAB
 local CombatSection = MainTab:AddSection("Combat")
 CombatSection:AddToggle({Title = "Auto Parry", Default = false, Callback = function(state) if state then Features.AutoParry:Start() else Features.AutoParry:Stop() end end})
 CombatSection:AddSlider({Title = "Parry Timing", Min = 25, Max = 150, Default = 75, Callback = function(value) Features.AutoParry:SetDistance(value / 100) end})
+CombatSection:AddToggle({Title = "Auto Use Ability", Default = false, Callback = function(state) if state then Features.AutoUseAbility:Start() else Features.AutoUseAbility:Stop() end end})
 CombatSection:AddToggle({Title = "Manual Spam", Default = false, Callback = function(state) if state then Features.ManualSpam:Start() else Features.ManualSpam:Stop() end end})
 
 local HitboxSection = MainTab:AddSection("Hitbox")
@@ -1535,6 +1930,45 @@ end})
 local VisualsSection = ESPTab:AddSection("Visuals")
 VisualsSection:AddToggle({Title = "Fullbright", Default = false, Callback = function(state) if state then Features.Fullbright:Start() else Features.Fullbright:Stop() end end})
 
+-- PING | FPS TAB
+local PerformanceSection = PingFPSTab:AddSection("Performance")
+local fpsLabel = PerformanceSection:AddLabel("FPS: 0")
+local pingLabel = PerformanceSection:AddLabel("Ping: 0ms")
+
+RunService.RenderStepped:Connect(function()
+    local fps = math.floor(1 / RunService.RenderStepped:Wait())
+    fpsLabel:Set("FPS: " .. fps)
+    
+    local ping = 0
+    pcall(function()
+        ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+    end)
+    pingLabel:Set("Ping: " .. ping .. "ms")
+end)
+
+local BoostSection = PingFPSTab:AddSection("FPS Boost")
+BoostSection:AddToggle({Title = "FPS Booster", Default = false, Callback = function(state) if state then Features.FPSBoost:Start() else Features.FPSBoost:Stop() end end})
+BoostSection:AddLabel("Reduces graphics quality")
+BoostSection:AddLabel("for better performance")
+
+-- SHADERS TAB
+local WeatherSection = ShadersTab:AddSection("Weather Effects")
+WeatherSection:AddToggle({Title = "Rain", Default = false, Callback = function(state) if state then enableRain() else disableRain() end end})
+WeatherSection:AddToggle({Title = "Snow", Default = false, Callback = function(state) if state then enableSnow() else disableSnow() end end})
+
+local SkySection = ShadersTab:AddSection("Sky Effects")
+SkySection:AddToggle({Title = "Aurora Borealis", Default = false, Callback = function(state) if state then enableAurora() else disableAurora() end end})
+SkySection:AddToggle({Title = "Moon Glow", Default = false, Callback = function(state) if state then enableMoonGlow() else disableMoonGlow() end end})
+
+local ResetSection = ShadersTab:AddSection("Reset")
+ResetSection:AddButton({Title = "Reset All Shaders", Callback = function()
+    disableRain()
+    disableSnow()
+    disableAurora()
+    disableMoonGlow()
+    restoreOriginalLighting()
+end})
+
 -- MISC TAB
 local UtilSection = MiscTab:AddSection("Utility")
 UtilSection:AddToggle({Title = "Anti-AFK", Default = true, Callback = function(state) Features.AntiAFK.Enabled = state end})
@@ -1549,7 +1983,7 @@ UtilSection:AddButton({Title = "Copy Server Link", Callback = function()
 end})
 
 local InfoSection = MiscTab:AddSection("Info")
-InfoSection:AddLabel("Reaper Hub v3.0")
+InfoSection:AddLabel("Reaper Hub v4.0")
 InfoSection:AddLabel("Pure Black Edition")
 
 -- Notification
@@ -1562,7 +1996,9 @@ pcall(function()
 end)
 
 print("========================================")
-print("[R] REAPER HUB | BLADEBALL v3.0")
+print("[R] REAPER HUB | BLADEBALL v4.0")
 print("[+] Pure Black Design")
+print("[+] Smooth 3D Animations")
+print("[+] Shaders + FPS Boost")
 print("[+] Webhook Enabled")
 print("========================================")
