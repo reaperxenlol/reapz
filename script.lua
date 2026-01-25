@@ -31,10 +31,7 @@ local Balls = Workspace:WaitForChild("Balls")
 local Settings = {
     AutoParry = true,
     ParryDistance = 15,
-    ParryMethod = "Predictive",
     VelocityMultiplier = 1.0,
-    PredictionFrames = 3,
-    LatencyCompensation = 0.05,
     
     AntiClash = true,
     ClashSpam = true,
@@ -71,23 +68,31 @@ local BallHistory = {}
 local MaxHistorySize = 10
 
 -- ══════════════════════════════════════════════════════════════
--- ENHANCED PARRY FUNCTION - PRESS F
+-- ENHANCED PARRY FUNCTION - USING CORRECT REMOTE
 -- ══════════════════════════════════════════════════════════════
 
 local function PressParry()
     local success = false
     
-    -- Method 1: VirtualInputManager (most reliable)
+    -- Primary Method: Direct Remote Fire (MOST RELIABLE FOR BLADE BALL)
     pcall(function()
-        local VIM = game:GetService("VirtualInputManager")
-        VIM:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-        task.delay(0.03, function()
-            VIM:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-        end)
+        ReplicatedStorage.Remotes.ParryButtonPress:Fire()
         success = true
     end)
     
-    -- Method 2: keypress (Synapse, KRNL, Fluxus)
+    -- Fallback Method 1: VirtualInputManager
+    if not success then
+        pcall(function()
+            local VIM = game:GetService("VirtualInputManager")
+            VIM:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+            task.delay(0.03, function()
+                VIM:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+            end)
+            success = true
+        end)
+    end
+    
+    -- Fallback Method 2: keypress (Synapse, KRNL, Fluxus)
     if not success then
         pcall(function()
             if keypress then
@@ -100,101 +105,42 @@ local function PressParry()
         end)
     end
     
-    -- Method 3: Remote
-    pcall(function()
-        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-        if remotes then
-            local parryRemote = remotes:FindFirstChild("ParryButtonPress")
-            if parryRemote then
-                parryRemote:Fire()
-            end
-        end
-    end)
-    
     return success
 end
 
 -- ══════════════════════════════════════════════════════════════
--- ADVANCED BALL PREDICTION SYSTEM
+-- BALL DETECTION SYSTEM - BRICKCOLOR METHOD (WORKING)
 -- ══════════════════════════════════════════════════════════════
 
-local function UpdateBallHistory(ball)
-    if not ball or not ball.Parent then return end
+local function IsBallTargetingMe(ball)
+    if not ball or not ball.Parent then return false end
     
-    local id = ball:GetFullName()
-    if not BallHistory[id] then
-        BallHistory[id] = {}
-    end
+    -- PRIMARY METHOD: Check if ball is RED (targeting current player)
+    local colorName = ball.BrickColor.Name:lower()
+    local isRed = string.find(colorName, "red") ~= nil
     
-    local history = BallHistory[id]
-    local entry = {
-        Time = tick(),
-        Position = ball.Position,
-        Velocity = ball.AssemblyLinearVelocity or Vector3.new()
-    }
+    -- Also check Color3 for more accuracy
+    local color = ball.Color
+    local isRedColor = color.R > 0.7 and color.G < 0.4 and color.B < 0.4
     
-    table.insert(history, entry)
-    
-    -- Keep history size limited
-    while #history > MaxHistorySize do
-        table.remove(history, 1)
-    end
-end
-
-local function GetBallAcceleration(ball)
-    local id = ball:GetFullName()
-    local history = BallHistory[id]
-    
-    if not history or #history < 3 then
-        return Vector3.new(0, 0, 0)
-    end
-    
-    local recent = history[#history]
-    local older = history[#history - 2]
-    
-    local dt = recent.Time - older.Time
-    if dt <= 0 then return Vector3.new(0, 0, 0) end
-    
-    local dv = recent.Velocity - older.Velocity
-    return dv / dt
-end
-
-local function PredictBallPosition(ball, timeAhead)
-    if not ball or not ball.Parent then return nil end
-    
-    local pos = ball.Position
-    local vel = ball.AssemblyLinearVelocity or Vector3.new()
-    local acc = GetBallAcceleration(ball)
-    
-    -- Physics prediction: p = p0 + v*t + 0.5*a*t^2
-    local predictedPos = pos + vel * timeAhead + 0.5 * acc * timeAhead * timeAhead
-    
-    return predictedPos
+    return isRed or isRedColor
 end
 
 local function GetBallData(ball)
     if not ball or not ball.Parent then return nil end
     if not HumanoidRootPart then return nil end
     
-    UpdateBallHistory(ball)
-    
     local pos = ball.Position
     local vel = ball.AssemblyLinearVelocity or Vector3.new()
     local speed = vel.Magnitude
-    local dist = (HumanoidRootPart.Position - pos).Magnitude
-    local acc = GetBallAcceleration(ball)
+    local dist = LocalPlayer:DistanceFromCharacter(ball.CFrame.Position)
     
     local dir = speed > 1 and vel.Unit or Vector3.new()
     local toPlayer = (HumanoidRootPart.Position - pos).Unit
     local dot = dir:Dot(toPlayer)
-    local targeting = dot > 0.25
     
-    -- Calculate time to reach player
-    local timeToReach = dist / math.max(speed, 1)
-    
-    -- Predict where ball will be
-    local predictedPos = PredictBallPosition(ball, Settings.PredictionFrames * 0.016)
-    local predictedDist = predictedPos and (HumanoidRootPart.Position - predictedPos).Magnitude or dist
+    -- Use BrickColor to determine if targeting
+    local targeting = IsBallTargetingMe(ball)
     
     return {
         Position = pos,
@@ -203,82 +149,34 @@ local function GetBallData(ball)
         Distance = dist,
         Direction = dir,
         IsTargeting = targeting,
-        Dot = dot,
-        Acceleration = acc,
-        TimeToReach = timeToReach,
-        PredictedPosition = predictedPos,
-        PredictedDistance = predictedDist,
-        AccelerationMagnitude = acc.Magnitude
+        Dot = dot
     }
 end
 
 -- ══════════════════════════════════════════════════════════════
--- IMPROVED PARRY DECISION SYSTEM
+-- SIMPLIFIED PARRY DECISION - DISTANCE BASED (RELIABLE)
 -- ══════════════════════════════════════════════════════════════
 
-local function CalculateOptimalParryDistance(data)
-    local baseDistance = Settings.ParryDistance
-    local speed = data.Speed
-    local acc = data.AccelerationMagnitude
+local function ShouldParry(ball, data)
+    if not data then return false end
     
-    -- Dynamic distance based on ball speed
-    local speedFactor = speed * Settings.VelocityMultiplier * 0.06
+    -- Ball must be RED (targeting us)
+    if not data.IsTargeting then return false end
     
-    -- Account for acceleration (ball speeding up = parry earlier)
-    local accFactor = math.clamp(acc * 0.02, -3, 5)
-    
-    -- Network latency compensation
-    local latencyFactor = Settings.LatencyCompensation * speed
-    
-    local optimalDist = baseDistance + speedFactor + accFactor + latencyFactor
-    
-    return math.clamp(optimalDist, 4, 40)
-end
-
-local function ShouldParry(data)
-    if not data or not data.IsTargeting then return false end
-    
+    -- Check distance threshold
     local dist = data.Distance
-    local predictedDist = data.PredictedDistance
-    local speed = data.Speed
-    
-    if Settings.ParryMethod == "Predictive" then
-        local optimalDist = CalculateOptimalParryDistance(data)
-        
-        -- Use both current and predicted distance for better timing
-        local avgDist = (dist + predictedDist) / 2
-        
-        -- Check if ball is in parry zone
-        local inZone = avgDist <= optimalDist and avgDist > 2
-        
-        -- Additional check: ball must be moving fast enough
-        local fastEnough = speed > 20
-        
-        -- Confidence check based on dot product
-        local confident = data.Dot > 0.4
-        
-        return inZone and (fastEnough or dist < 8) and confident
-        
-    elseif Settings.ParryMethod == "Velocity" then
-        local dynamicDist = Settings.ParryDistance + (speed * Settings.VelocityMultiplier * 0.07)
-        dynamicDist = math.clamp(dynamicDist, 5, 35)
-        return dist <= dynamicDist and dist > 3 and data.Dot > 0.3
-        
-    else -- Distance
-        return dist <= Settings.ParryDistance and dist > 3 and data.Dot > 0.3
-    end
+    return dist <= Settings.ParryDistance
 end
 
 local function IsClashSituation(data)
     if not Settings.AntiClash or not data then return false end
+    if not data.IsTargeting then return false end
     
-    -- Improved clash detection
+    -- Clash = ball is close and slow
     local isClose = data.Distance <= Settings.ClashRange
     local isSlowOrStopped = data.Speed < 40
-    local isFacingUs = data.Dot > 0.05
-    local isDecelerating = data.AccelerationMagnitude > 50 and data.Acceleration:Dot(data.Direction) < 0
     
-    return isClose and (isSlowOrStopped or isDecelerating) and isFacingUs
+    return isClose and isSlowOrStopped
 end
 
 -- ══════════════════════════════════════════════════════════════
@@ -309,32 +207,32 @@ pcall(function()
 end)
 ScreenGui.Parent = guiParent
 
--- Modern Glassmorphism Color Palette
+-- Sleek Dark Modern Color Palette (Subtle Glassmorphism)
 local Theme = {
-    -- Glass backgrounds
-    GlassPrimary = Color3.fromRGB(15, 15, 25),
-    GlassSecondary = Color3.fromRGB(25, 25, 40),
-    GlassTertiary = Color3.fromRGB(35, 35, 55),
+    -- Dark solid backgrounds with slight transparency
+    GlassPrimary = Color3.fromRGB(18, 18, 22),
+    GlassSecondary = Color3.fromRGB(25, 25, 30),
+    GlassTertiary = Color3.fromRGB(35, 35, 42),
     
-    -- Accent colors (cyan/purple gradient feel)
-    AccentPrimary = Color3.fromRGB(100, 180, 255),
-    AccentSecondary = Color3.fromRGB(180, 100, 255),
-    AccentGlow = Color3.fromRGB(140, 140, 255),
+    -- Accent colors (cyan/blue modern feel)
+    AccentPrimary = Color3.fromRGB(0, 170, 255),
+    AccentSecondary = Color3.fromRGB(120, 80, 255),
+    AccentGlow = Color3.fromRGB(0, 200, 255),
     
     -- Status colors
-    Success = Color3.fromRGB(80, 220, 140),
-    Warning = Color3.fromRGB(255, 200, 80),
-    Danger = Color3.fromRGB(255, 90, 90),
+    Success = Color3.fromRGB(45, 212, 120),
+    Warning = Color3.fromRGB(255, 180, 50),
+    Danger = Color3.fromRGB(255, 75, 75),
     
     -- Text
     TextPrimary = Color3.fromRGB(255, 255, 255),
-    TextSecondary = Color3.fromRGB(180, 180, 200),
-    TextMuted = Color3.fromRGB(120, 120, 150),
+    TextSecondary = Color3.fromRGB(170, 175, 185),
+    TextMuted = Color3.fromRGB(100, 105, 115),
     
-    -- Glass transparency values
-    GlassTransparency = 0.15,
-    GlassBlurTransparency = 0.4,
-    BorderTransparency = 0.5
+    -- Transparency values - MORE SOLID
+    GlassTransparency = 0.05,  -- Almost fully opaque
+    GlassBlurTransparency = 0.1,
+    BorderTransparency = 0.4
 }
 
 -- Animation presets
@@ -346,7 +244,7 @@ local Animations = {
     Spring = TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
 }
 
--- Helper function to create glass effect
+-- Helper function to create sleek dark panel with subtle glass edge
 local function CreateGlassPanel(parent, props)
     props = props or {}
     
@@ -362,52 +260,31 @@ local function CreateGlassPanel(parent, props)
     
     -- Corner radius
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = props.CornerRadius or UDim.new(0, 16)
+    corner.CornerRadius = props.CornerRadius or UDim.new(0, 10)
     corner.Parent = container
     
-    -- Gradient overlay for glass effect
+    -- Subtle top highlight gradient (gives depth)
     local gradient = Instance.new("UIGradient")
     gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 200, 220)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 200))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 70)),
+        ColorSequenceKeypoint.new(0.03, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
     })
     gradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.95),
-        NumberSequenceKeypoint.new(0.3, 0.98),
-        NumberSequenceKeypoint.new(1, 0.92)
+        NumberSequenceKeypoint.new(0, 0.85),
+        NumberSequenceKeypoint.new(0.03, 1),
+        NumberSequenceKeypoint.new(1, 1)
     })
-    gradient.Rotation = props.GradientRotation or 45
+    gradient.Rotation = 90
     gradient.Parent = container
     
-    -- Glowing border
+    -- Clean border with subtle glow
     if props.Border ~= false then
         local stroke = Instance.new("UIStroke")
         stroke.Parent = container
-        stroke.Color = props.BorderColor or Theme.AccentPrimary
-        stroke.Thickness = props.BorderThickness or 1.5
-        stroke.Transparency = props.BorderTransparency or Theme.BorderTransparency
-        
-        -- Animated gradient on border
-        local borderGradient = Instance.new("UIGradient")
-        borderGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Theme.AccentPrimary),
-            ColorSequenceKeypoint.new(0.5, Theme.AccentSecondary),
-            ColorSequenceKeypoint.new(1, Theme.AccentPrimary)
-        })
-        borderGradient.Rotation = 0
-        borderGradient.Parent = stroke
-        
-        -- Animate border gradient
-        task.spawn(function()
-            while container and container.Parent do
-                for i = 0, 360, 2 do
-                    if not container or not container.Parent then break end
-                    borderGradient.Rotation = i
-                    task.wait(0.03)
-                end
-            end
-        end)
+        stroke.Color = props.BorderColor or Color3.fromRGB(50, 50, 60)
+        stroke.Thickness = props.BorderThickness or 1
+        stroke.Transparency = props.BorderTransparency or 0.3
     end
     
     return container
@@ -508,14 +385,27 @@ local Main = CreateGlassPanel(ScreenGui, {
     Position = UDim2.new(0.5, -240, 0.5, -220),
     Size = UDim2.new(0, 480, 0, 440),
     Color = Theme.GlassPrimary,
-    Transparency = 0.08,
-    CornerRadius = UDim.new(0, 20),
-    BorderColor = Theme.AccentPrimary,
-    BorderThickness = 2,
-    BorderTransparency = 0.3
+    Transparency = 0,  -- Fully solid
+    CornerRadius = UDim.new(0, 12),
+    BorderColor = Color3.fromRGB(45, 45, 55),
+    BorderThickness = 1,
+    BorderTransparency = 0
 })
 Main.Active = true
 Main.Draggable = true
+
+-- Accent border on top
+local accentLine = Instance.new("Frame")
+accentLine.Parent = Main
+accentLine.BackgroundColor3 = Theme.AccentPrimary
+accentLine.BorderSizePixel = 0
+accentLine.Position = UDim2.new(0, 0, 0, 0)
+accentLine.Size = UDim2.new(1, 0, 0, 2)
+accentLine.ZIndex = 5
+
+local accentCorner = Instance.new("UICorner")
+accentCorner.CornerRadius = UDim.new(0, 12)
+accentCorner.Parent = accentLine
 
 -- Entrance animation
 Main.Position = UDim2.new(0.5, -240, 0.5, -180)
@@ -526,31 +416,19 @@ task.spawn(function()
     task.wait(0.1)
     TweenService:Create(Main, Animations.Bounce, {
         Position = UDim2.new(0.5, -240, 0.5, -220),
-        BackgroundTransparency = 0.08,
+        BackgroundTransparency = 0,
         Size = UDim2.new(0, 480, 0, 440)
     }):Play()
 end)
-
--- Inner glow effect
-local innerGlow = Instance.new("ImageLabel")
-innerGlow.Name = "InnerGlow"
-innerGlow.Parent = Main
-innerGlow.BackgroundTransparency = 1
-innerGlow.Position = UDim2.new(0, -50, 0, -50)
-innerGlow.Size = UDim2.new(1, 100, 1, 100)
-innerGlow.Image = "rbxassetid://5028857084" -- Radial gradient
-innerGlow.ImageColor3 = Theme.AccentPrimary
-innerGlow.ImageTransparency = 0.85
-innerGlow.ZIndex = 0
 
 -- Header
 local Header = CreateGlassPanel(Main, {
     Name = "Header",
     Position = UDim2.new(0, 0, 0, 0),
-    Size = UDim2.new(1, 0, 0, 60),
+    Size = UDim2.new(1, 0, 0, 55),
     Color = Theme.GlassSecondary,
-    Transparency = 0.1,
-    CornerRadius = UDim.new(0, 20),
+    Transparency = 0,
+    CornerRadius = UDim.new(0, 12),
     Border = false
 })
 
@@ -558,21 +436,19 @@ local Header = CreateGlassPanel(Main, {
 local headerFix = Instance.new("Frame")
 headerFix.Parent = Header
 headerFix.BackgroundColor3 = Theme.GlassSecondary
-headerFix.BackgroundTransparency = 0.1
+headerFix.BackgroundTransparency = 0
 headerFix.BorderSizePixel = 0
-headerFix.Position = UDim2.new(0, 0, 1, -15)
-headerFix.Size = UDim2.new(1, 0, 0, 15)
+headerFix.Position = UDim2.new(0, 0, 1, -12)
+headerFix.Size = UDim2.new(1, 0, 0, 12)
 headerFix.ZIndex = 0
 
--- Header gradient
-local headerGradient = Instance.new("UIGradient")
-headerGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Theme.AccentPrimary),
-    ColorSequenceKeypoint.new(1, Theme.AccentSecondary)
-})
-headerGradient.Transparency = NumberSequence.new(0.85)
-headerGradient.Rotation = 90
-headerGradient.Parent = Header
+-- Separator line
+local headerSep = Instance.new("Frame")
+headerSep.Parent = Header
+headerSep.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
+headerSep.BorderSizePixel = 0
+headerSep.Position = UDim2.new(0, 15, 1, -1)
+headerSep.Size = UDim2.new(1, -30, 0, 1)
 
 -- Logo/Title container
 local TitleContainer = Instance.new("Frame")
@@ -631,14 +507,12 @@ Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 -- Stats display
 local StatsContainer = CreateGlassPanel(Header, {
     Name = "Stats",
-    Position = UDim2.new(0.5, -10, 0.5, -18),
-    Size = UDim2.new(0, 140, 0, 36),
+    Position = UDim2.new(0.5, -10, 0.5, -15),
+    Size = UDim2.new(0, 130, 0, 30),
     Color = Theme.GlassTertiary,
-    Transparency = 0.3,
-    CornerRadius = UDim.new(0, 10),
-    BorderThickness = 1,
-    BorderColor = Theme.Success,
-    BorderTransparency = 0.6
+    Transparency = 0,
+    CornerRadius = UDim.new(0, 6),
+    Border = false
 })
 
 local StatsLabel = Instance.new("TextLabel")
@@ -662,16 +536,15 @@ StatsValue.Text = "0"
 StatsValue.TextColor3 = Theme.Success
 StatsValue.TextSize = 18
 
--- Close button with 3D effect
+-- Close button
 local CloseBtn = CreateGlassPanel(Header, {
     Name = "CloseBtn",
-    Position = UDim2.new(1, -55, 0.5, -18),
-    Size = UDim2.new(0, 36, 0, 36),
-    Color = Theme.Danger,
-    Transparency = 0.6,
-    CornerRadius = UDim.new(0, 10),
-    BorderColor = Theme.Danger,
-    BorderTransparency = 0.4
+    Position = UDim2.new(1, -50, 0.5, -15),
+    Size = UDim2.new(0, 30, 0, 30),
+    Color = Color3.fromRGB(60, 35, 35),
+    Transparency = 0,
+    CornerRadius = UDim.new(0, 6),
+    Border = false
 })
 
 local CloseBtnText = Instance.new("TextLabel")
@@ -709,11 +582,11 @@ end)
 
 local TabContainer = CreateGlassPanel(Main, {
     Name = "TabContainer",
-    Position = UDim2.new(0, 15, 0, 70),
-    Size = UDim2.new(1, -30, 0, 45),
-    Color = Theme.GlassSecondary,
-    Transparency = 0.3,
-    CornerRadius = UDim.new(0, 12),
+    Position = UDim2.new(0, 15, 0, 65),
+    Size = UDim2.new(1, -30, 0, 40),
+    Color = Theme.GlassTertiary,
+    Transparency = 0,
+    CornerRadius = UDim.new(0, 8),
     Border = false
 })
 
@@ -734,8 +607,8 @@ local Content = Instance.new("Frame")
 Content.Name = "Content"
 Content.Parent = Main
 Content.BackgroundTransparency = 1
-Content.Position = UDim2.new(0, 15, 0, 125)
-Content.Size = UDim2.new(1, -30, 1, -140)
+Content.Position = UDim2.new(0, 15, 0, 115)
+Content.Size = UDim2.new(1, -30, 1, -125)
 
 -- Tab data
 local Tabs = {}
@@ -753,12 +626,12 @@ local TabIcons = {
 local function CreateTab(name)
     local btn = CreateGlassPanel(TabContainer, {
         Name = name,
-        Size = UDim2.new(0, 75, 0, 32),
-        Color = Theme.GlassTertiary,
-        Transparency = 0.5,
-        CornerRadius = UDim.new(0, 8),
-        BorderThickness = 1,
-        BorderTransparency = 0.7
+        Size = UDim2.new(0, 75, 0, 30),
+        Color = Theme.GlassSecondary,
+        Transparency = 0,
+        CornerRadius = UDim.new(0, 6),
+        BorderThickness = 0,
+        Border = false
     })
     
     local btnText = Instance.new("TextLabel")
@@ -811,38 +684,22 @@ local function CreateTab(name)
         -- Deactivate all tabs
         for n, t in pairs(Tabs) do
             TweenService:Create(t.Button, Animations.Fast, {
-                BackgroundTransparency = 0.5
+                BackgroundColor3 = Theme.GlassSecondary
             }):Play()
             TweenService:Create(t.Text, Animations.Fast, {
                 TextColor3 = Theme.TextMuted
             }):Play()
-            
-            local stroke = t.Button:FindFirstChildOfClass("UIStroke")
-            if stroke then
-                TweenService:Create(stroke, Animations.Fast, {
-                    Transparency = 0.7,
-                    Color = Theme.TextMuted
-                }):Play()
-            end
             
             Pages[n].Visible = false
         end
         
         -- Activate selected tab
         TweenService:Create(btn, Animations.Fast, {
-            BackgroundTransparency = 0.2
+            BackgroundColor3 = Theme.AccentPrimary
         }):Play()
         TweenService:Create(btnText, Animations.Fast, {
             TextColor3 = Theme.TextPrimary
         }):Play()
-        
-        local stroke = btn:FindFirstChildOfClass("UIStroke")
-        if stroke then
-            TweenService:Create(stroke, Animations.Fast, {
-                Transparency = 0.3,
-                Color = Theme.AccentPrimary
-            }):Play()
-        end
         
         -- Fade in page
         page.Visible = true
@@ -850,7 +707,7 @@ local function CreateTab(name)
             if child:IsA("Frame") then
                 child.BackgroundTransparency = 1
                 TweenService:Create(child, Animations.Normal, {
-                    BackgroundTransparency = 0.3
+                    BackgroundTransparency = 0
                 }):Play()
             end
         end
@@ -901,12 +758,13 @@ end
 
 local function CreateToggle(parent, text, setting, callback)
     local frame = CreateGlassPanel(parent, {
-        Size = UDim2.new(1, 0, 0, 50),
+        Size = UDim2.new(1, 0, 0, 46),
         Color = Theme.GlassSecondary,
-        Transparency = 0.3,
-        CornerRadius = UDim.new(0, 12),
+        Transparency = 0,
+        CornerRadius = UDim.new(0, 8),
         BorderThickness = 1,
-        BorderTransparency = 0.7
+        BorderColor = Color3.fromRGB(40, 40, 48),
+        BorderTransparency = 0
     })
     
     local lbl = Instance.new("TextLabel")
@@ -923,27 +781,20 @@ local function CreateToggle(parent, text, setting, callback)
     -- Modern toggle switch
     local toggleBg = Instance.new("Frame")
     toggleBg.Parent = frame
-    toggleBg.BackgroundColor3 = Settings[setting] and Theme.AccentPrimary or Theme.GlassTertiary
-    toggleBg.Position = UDim2.new(1, -70, 0.5, -14)
-    toggleBg.Size = UDim2.new(0, 54, 0, 28)
+    toggleBg.BackgroundColor3 = Settings[setting] and Theme.AccentPrimary or Color3.fromRGB(50, 50, 58)
+    toggleBg.Position = UDim2.new(1, -65, 0.5, -12)
+    toggleBg.Size = UDim2.new(0, 48, 0, 24)
     
     local toggleCorner = Instance.new("UICorner")
     toggleCorner.CornerRadius = UDim.new(1, 0)
     toggleCorner.Parent = toggleBg
     
-    -- Glow effect for toggle
-    local toggleGlow = Instance.new("UIStroke")
-    toggleGlow.Parent = toggleBg
-    toggleGlow.Color = Settings[setting] and Theme.AccentPrimary or Theme.GlassTertiary
-    toggleGlow.Thickness = 2
-    toggleGlow.Transparency = Settings[setting] and 0.5 or 0.9
-    
-    -- Toggle circle with 3D effect
+    -- Toggle circle
     local circle = Instance.new("Frame")
     circle.Parent = toggleBg
     circle.BackgroundColor3 = Theme.TextPrimary
-    circle.Position = Settings[setting] and UDim2.new(1, -26, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
-    circle.Size = UDim2.new(0, 22, 0, 22)
+    circle.Position = Settings[setting] and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+    circle.Size = UDim2.new(0, 18, 0, 18)
     
     local circleCorner = Instance.new("UICorner")
     circleCorner.CornerRadius = UDim.new(1, 0)
@@ -970,16 +821,11 @@ local function CreateToggle(parent, text, setting, callback)
     btn.MouseButton1Click:Connect(function()
         Settings[setting] = not Settings[setting]
         
-        local targetPos = Settings[setting] and UDim2.new(1, -26, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
-        local targetColor = Settings[setting] and Theme.AccentPrimary or Theme.GlassTertiary
-        local targetGlow = Settings[setting] and 0.5 or 0.9
+        local targetPos = Settings[setting] and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+        local targetColor = Settings[setting] and Theme.AccentPrimary or Color3.fromRGB(50, 50, 58)
         
         TweenService:Create(circle, Animations.Bounce, {Position = targetPos}):Play()
         TweenService:Create(toggleBg, Animations.Normal, {BackgroundColor3 = targetColor}):Play()
-        TweenService:Create(toggleGlow, Animations.Normal, {
-            Color = targetColor,
-            Transparency = targetGlow
-        }):Play()
         
         if callback then callback(Settings[setting]) end
     end)
@@ -987,12 +833,13 @@ end
 
 local function CreateSlider(parent, text, setting, min, max, callback)
     local frame = CreateGlassPanel(parent, {
-        Size = UDim2.new(1, 0, 0, 65),
+        Size = UDim2.new(1, 0, 0, 60),
         Color = Theme.GlassSecondary,
-        Transparency = 0.3,
-        CornerRadius = UDim.new(0, 12),
+        Transparency = 0,
+        CornerRadius = UDim.new(0, 8),
         BorderThickness = 1,
-        BorderTransparency = 0.7
+        BorderColor = Color3.fromRGB(40, 40, 48),
+        BorderTransparency = 0
     })
     
     local lbl = Instance.new("TextLabel")
@@ -1006,13 +853,13 @@ local function CreateSlider(parent, text, setting, min, max, callback)
     lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     
-    -- Value display with glass effect
+    -- Value display
     local valBg = CreateGlassPanel(frame, {
-        Position = UDim2.new(1, -70, 0, 6),
-        Size = UDim2.new(0, 55, 0, 24),
+        Position = UDim2.new(1, -65, 0, 6),
+        Size = UDim2.new(0, 50, 0, 22),
         Color = Theme.GlassTertiary,
-        Transparency = 0.4,
-        CornerRadius = UDim.new(0, 6),
+        Transparency = 0,
+        CornerRadius = UDim.new(0, 4),
         Border = false
     })
     
@@ -1028,9 +875,9 @@ local function CreateSlider(parent, text, setting, min, max, callback)
     -- Slider track
     local sliderBg = Instance.new("Frame")
     sliderBg.Parent = frame
-    sliderBg.BackgroundColor3 = Theme.GlassTertiary
-    sliderBg.Position = UDim2.new(0, 16, 0, 42)
-    sliderBg.Size = UDim2.new(1, -32, 0, 10)
+    sliderBg.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+    sliderBg.Position = UDim2.new(0, 16, 0, 40)
+    sliderBg.Size = UDim2.new(1, -32, 0, 6)
     
     local sliderCorner = Instance.new("UICorner")
     sliderCorner.CornerRadius = UDim.new(1, 0)
@@ -1053,31 +900,17 @@ local function CreateSlider(parent, text, setting, min, max, callback)
     })
     fillGradient.Parent = fill
     
-    -- Slider knob with 3D effect
+    -- Slider knob
     local knob = Instance.new("Frame")
     knob.Parent = sliderBg
-    knob.BackgroundColor3 = Theme.TextPrimary
-    knob.Position = UDim2.new((Settings[setting] - min) / (max - min), -8, 0.5, -8)
-    knob.Size = UDim2.new(0, 16, 0, 16)
+    knob.BackgroundColor3 = Theme.AccentPrimary
+    knob.Position = UDim2.new((Settings[setting] - min) / (max - min), -7, 0.5, -7)
+    knob.Size = UDim2.new(0, 14, 0, 14)
     knob.ZIndex = 2
     
     local knobCorner = Instance.new("UICorner")
     knobCorner.CornerRadius = UDim.new(1, 0)
     knobCorner.Parent = knob
-    
-    local knobStroke = Instance.new("UIStroke")
-    knobStroke.Parent = knob
-    knobStroke.Color = Theme.AccentPrimary
-    knobStroke.Thickness = 2
-    knobStroke.Transparency = 0.3
-    
-    local knobGradient = Instance.new("UIGradient")
-    knobGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 220, 220))
-    })
-    knobGradient.Rotation = 90
-    knobGradient.Parent = knob
     
     local dragging = false
     
@@ -1107,7 +940,7 @@ local function CreateSlider(parent, text, setting, min, max, callback)
             }):Play()
             
             TweenService:Create(knob, Animations.Fast, {
-                Position = UDim2.new(rel, -8, 0.5, -8)
+                Position = UDim2.new(rel, -7, 0.5, -7)
             }):Play()
             
             if callback then callback(newVal) end
@@ -1119,12 +952,13 @@ end
 
 local function CreateDropdown(parent, text, setting, options, callback)
     local frame = CreateGlassPanel(parent, {
-        Size = UDim2.new(1, 0, 0, 50),
+        Size = UDim2.new(1, 0, 0, 46),
         Color = Theme.GlassSecondary,
-        Transparency = 0.3,
-        CornerRadius = UDim.new(0, 12),
+        Transparency = 0,
+        CornerRadius = UDim.new(0, 8),
         BorderThickness = 1,
-        BorderTransparency = 0.7,
+        BorderColor = Color3.fromRGB(40, 40, 48),
+        BorderTransparency = 0,
         ClipsDescendants = true
     })
     
@@ -1140,13 +974,12 @@ local function CreateDropdown(parent, text, setting, options, callback)
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     
     local dropBtn = CreateGlassPanel(frame, {
-        Position = UDim2.new(0.5, 0, 0, 10),
+        Position = UDim2.new(0.5, 0, 0, 8),
         Size = UDim2.new(0.5, -16, 0, 30),
         Color = Theme.GlassTertiary,
-        Transparency = 0.4,
-        CornerRadius = UDim.new(0, 8),
-        BorderThickness = 1,
-        BorderTransparency = 0.6
+        Transparency = 0,
+        CornerRadius = UDim.new(0, 6),
+        Border = false
     })
     
     local dropText = Instance.new("TextLabel")
@@ -1186,9 +1019,9 @@ local function CreateDropdown(parent, text, setting, options, callback)
         
         if open then
             -- Expand
-            TweenService:Create(frame, Animations.Smooth, {
-                Size = UDim2.new(1, 0, 0, 50 + #options * 35)
-            }):Play()
+        TweenService:Create(frame, Animations.Smooth, {
+            Size = UDim2.new(1, 0, 0, 46 + #options * 30)
+        }):Play()
             
             TweenService:Create(arrow, Animations.Normal, {
                 Rotation = 180
@@ -1196,22 +1029,21 @@ local function CreateDropdown(parent, text, setting, options, callback)
             
             for i, opt in ipairs(options) do
                 local optFrame = CreateGlassPanel(frame, {
-                    Position = UDim2.new(0.5, 0, 0, 45 + i * 32),
-                    Size = UDim2.new(0.5, -16, 0, 28),
+                    Position = UDim2.new(0.5, 0, 0, 42 + i * 30),
+                    Size = UDim2.new(0.5, -16, 0, 26),
                     Color = Theme.GlassTertiary,
-                    Transparency = 0.5,
-                    CornerRadius = UDim.new(0, 6),
-                    BorderThickness = 1,
-                    BorderTransparency = 0.8
+                    Transparency = 0,
+                    CornerRadius = UDim.new(0, 4),
+                    Border = false
                 })
                 optFrame.Name = "Opt" .. i
                 
                 -- Entrance animation
-                optFrame.Position = UDim2.new(0.5, 0, 0, 40 + i * 32)
+                optFrame.Position = UDim2.new(0.5, 0, 0, 38 + i * 30)
                 optFrame.BackgroundTransparency = 1
-                TweenService:Create(optFrame, TweenInfo.new(0.2 + i * 0.05, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Position = UDim2.new(0.5, 0, 0, 45 + i * 32),
-                    BackgroundTransparency = 0.5
+                TweenService:Create(optFrame, TweenInfo.new(0.15 + i * 0.03, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(0.5, 0, 0, 42 + i * 30),
+                    BackgroundTransparency = 0
                 }):Play()
                 
                 local optText = Instance.new("TextLabel")
@@ -1237,9 +1069,9 @@ local function CreateDropdown(parent, text, setting, options, callback)
                     dropText.Text = opt
                     open = false
                     
-                    TweenService:Create(frame, Animations.Smooth, {
-                        Size = UDim2.new(1, 0, 0, 50)
-                    }):Play()
+        TweenService:Create(frame, Animations.Smooth, {
+            Size = UDim2.new(1, 0, 0, 46)
+        }):Play()
                     
                     TweenService:Create(arrow, Animations.Normal, {
                         Rotation = 0
@@ -1296,12 +1128,9 @@ local miscPage = CreateTab("Misc")
 -- PARRY PAGE
 CreateSectionLabel(parryPage, "AUTO PARRY SYSTEM")
 CreateToggle(parryPage, "Enable Auto Parry", "AutoParry")
-CreateDropdown(parryPage, "Parry Method", "ParryMethod", {"Predictive", "Velocity", "Distance"})
+-- Parry method removed - now using reliable BrickColor detection
 CreateSlider(parryPage, "Base Parry Distance", "ParryDistance", 5, 35)
 CreateSlider(parryPage, "Velocity Multiplier", "VelocityMultiplier", 0.5, 2.0)
-CreateSectionLabel(parryPage, "ADVANCED SETTINGS")
-CreateSlider(parryPage, "Prediction Frames", "PredictionFrames", 1, 10)
-CreateSlider(parryPage, "Latency Compensation", "LatencyCompensation", 0, 0.15)
 
 -- CLASH PAGE
 CreateSectionLabel(clashPage, "CLASH SYSTEM")
@@ -1342,13 +1171,13 @@ CreateSectionLabel(miscPage, "UTILITY")
 CreateToggle(miscPage, "Anti-AFK System", "AntiAFK")
 
 local keyInfoFrame = CreateGlassPanel(miscPage, {
-    Size = UDim2.new(1, 0, 0, 80),
+    Size = UDim2.new(1, 0, 0, 75),
     Color = Theme.GlassSecondary,
-    Transparency = 0.3,
-    CornerRadius = UDim.new(0, 12),
+    Transparency = 0,
+    CornerRadius = UDim.new(0, 8),
     BorderThickness = 1,
-    BorderColor = Theme.AccentSecondary,
-    BorderTransparency = 0.5
+    BorderColor = Color3.fromRGB(40, 40, 48),
+    BorderTransparency = 0
 })
 
 local keyInfoText = Instance.new("TextLabel")
@@ -1357,9 +1186,9 @@ keyInfoText.BackgroundTransparency = 1
 keyInfoText.Position = UDim2.new(0, 16, 0, 0)
 keyInfoText.Size = UDim2.new(1, -32, 1, 0)
 keyInfoText.Font = Enum.Font.Gotham
-keyInfoText.Text = "⌨️ RIGHT CTRL - Toggle GUI\n⌨️ F - Manual Parry\n\n✨ Glassmorphism UI v2.0"
+keyInfoText.Text = "RIGHT CTRL - Toggle GUI\nF - Manual Parry\n\nReaper Hub v2.0"
 keyInfoText.TextColor3 = Theme.TextSecondary
-keyInfoText.TextSize = 12
+keyInfoText.TextSize = 11
 keyInfoText.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Select first tab
@@ -1508,86 +1337,75 @@ local function CreateESP(ball)
 end
 
 -- ══════════════════════════════════════════════════════════════
--- MAIN PARRY LOOP (ENHANCED)
+-- MAIN PARRY LOOP - BRICKCOLOR BASED (WORKING METHOD)
 -- ══════════════════════════════════════════════════════════════
 
 local lastParry = 0
-local consecutiveParries = 0
-local lastParrySuccess = 0
+local ActiveParryTasks = {}
 
 local function StartParry(ball)
     CurrentBall = ball
     CreateESP(ball)
     
-    local conn
-    conn = RunService.RenderStepped:Connect(function()
-        if not ball or not ball.Parent then
-            conn:Disconnect()
-            return
-        end
-        
-        if not Settings.AutoParry then return end
-        if not HumanoidRootPart then return end
-        
-        local data = GetBallData(ball)
-        if not data then return end
-        
-        local now = tick()
-        
-        -- Clash handling with improved detection
-        if IsClashSituation(data) then
-            IsClashing = true
-            if Settings.ClashSpam then
-                if now - lastParry >= Settings.ClashSpeed then
-                    PressParry()
-                    lastParry = now
-                    ParryCount = ParryCount + 1
-                end
-            end
-            return
-        else
-            IsClashing = false
-        end
-        
-        -- Normal parry with improved timing
-        if ShouldParry(data) then
-            -- Adaptive cooldown based on success rate
-            local cooldown = 0.08
-            if consecutiveParries > 5 then
-                cooldown = 0.06 -- Faster if we're on a streak
-            end
+    -- Cancel any existing task for this ball
+    if ActiveParryTasks[ball] then
+        pcall(function() task.cancel(ActiveParryTasks[ball]) end)
+    end
+    
+    -- Main parry tracking task (similar to working code)
+    local trackTask = task.spawn(function()
+        while task.wait() do
+            if not ball or not ball.Parent then break end
+            if not Settings.AutoParry then continue end
             
-            if now - lastParry >= cooldown then
-                local success = PressParry()
-                lastParry = now
-                ParryCount = ParryCount + 1
+            -- Check if ball is RED (targeting us)
+            if IsBallTargetingMe(ball) then
+                local dist = LocalPlayer:DistanceFromCharacter(ball.CFrame.Position)
                 
-                if success then
-                    SuccessfulParries = SuccessfulParries + 1
-                    consecutiveParries = consecutiveParries + 1
-                    lastParrySuccess = now
+                -- Clash handling
+                if dist <= Settings.ClashRange and Settings.AntiClash then
+                    IsClashing = true
+                    if Settings.ClashSpam then
+                        local now = tick()
+                        if now - lastParry >= Settings.ClashSpeed then
+                            PressParry()
+                            lastParry = now
+                            ParryCount = ParryCount + 1
+                        end
+                    end
+                else
+                    IsClashing = false
                 end
-            end
-        end
-        
-        -- Reset streak if too much time passed
-        if now - lastParrySuccess > 3 then
-            consecutiveParries = 0
-        end
-        
-        -- Auto spam mode
-        if Settings.AutoSpam then
-            if data.IsTargeting and data.Distance <= Settings.ParryDistance + 10 then
-                if now - lastParry >= (1 / Settings.SpamCPS) then
-                    PressParry()
-                    lastParry = now
+                
+                -- Wait until ball is within parry distance
+                while LocalPlayer:DistanceFromCharacter(ball.CFrame.Position) > Settings.ParryDistance do
+                    if not ball or not ball.Parent then break end
+                    if not IsBallTargetingMe(ball) then break end
+                    task.wait()
+                end
+                
+                -- Double check ball still exists and is targeting
+                if ball and ball.Parent and IsBallTargetingMe(ball) then
+                    local now = tick()
+                    if now - lastParry >= 0.05 then -- Small cooldown to prevent spam
+                        PressParry()
+                        lastParry = now
+                        ParryCount = ParryCount + 1
+                    end
                 end
             end
         end
     end)
     
+    ActiveParryTasks[ball] = trackTask
+    
+    -- Cleanup on ball destroy
     ball.Destroying:Connect(function()
-        conn:Disconnect()
+        if ActiveParryTasks[ball] then
+            pcall(function() task.cancel(ActiveParryTasks[ball]) end)
+            ActiveParryTasks[ball] = nil
+        end
+        CurrentBall = nil
     end)
 end
 
