@@ -19,7 +19,7 @@ local LocalizationService = game:GetService("LocalizationService")
 local Stats = game:GetService("Stats")
 
 local Player = Players.LocalPlayer
-local Balls = Workspace:WaitForChild("Balls")
+local Balls = Workspace:WaitForChild("Balls", 10) or Instance.new("Folder") -- Fixed: Added timeout and fallback
 local Camera = Workspace.CurrentCamera
 
 -- ========================================
@@ -323,6 +323,7 @@ MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
 MainFrame.Size = UDim2.new(0, 500, 0, 400)
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
+MainFrame.Visible = true -- FIXED: Ensure MainFrame is visible on load
 
 local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 12)
@@ -766,7 +767,7 @@ local function CreateTab(name, icon)
             valueLabel.Parent = sliderFrame
             valueLabel.BackgroundTransparency = 1
             valueLabel.Position = UDim2.new(1, -50, 0, 8)
-            valueLabel.Size = UDim2.new(0, 38, 0, 16)
+            valueLabel.Size = UDim2.new(0, 40, 0, 16)
             valueLabel.Font = Enum.Font.GothamBold
             valueLabel.Text = tostring(Slider.Value)
             valueLabel.TextColor3 = Colors.Accent
@@ -788,7 +789,7 @@ local function CreateTab(name, icon)
             sliderFill.Parent = sliderBg
             sliderFill.BackgroundColor3 = Colors.Accent
             sliderFill.BorderSizePixel = 0
-            sliderFill.Size = UDim2.new(0, 0, 1, 0)
+            sliderFill.Size = UDim2.new((Slider.Value - config.Min) / (config.Max - config.Min), 0, 1, 0)
             
             local sliderFillCorner = Instance.new("UICorner")
             sliderFillCorner.CornerRadius = UDim.new(1, 0)
@@ -799,49 +800,50 @@ local function CreateTab(name, icon)
             sliderKnob.BackgroundColor3 = Colors.Text
             sliderKnob.BorderSizePixel = 0
             sliderKnob.AnchorPoint = Vector2.new(0.5, 0.5)
-            sliderKnob.Position = UDim2.new(0, 0, 0.5, 0)
-            sliderKnob.Size = UDim2.new(0, 12, 0, 12)
+            sliderKnob.Position = UDim2.new((Slider.Value - config.Min) / (config.Max - config.Min), 0, 0.5, 0)
+            sliderKnob.Size = UDim2.new(0, 14, 0, 14)
             sliderKnob.ZIndex = 2
             
             local sliderKnobCorner = Instance.new("UICorner")
             sliderKnobCorner.CornerRadius = UDim.new(1, 0)
             sliderKnobCorner.Parent = sliderKnob
             
-            local function updateSlider(inputPos)
-                local pos = math.clamp((inputPos.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
-                local min = config.Min or 0
-                local max = config.Max or 100
-                Slider.Value = math.floor(min + (max - min) * pos)
+            local sliderBtn = Instance.new("TextButton")
+            sliderBtn.Parent = sliderBg
+            sliderBtn.BackgroundTransparency = 1
+            sliderBtn.Size = UDim2.new(1, 0, 1, 0)
+            sliderBtn.Text = ""
+            sliderBtn.ZIndex = 3
+            
+            local dragging = false
+            
+            local function updateSlider(input)
+                local relX = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+                Slider.Value = math.floor(config.Min + (config.Max - config.Min) * relX)
                 valueLabel.Text = tostring(Slider.Value)
-                sliderFill.Size = UDim2.new(pos, 0, 1, 0)
-                sliderKnob.Position = UDim2.new(pos, 0, 0.5, 0)
+                Tween(sliderFill, {Size = UDim2.new(relX, 0, 1, 0)}, 0.1)
+                Tween(sliderKnob, {Position = UDim2.new(relX, 0, 0.5, 0)}, 0.1)
                 if config.Callback then pcall(config.Callback, Slider.Value) end
             end
             
-            local draggingSlider = false
-            
-            sliderBg.InputBegan:Connect(function(input)
+            sliderBtn.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    draggingSlider = true
-                    updateSlider(input.Position)
+                    dragging = true
+                    updateSlider(input)
                 end
             end)
             
             UserInputService.InputChanged:Connect(function(input)
-                if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    updateSlider(input.Position)
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateSlider(input)
                 end
             end)
             
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    draggingSlider = false
+                    dragging = false
                 end
             end)
-            
-            local initialPos = (Slider.Value - (config.Min or 0)) / ((config.Max or 100) - (config.Min or 0))
-            sliderFill.Size = UDim2.new(initialPos, 0, 1, 0)
-            sliderKnob.Position = UDim2.new(initialPos, 0, 0.5, 0)
             
             return Slider
         end
@@ -851,7 +853,7 @@ local function CreateTab(name, icon)
             buttonFrame.Parent = sectionFrame
             buttonFrame.BackgroundColor3 = Colors.Card
             buttonFrame.BorderSizePixel = 0
-            buttonFrame.Size = UDim2.new(1, 0, 0, 40)
+            buttonFrame.Size = UDim2.new(1, 0, 0, 38)
             buttonFrame.Font = Enum.Font.GothamSemibold
             buttonFrame.Text = config.Title
             buttonFrame.TextColor3 = Colors.Text
@@ -867,130 +869,130 @@ local function CreateTab(name, icon)
             buttonStroke.Thickness = 1
             buttonStroke.Parent = buttonFrame
             
-            buttonFrame.MouseButton1Click:Connect(function()
-                Tween(buttonFrame, {BackgroundColor3 = Colors.Accent}, 0.1)
-                Tween(buttonFrame, {TextColor3 = Colors.Background}, 0.1)
-                task.wait(0.1)
-                Tween(buttonFrame, {BackgroundColor3 = Colors.CardHover, TextColor3 = Colors.Text}, 0.1)
-                if config.Callback then pcall(config.Callback) end
-            end)
-            
             buttonFrame.MouseEnter:Connect(function()
-                Tween(buttonFrame, {BackgroundColor3 = Colors.CardHover}, 0.15)
+                Tween(buttonFrame, {BackgroundColor3 = Colors.Accent, TextColor3 = Colors.Background}, 0.15)
+                Tween(buttonStroke, {Color = Colors.Accent}, 0.15)
             end)
             
             buttonFrame.MouseLeave:Connect(function()
-                Tween(buttonFrame, {BackgroundColor3 = Colors.Card}, 0.15)
+                Tween(buttonFrame, {BackgroundColor3 = Colors.Card, TextColor3 = Colors.Text}, 0.15)
+                Tween(buttonStroke, {Color = Colors.Border}, 0.15)
             end)
+            
+            buttonFrame.MouseButton1Click:Connect(function()
+                if config.Callback then pcall(config.Callback) end
+            end)
+            
+            return buttonFrame
         end
         
         function Section:AddDropdown(config)
-            local Dropdown = {Value = config.Default or config.Options[1]}
-            local open = false
+            local Dropdown = {Value = config.Default or config.Options[1], Open = false}
             
-            local dropFrame = Instance.new("Frame")
-            dropFrame.Parent = sectionFrame
-            dropFrame.BackgroundColor3 = Colors.Card
-            dropFrame.BorderSizePixel = 0
-            dropFrame.Size = UDim2.new(1, 0, 0, 40)
-            dropFrame.ClipsDescendants = true
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Parent = sectionFrame
+            dropdownFrame.BackgroundColor3 = Colors.Card
+            dropdownFrame.BorderSizePixel = 0
+            dropdownFrame.Size = UDim2.new(1, 0, 0, 38)
+            dropdownFrame.ClipsDescendants = true
             
-            local dropCorner = Instance.new("UICorner")
-            dropCorner.CornerRadius = UDim.new(0, 8)
-            dropCorner.Parent = dropFrame
+            local dropdownCorner = Instance.new("UICorner")
+            dropdownCorner.CornerRadius = UDim.new(0, 8)
+            dropdownCorner.Parent = dropdownFrame
             
-            local dropStroke = Instance.new("UIStroke")
-            dropStroke.Color = Colors.Border
-            dropStroke.Thickness = 1
-            dropStroke.Parent = dropFrame
+            local dropdownStroke = Instance.new("UIStroke")
+            dropdownStroke.Color = Colors.Border
+            dropdownStroke.Thickness = 1
+            dropdownStroke.Parent = dropdownFrame
             
-            local dropLabel = Instance.new("TextLabel")
-            dropLabel.Parent = dropFrame
-            dropLabel.BackgroundTransparency = 1
-            dropLabel.Position = UDim2.new(0, 12, 0, 0)
-            dropLabel.Size = UDim2.new(0.5, -12, 0, 40)
-            dropLabel.Font = Enum.Font.Gotham
-            dropLabel.Text = config.Title
-            dropLabel.TextColor3 = Colors.Text
-            dropLabel.TextSize = 12
-            dropLabel.TextXAlignment = Enum.TextXAlignment.Left
+            local dropdownLabel = Instance.new("TextLabel")
+            dropdownLabel.Parent = dropdownFrame
+            dropdownLabel.BackgroundTransparency = 1
+            dropdownLabel.Position = UDim2.new(0, 12, 0, 0)
+            dropdownLabel.Size = UDim2.new(0.5, -12, 0, 38)
+            dropdownLabel.Font = Enum.Font.Gotham
+            dropdownLabel.Text = config.Title
+            dropdownLabel.TextColor3 = Colors.Text
+            dropdownLabel.TextSize = 12
+            dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
             
-            local dropValue = Instance.new("TextLabel")
-            dropValue.Parent = dropFrame
-            dropValue.BackgroundTransparency = 1
-            dropValue.Position = UDim2.new(0.5, 0, 0, 0)
-            dropValue.Size = UDim2.new(0.5, -30, 0, 40)
-            dropValue.Font = Enum.Font.GothamSemibold
-            dropValue.Text = Dropdown.Value
-            dropValue.TextColor3 = Colors.AccentDim
-            dropValue.TextSize = 11
-            dropValue.TextXAlignment = Enum.TextXAlignment.Right
+            local dropdownValue = Instance.new("TextLabel")
+            dropdownValue.Parent = dropdownFrame
+            dropdownValue.BackgroundTransparency = 1
+            dropdownValue.Position = UDim2.new(0.5, 0, 0, 0)
+            dropdownValue.Size = UDim2.new(0.5, -35, 0, 38)
+            dropdownValue.Font = Enum.Font.GothamSemibold
+            dropdownValue.Text = Dropdown.Value
+            dropdownValue.TextColor3 = Colors.Accent
+            dropdownValue.TextSize = 12
+            dropdownValue.TextXAlignment = Enum.TextXAlignment.Right
             
-            local dropArrow = Instance.new("TextLabel")
-            dropArrow.Parent = dropFrame
-            dropArrow.BackgroundTransparency = 1
-            dropArrow.Position = UDim2.new(1, -22, 0, 0)
-            dropArrow.Size = UDim2.new(0, 18, 0, 40)
-            dropArrow.Font = Enum.Font.GothamBold
-            dropArrow.Text = "v"
-            dropArrow.TextColor3 = Colors.TextDim
-            dropArrow.TextSize = 10
+            local dropdownArrow = Instance.new("TextLabel")
+            dropdownArrow.Parent = dropdownFrame
+            dropdownArrow.BackgroundTransparency = 1
+            dropdownArrow.Position = UDim2.new(1, -25, 0, 0)
+            dropdownArrow.Size = UDim2.new(0, 20, 0, 38)
+            dropdownArrow.Font = Enum.Font.GothamBold
+            dropdownArrow.Text = "v"
+            dropdownArrow.TextColor3 = Colors.TextDim
+            dropdownArrow.TextSize = 10
             
-            local dropBtn = Instance.new("TextButton")
-            dropBtn.Parent = dropFrame
-            dropBtn.BackgroundTransparency = 1
-            dropBtn.Size = UDim2.new(1, 0, 0, 40)
-            dropBtn.Text = ""
+            local dropdownBtn = Instance.new("TextButton")
+            dropdownBtn.Parent = dropdownFrame
+            dropdownBtn.BackgroundTransparency = 1
+            dropdownBtn.Size = UDim2.new(1, 0, 0, 38)
+            dropdownBtn.Text = ""
+            dropdownBtn.ZIndex = 2
             
-            local optionContainer = Instance.new("Frame")
-            optionContainer.Parent = dropFrame
-            optionContainer.BackgroundTransparency = 1
-            optionContainer.Position = UDim2.new(0, 8, 0, 45)
-            optionContainer.Size = UDim2.new(1, -16, 0, #config.Options * 32)
+            local optionsContainer = Instance.new("Frame")
+            optionsContainer.Parent = dropdownFrame
+            optionsContainer.BackgroundTransparency = 1
+            optionsContainer.Position = UDim2.new(0, 0, 0, 38)
+            optionsContainer.Size = UDim2.new(1, 0, 0, #config.Options * 30)
             
-            local optionLayout = Instance.new("UIListLayout")
-            optionLayout.Parent = optionContainer
-            optionLayout.Padding = UDim.new(0, 4)
+            local optionsLayout = Instance.new("UIListLayout")
+            optionsLayout.Parent = optionsContainer
+            optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
             
-            for _, opt in ipairs(config.Options) do
-                local optBtn = Instance.new("TextButton")
-                optBtn.Parent = optionContainer
-                optBtn.BackgroundColor3 = Colors.CardHover
-                optBtn.BorderSizePixel = 0
-                optBtn.Size = UDim2.new(1, 0, 0, 28)
-                optBtn.Font = Enum.Font.Gotham
-                optBtn.Text = opt
-                optBtn.TextColor3 = opt == Dropdown.Value and Colors.Accent or Colors.TextDim
-                optBtn.TextSize = 11
-                optBtn.AutoButtonColor = false
+            for _, option in ipairs(config.Options) do
+                local optionBtn = Instance.new("TextButton")
+                optionBtn.Parent = optionsContainer
+                optionBtn.BackgroundColor3 = Colors.Card
+                optionBtn.BackgroundTransparency = 1
+                optionBtn.BorderSizePixel = 0
+                optionBtn.Size = UDim2.new(1, 0, 0, 30)
+                optionBtn.Font = Enum.Font.Gotham
+                optionBtn.Text = option
+                optionBtn.TextColor3 = Colors.TextDim
+                optionBtn.TextSize = 11
+                optionBtn.AutoButtonColor = false
                 
-                local optCorner = Instance.new("UICorner")
-                optCorner.CornerRadius = UDim.new(0, 6)
-                optCorner.Parent = optBtn
+                optionBtn.MouseEnter:Connect(function()
+                    Tween(optionBtn, {BackgroundTransparency = 0.5, TextColor3 = Colors.Text}, 0.1)
+                end)
                 
-                optBtn.MouseButton1Click:Connect(function()
-                    Dropdown.Value = opt
-                    dropValue.Text = opt
-                    for _, child in ipairs(optionContainer:GetChildren()) do
-                        if child:IsA("TextButton") then
-                            child.TextColor3 = child.Text == opt and Colors.Accent or Colors.TextDim
-                        end
-                    end
-                    open = false
-                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 40)}, 0.2, Enum.EasingStyle.Back)
-                    Tween(dropArrow, {Rotation = 0}, 0.2)
-                    if config.Callback then pcall(config.Callback, opt) end
+                optionBtn.MouseLeave:Connect(function()
+                    Tween(optionBtn, {BackgroundTransparency = 1, TextColor3 = Colors.TextDim}, 0.1)
+                end)
+                
+                optionBtn.MouseButton1Click:Connect(function()
+                    Dropdown.Value = option
+                    dropdownValue.Text = option
+                    Dropdown.Open = false
+                    Tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, 38)}, 0.2)
+                    Tween(dropdownArrow, {Rotation = 0}, 0.2)
+                    if config.Callback then pcall(config.Callback, option) end
                 end)
             end
             
-            dropBtn.MouseButton1Click:Connect(function()
-                open = not open
-                if open then
-                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 50 + #config.Options * 32)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-                    Tween(dropArrow, {Rotation = 180}, 0.2)
+            dropdownBtn.MouseButton1Click:Connect(function()
+                Dropdown.Open = not Dropdown.Open
+                if Dropdown.Open then
+                    Tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, 38 + #config.Options * 30)}, 0.2)
+                    Tween(dropdownArrow, {Rotation = 180}, 0.2)
                 else
-                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 40)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-                    Tween(dropArrow, {Rotation = 0}, 0.2)
+                    Tween(dropdownFrame, {Size = UDim2.new(1, 0, 0, 38)}, 0.2)
+                    Tween(dropdownArrow, {Rotation = 0}, 0.2)
                 end
             end)
             
@@ -1068,11 +1070,13 @@ local Parried = false
 local ParryConnection = nil
 
 local function GetBall()
+    if not Balls or not Balls.Parent then return nil end
     for _, Ball in ipairs(Balls:GetChildren()) do
         if Ball:GetAttribute("realBall") then
             return Ball
         end
     end
+    return nil
 end
 
 local function ResetParryConnection()
@@ -1082,12 +1086,15 @@ local function ResetParryConnection()
     end
 end
 
-Balls.ChildAdded:Connect(function()
-    local Ball = GetBall()
-    if not Ball then return end
-    ResetParryConnection()
-    ParryConnection = Ball:GetAttributeChangedSignal("target"):Connect(function()
-        Parried = false
+-- FIXED: Wrap in pcall to prevent errors if Balls doesn't exist
+pcall(function()
+    Balls.ChildAdded:Connect(function()
+        local Ball = GetBall()
+        if not Ball then return end
+        ResetParryConnection()
+        ParryConnection = Ball:GetAttributeChangedSignal("target"):Connect(function()
+            Parried = false
+        end)
     end)
 end)
 
@@ -1102,7 +1109,10 @@ function Features.AutoParry:Start()
         local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if not Ball or not HRP then return end
         
-        local Speed = Ball.zoomies.VectorVelocity.Magnitude
+        local zoomies = Ball:FindFirstChild("zoomies")
+        if not zoomies or not zoomies:FindFirstChild("VectorVelocity") then return end
+        
+        local Speed = zoomies.VectorVelocity.Magnitude
         local Distance = (HRP.Position - Ball.Position).Magnitude
         
         if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= parryDistance then
@@ -1269,15 +1279,17 @@ function Features.BallESP:Start()
         table.insert(self.Items[ball], conn)
     end
     
-    for _, ball in pairs(Balls:GetChildren()) do
-        if ball:IsA("BasePart") then CreateBallESP(ball) end
-    end
-    
-    Balls.ChildAdded:Connect(function(ball)
-        if self.Enabled and ball:IsA("BasePart") then
-            task.wait(0.1)
-            CreateBallESP(ball)
+    pcall(function()
+        for _, ball in pairs(Balls:GetChildren()) do
+            if ball:IsA("BasePart") then CreateBallESP(ball) end
         end
+        
+        Balls.ChildAdded:Connect(function(ball)
+            if self.Enabled and ball:IsA("BasePart") then
+                task.wait(0.1)
+                CreateBallESP(ball)
+            end
+        end)
     end)
 end
 
@@ -1316,104 +1328,101 @@ function Features.ESP:Start()
         end)
     end
     
-    for _, player in ipairs(Players:GetPlayers()) do addHighlight(player) end
-    Players.PlayerAdded:Connect(function(player) if self.Enabled then addHighlight(player) end end)
+    for _, player in pairs(Players:GetPlayers()) do
+        addHighlight(player)
+    end
+    
+    Players.PlayerAdded:Connect(function(player)
+        if self.Enabled then addHighlight(player) end
+    end)
 end
 
 function Features.ESP:Stop()
     self.Enabled = false
-    for _, highlight in pairs(self.Items) do if highlight then pcall(function() highlight:Destroy() end) end end
+    for _, highlight in pairs(self.Items) do
+        pcall(function() highlight:Destroy() end)
+    end
     self.Items = {}
 end
 
--- Auto Play
-local autoPlayAngle = 0
-
-RunService.Heartbeat:Connect(function(dt)
-    if not Features.AutoPlay.Enabled then return end
-    
-    local ball = GetBall()
-    if not ball or not ball.Parent then return end
-    local Character = Player.Character
-    local Humanoid = Character and Character:FindFirstChild("Humanoid")
-    local HRP = Character and Character:FindFirstChild("HumanoidRootPart")
-    if not Humanoid or not HRP then return end
-    
-    local ballPos = ball.Position
-    autoPlayAngle = autoPlayAngle + dt * 1.5
-    
-    local targetPos
-    local style = Features.AutoPlay.Style
-    
-    if style == "Aggressive" then
-        local dist = (HRP.Position - ballPos).Magnitude
-        if dist > 12 then targetPos = ballPos
-        else targetPos = ballPos + Vector3.new(math.cos(autoPlayAngle) * 8, 0, math.sin(autoPlayAngle) * 8) end
-    elseif style == "Defensive" then
-        targetPos = ballPos + Vector3.new(math.cos(autoPlayAngle) * 28, 0, math.sin(autoPlayAngle) * 28)
-    else
-        targetPos = ballPos + Vector3.new(math.cos(autoPlayAngle) * 16, 0, math.sin(autoPlayAngle) * 16)
-    end
-    
-    if targetPos then Humanoid:MoveTo(targetPos) end
-end)
-
--- Speed/Jump
+-- Speed
 function Features.Speed:Start()
     if self.Enabled then return end
     self.Enabled = true
-    local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if humanoid then humanoid.WalkSpeed = self.Value end
-end
-function Features.Speed:Stop()
-    self.Enabled = false
-    local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if humanoid then humanoid.WalkSpeed = 16 end
-end
-function Features.Speed:Update()
-    local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if humanoid and self.Enabled then humanoid.WalkSpeed = self.Value end
+    self:Update()
 end
 
+function Features.Speed:Stop()
+    self.Enabled = false
+    pcall(function()
+        local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.WalkSpeed = 16 end
+    end)
+end
+
+function Features.Speed:Update()
+    if not self.Enabled then return end
+    pcall(function()
+        local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.WalkSpeed = self.Value end
+    end)
+end
+
+-- Jump
 function Features.Jump:Start()
     if self.Enabled then return end
     self.Enabled = true
-    local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if humanoid then humanoid.JumpPower = self.Value end
+    self:Update()
 end
+
 function Features.Jump:Stop()
     self.Enabled = false
-    local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if humanoid then humanoid.JumpPower = 50 end
+    pcall(function()
+        local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.JumpPower = 50 end
+    end)
 end
+
 function Features.Jump:Update()
-    local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if humanoid and self.Enabled then humanoid.JumpPower = self.Value end
+    if not self.Enabled then return end
+    pcall(function()
+        local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.JumpPower = self.Value end
+    end)
 end
 
 -- Infinite Jump
 function Features.InfiniteJump:Start()
     if self.Enabled then return end
     self.Enabled = true
+    
     self.Connection = UserInputService.JumpRequest:Connect(function()
-        if self.Enabled then
-            local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
-            if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
+        if not self.Enabled then return end
+        local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
 end
+
 function Features.InfiniteJump:Stop()
     self.Enabled = false
-    if self.Connection then self.Connection:Disconnect() self.Connection = nil end
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
 end
 
 -- Noclip
 function Features.Noclip:Start()
     if self.Enabled then return end
     self.Enabled = true
+    
     self.Connection = RunService.Stepped:Connect(function()
-        if self.Enabled and Player.Character then
-            for _, part in pairs(Player.Character:GetDescendants()) do
+        if not self.Enabled then return end
+        local char = Player.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.CanCollide = false
                 end
@@ -1421,28 +1430,38 @@ function Features.Noclip:Start()
         end
     end)
 end
+
 function Features.Noclip:Stop()
     self.Enabled = false
-    if self.Connection then self.Connection:Disconnect() self.Connection = nil end
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
 end
 
 -- Fullbright
-local originalAmbient, originalBrightness, originalOutdoorAmbient
 function Features.Fullbright:Start()
     if self.Enabled then return end
     self.Enabled = true
-    originalAmbient = Lighting.Ambient
-    originalBrightness = Lighting.Brightness
-    originalOutdoorAmbient = Lighting.OutdoorAmbient
-    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-    Lighting.Brightness = 2
-    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+    
+    pcall(function()
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+        Lighting.Ambient = Color3.fromRGB(178, 178, 178)
+    end)
 end
+
 function Features.Fullbright:Stop()
     self.Enabled = false
-    if originalAmbient then Lighting.Ambient = originalAmbient end
-    if originalBrightness then Lighting.Brightness = originalBrightness end
-    if originalOutdoorAmbient then Lighting.OutdoorAmbient = originalOutdoorAmbient end
+    pcall(function()
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = true
+        Lighting.Ambient = Color3.fromRGB(0, 0, 0)
+    end)
 end
 
 -- Hitbox Expander
@@ -1450,52 +1469,40 @@ function Features.HitboxExpander:Start()
     if self.Enabled then return end
     self.Enabled = true
     
-    local function expandHitbox(player)
-        if player == Player then return end
-        local char = player.Character
-        if char then
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                hrp.Size = Vector3.new(self.Size, self.Size, self.Size)
-                hrp.Transparency = 0.8
-                hrp.BrickColor = BrickColor.new("Really red")
-                hrp.Material = Enum.Material.ForceField
-                hrp.CanCollide = false
+    self.Connection = RunService.RenderStepped:Connect(function()
+        if not self.Enabled then return end
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Player and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Size = Vector3.new(self.Size, self.Size, self.Size)
+                    hrp.Transparency = 0.7
+                    hrp.CanCollide = false
+                end
             end
         end
-    end
-    
-    for _, player in pairs(Players:GetPlayers()) do
-        expandHitbox(player)
-        player.CharacterAdded:Connect(function()
-            task.wait(1)
-            if self.Enabled then expandHitbox(player) end
-        end)
-    end
-    
-    Players.PlayerAdded:Connect(function(player)
-        player.CharacterAdded:Connect(function()
-            task.wait(1)
-            if self.Enabled then expandHitbox(player) end
-        end)
     end)
 end
 
 function Features.HitboxExpander:Stop()
     self.Enabled = false
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
+    
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= Player and player.Character then
             local hrp = player.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 hrp.Size = Vector3.new(2, 2, 1)
                 hrp.Transparency = 1
-                hrp.Material = Enum.Material.Plastic
             end
         end
     end
 end
 
--- FPS BOOSTER
+-- FPS Boost
 function Features.FPSBoost:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1935,15 +1942,22 @@ local PerformanceSection = PingFPSTab:AddSection("Performance")
 local fpsLabel = PerformanceSection:AddLabel("FPS: 0")
 local pingLabel = PerformanceSection:AddLabel("Ping: 0ms")
 
-RunService.RenderStepped:Connect(function()
-    local fps = math.floor(1 / RunService.RenderStepped:Wait())
-    fpsLabel:Set("FPS: " .. fps)
-    
-    local ping = 0
-    pcall(function()
-        ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-    end)
-    pingLabel:Set("Ping: " .. ping .. "ms")
+-- FIXED: Moved FPS/Ping update to a separate spawn to prevent blocking
+task.spawn(function()
+    while true do
+        local success, fps = pcall(function()
+            return math.floor(1 / RunService.RenderStepped:Wait())
+        end)
+        if success then
+            fpsLabel:Set("FPS: " .. fps)
+        end
+        
+        local ping = 0
+        pcall(function()
+            ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        end)
+        pingLabel:Set("Ping: " .. ping .. "ms")
+    end
 end)
 
 local BoostSection = PingFPSTab:AddSection("FPS Boost")
