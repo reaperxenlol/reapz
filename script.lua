@@ -1,233 +1,284 @@
 -- ========================================
--- BLADE BALL SCRIPT - CUSTOM GLASSMORPHIC UI
+-- REAPER HUB | BLADEBALL
 -- ========================================
--- Features:
--- ✓ Custom dark glassmorphic design
--- ✓ Movement enabled during auto-parry
--- ✓ Smooth animations and modern UI
--- ✓ High-quality GUI library
+-- Minimal Black Futuristic UI
 -- ========================================
 
--- CUSTOM GLASSMORPHIC GUI LIBRARY (EMBEDDED)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Lighting = game:GetService("Lighting")
 
-local GlassUI = {}
-GlassUI.__index = GlassUI
-
--- Color palette
-local Colors = {
-    Background = Color3.fromRGB(15, 15, 20),
-    GlassBase = Color3.fromRGB(25, 25, 35),
-    GlassHighlight = Color3.fromRGB(35, 35, 50),
-    Accent = Color3.fromRGB(120, 100, 255),
-    AccentHover = Color3.fromRGB(140, 120, 255),
-    Text = Color3.fromRGB(240, 240, 250),
-    TextSecondary = Color3.fromRGB(180, 180, 200),
-    Success = Color3.fromRGB(100, 255, 150),
-    Danger = Color3.fromRGB(255, 100, 120),
-    Border = Color3.fromRGB(60, 60, 80)
+-- Minimal Black Theme
+local Theme = {
+    Background = Color3.fromRGB(10, 10, 10),
+    Secondary = Color3.fromRGB(18, 18, 18),
+    Border = Color3.fromRGB(35, 35, 35),
+    Accent = Color3.fromRGB(255, 255, 255),
+    AccentDim = Color3.fromRGB(150, 150, 150),
+    Success = Color3.fromRGB(0, 255, 100),
+    Danger = Color3.fromRGB(255, 50, 50),
+    Text = Color3.fromRGB(255, 255, 255),
+    TextDim = Color3.fromRGB(120, 120, 120)
 }
 
--- Utility tween function
-local function Tween(instance, properties, duration, style, direction)
-    duration = duration or 0.3
-    style = style or Enum.EasingStyle.Quad
-    direction = direction or Enum.EasingDirection.Out
-    local tween = TweenService:Create(instance, TweenInfo.new(duration, style, direction), properties)
-    tween:Play()
-    return tween
+local function Tween(obj, props, time)
+    TweenService:Create(obj, TweenInfo.new(time or 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
 end
 
--- Create window
-function GlassUI:CreateWindow(config)
-    local self = setmetatable({}, GlassUI)
-    
-    config = config or {}
-    self.Title = config.Title or "Glass UI"
-    self.SubTitle = config.SubTitle or ""
-    self.Size = config.Size or UDim2.fromOffset(600, 480)
-    self.MinimizeKey = config.MinimizeKey or Enum.KeyCode.LeftControl
+-- ========================================
+-- MINIMAL GUI LIBRARY
+-- ========================================
+
+local GUI = {}
+
+function GUI:Create()
+    local self = {}
     
     -- ScreenGui
-    self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "GlassUI_" .. math.random(1000, 9999)
-    self.ScreenGui.Parent = game.CoreGui
-    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    self.ScreenGui.ResetOnSpawn = false
+    self.Screen = Instance.new("ScreenGui")
+    self.Screen.Name = "ReaperHub"
+    self.Screen.Parent = game.CoreGui
+    self.Screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    self.Screen.ResetOnSpawn = false
     
-    -- Main frame
-    self.MainFrame = Instance.new("Frame")
-    self.MainFrame.Name = "MainFrame"
-    self.MainFrame.Parent = self.ScreenGui
-    self.MainFrame.BackgroundColor3 = Colors.GlassBase
-    self.MainFrame.BackgroundTransparency = 0.2
-    self.MainFrame.BorderSizePixel = 0
-    self.MainFrame.Position = UDim2.new(0.5, -self.Size.X.Offset / 2, 0.5, -self.Size.Y.Offset / 2)
-    self.MainFrame.Size = self.Size
-    self.MainFrame.ClipsDescendants = true
+    -- Main container
+    self.Main = Instance.new("Frame")
+    self.Main.Name = "Main"
+    self.Main.Parent = self.Screen
+    self.Main.BackgroundColor3 = Theme.Background
+    self.Main.BorderSizePixel = 0
+    self.Main.Position = UDim2.new(0.5, -200, 0.5, -150)
+    self.Main.Size = UDim2.new(0, 400, 0, 300)
+    self.Main.ClipsDescendants = true
     
     local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 16)
-    mainCorner.Parent = self.MainFrame
+    mainCorner.CornerRadius = UDim.new(0, 8)
+    mainCorner.Parent = self.Main
     
-    local border = Instance.new("UIStroke")
-    border.Color = Colors.Border
-    border.Thickness = 1
-    border.Transparency = 0.5
-    border.Parent = self.MainFrame
-    
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 60)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 25))
-    })
-    gradient.Rotation = 45
-    gradient.Parent = self.MainFrame
+    local mainBorder = Instance.new("UIStroke")
+    mainBorder.Color = Theme.Border
+    mainBorder.Thickness = 1
+    mainBorder.Parent = self.Main
     
     -- Title bar
     self.TitleBar = Instance.new("Frame")
     self.TitleBar.Name = "TitleBar"
-    self.TitleBar.Parent = self.MainFrame
-    self.TitleBar.BackgroundColor3 = Colors.GlassHighlight
-    self.TitleBar.BackgroundTransparency = 0.3
+    self.TitleBar.Parent = self.Main
+    self.TitleBar.BackgroundColor3 = Theme.Secondary
     self.TitleBar.BorderSizePixel = 0
-    self.TitleBar.Size = UDim2.new(1, 0, 0, 50)
+    self.TitleBar.Size = UDim2.new(1, 0, 0, 35)
     
     local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 16)
+    titleCorner.CornerRadius = UDim.new(0, 8)
     titleCorner.Parent = self.TitleBar
     
+    -- CENTERED TITLE
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Name = "Title"
     titleLabel.Parent = self.TitleBar
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Position = UDim2.new(0, 20, 0, 8)
-    titleLabel.Size = UDim2.new(1, -100, 0, 20)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.Size = UDim2.new(1, 0, 1, 0)
     titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.Text = self.Title
-    titleLabel.TextColor3 = Colors.Text
-    titleLabel.TextSize = 16
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Text = "Reaper Hub | Bladeball"
+    titleLabel.TextColor3 = Theme.Accent
+    titleLabel.TextSize = 12
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
     
-    local subtitleLabel = Instance.new("TextLabel")
-    subtitleLabel.Name = "SubTitle"
-    subtitleLabel.Parent = self.TitleBar
-    subtitleLabel.BackgroundTransparency = 1
-    subtitleLabel.Position = UDim2.new(0, 20, 0, 28)
-    subtitleLabel.Size = UDim2.new(1, -100, 0, 14)
-    subtitleLabel.Font = Enum.Font.Gotham
-    subtitleLabel.Text = self.SubTitle
-    subtitleLabel.TextColor3 = Colors.TextSecondary
-    subtitleLabel.TextSize = 12
-    subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    -- Minimize button
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Parent = self.TitleBar
+    minimizeBtn.BackgroundColor3 = Theme.Border
+    minimizeBtn.BorderSizePixel = 0
+    minimizeBtn.Position = UDim2.new(0, 8, 0.5, -10)
+    minimizeBtn.Size = UDim2.new(0, 20, 0, 20)
+    minimizeBtn.Font = Enum.Font.GothamBold
+    minimizeBtn.Text = "−"
+    minimizeBtn.TextColor3 = Theme.Accent
+    minimizeBtn.TextSize = 14
+    
+    local minimizeCorner = Instance.new("UICorner")
+    minimizeCorner.CornerRadius = UDim.new(0, 4)
+    minimizeCorner.Parent = minimizeBtn
     
     -- Close button
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Parent = self.TitleBar
-    closeButton.BackgroundColor3 = Colors.Danger
-    closeButton.BackgroundTransparency = 0.3
-    closeButton.BorderSizePixel = 0
-    closeButton.Position = UDim2.new(1, -40, 0.5, -12)
-    closeButton.Size = UDim2.new(0, 24, 0, 24)
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.Text = "×"
-    closeButton.TextColor3 = Colors.Text
-    closeButton.TextSize = 18
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Parent = self.TitleBar
+    closeBtn.BackgroundColor3 = Theme.Danger
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Position = UDim2.new(1, -28, 0.5, -10)
+    closeBtn.Size = UDim2.new(0, 20, 0, 20)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = Theme.Accent
+    closeBtn.TextSize = 14
     
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 8)
-    closeCorner.Parent = closeButton
+    closeCorner.CornerRadius = UDim.new(0, 4)
+    closeCorner.Parent = closeBtn
     
-    closeButton.MouseButton1Click:Connect(function()
-        Tween(self.MainFrame, {Size = UDim2.fromOffset(0, 0)}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        task.wait(0.3)
-        self.ScreenGui:Destroy()
+    closeBtn.MouseButton1Click:Connect(function()
+        self.Screen:Destroy()
     end)
     
-    closeButton.MouseEnter:Connect(function()
-        Tween(closeButton, {BackgroundTransparency = 0.1, Size = UDim2.new(0, 26, 0, 26)}, 0.2)
+    closeBtn.MouseEnter:Connect(function()
+        Tween(closeBtn, {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}, 0.15)
     end)
     
-    closeButton.MouseLeave:Connect(function()
-        Tween(closeButton, {BackgroundTransparency = 0.3, Size = UDim2.new(0, 24, 0, 24)}, 0.2)
+    closeBtn.MouseLeave:Connect(function()
+        Tween(closeBtn, {BackgroundColor3 = Theme.Danger}, 0.15)
     end)
     
-    -- Tab container
-    self.TabContainer = Instance.new("Frame")
-    self.TabContainer.Name = "TabContainer"
-    self.TabContainer.Parent = self.MainFrame
-    self.TabContainer.BackgroundTransparency = 1
-    self.TabContainer.Position = UDim2.new(0, 0, 0, 60)
-    self.TabContainer.Size = UDim2.new(0, 160, 1, -60)
+    -- MINIMIZE PILL
+    self.MinimizePill = Instance.new("Frame")
+    self.MinimizePill.Name = "MinimizePill"
+    self.MinimizePill.Parent = self.Screen
+    self.MinimizePill.BackgroundColor3 = Theme.Background
+    self.MinimizePill.BorderSizePixel = 0
+    self.MinimizePill.Position = UDim2.new(0.5, -100, 0, 20)
+    self.MinimizePill.Size = UDim2.new(0, 200, 0, 40)
+    self.MinimizePill.Visible = false
     
-    -- Content container
-    self.ContentContainer = Instance.new("Frame")
-    self.ContentContainer.Name = "ContentContainer"
-    self.ContentContainer.Parent = self.MainFrame
-    self.ContentContainer.BackgroundTransparency = 1
-    self.ContentContainer.Position = UDim2.new(0, 170, 0, 60)
-    self.ContentContainer.Size = UDim2.new(1, -180, 1, -70)
-    self.ContentContainer.ClipsDescendants = true
+    local pillCorner = Instance.new("UICorner")
+    pillCorner.CornerRadius = UDim.new(1, 0)
+    pillCorner.Parent = self.MinimizePill
     
-    self.ContentScroll = Instance.new("ScrollingFrame")
-    self.ContentScroll.Name = "ContentScroll"
-    self.ContentScroll.Parent = self.ContentContainer
-    self.ContentScroll.BackgroundTransparency = 1
-    self.ContentScroll.BorderSizePixel = 0
-    self.ContentScroll.Size = UDim2.new(1, 0, 1, 0)
-    self.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    self.ContentScroll.ScrollBarThickness = 4
-    self.ContentScroll.ScrollBarImageColor3 = Colors.Accent
+    local pillBorder = Instance.new("UIStroke")
+    pillBorder.Color = Theme.Border
+    pillBorder.Thickness = 1
+    pillBorder.Parent = self.MinimizePill
     
-    local contentLayout = Instance.new("UIListLayout")
-    contentLayout.Parent = self.ContentScroll
-    contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    contentLayout.Padding = UDim.new(0, 10)
+    local pillLabel = Instance.new("TextLabel")
+    pillLabel.Parent = self.MinimizePill
+    pillLabel.BackgroundTransparency = 1
+    pillLabel.Size = UDim2.new(1, 0, 1, 0)
+    pillLabel.Font = Enum.Font.GothamBold
+    pillLabel.Text = "Reaper Hub"
+    pillLabel.TextColor3 = Theme.Accent
+    pillLabel.TextSize = 12
     
-    contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        self.ContentScroll.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 10)
-    end)
+    local pillButton = Instance.new("TextButton")
+    pillButton.Parent = self.MinimizePill
+    pillButton.BackgroundTransparency = 1
+    pillButton.Size = UDim2.new(1, 0, 1, 0)
+    pillButton.Text = ""
     
-    -- Make draggable
-    self:MakeDraggable(self.TitleBar, self.MainFrame)
-    
-    -- Minimize
+    -- Minimize/Restore functionality
     self.IsMinimized = false
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == self.MinimizeKey then
-            self:ToggleMinimize()
+    
+    minimizeBtn.MouseButton1Click:Connect(function()
+        self.IsMinimized = true
+        Tween(self.Main, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
+        task.wait(0.3)
+        self.Main.Visible = false
+        self.MinimizePill.Visible = true
+        Tween(self.MinimizePill, {Size = UDim2.new(0, 200, 0, 40)}, 0.3)
+    end)
+    
+    pillButton.MouseButton1Click:Connect(function()
+        self.IsMinimized = false
+        Tween(self.MinimizePill, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
+        task.wait(0.3)
+        self.MinimizePill.Visible = false
+        self.Main.Visible = true
+        self.Main.Size = UDim2.new(0, 0, 0, 0)
+        Tween(self.Main, {Size = UDim2.new(0, 400, 0, 300)}, 0.3)
+    end)
+    
+    pillButton.MouseEnter:Connect(function()
+        Tween(self.MinimizePill, {BackgroundColor3 = Theme.Secondary}, 0.15)
+    end)
+    
+    pillButton.MouseLeave:Connect(function()
+        Tween(self.MinimizePill, {BackgroundColor3 = Theme.Background}, 0.15)
+    end)
+    
+    minimizeBtn.MouseEnter:Connect(function()
+        Tween(minimizeBtn, {BackgroundColor3 = Theme.Secondary}, 0.15)
+    end)
+    
+    minimizeBtn.MouseLeave:Connect(function()
+        Tween(minimizeBtn, {BackgroundColor3 = Theme.Border}, 0.15)
+    end)
+    
+    -- Make pill draggable
+    local draggingPill, pillDragStart, pillStartPos
+    self.MinimizePill.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingPill = true
+            pillDragStart = input.Position
+            pillStartPos = self.MinimizePill.Position
         end
     end)
     
-    -- Entrance animation
-    self.MainFrame.Size = UDim2.fromOffset(0, 0)
-    Tween(self.MainFrame, {Size = self.Size}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    self.MinimizePill.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and draggingPill then
+            local delta = input.Position - pillDragStart
+            self.MinimizePill.Position = UDim2.new(
+                pillStartPos.X.Scale, pillStartPos.X.Offset + delta.X,
+                pillStartPos.Y.Scale, pillStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
     
-    self.Tabs = {}
-    self.CurrentTab = nil
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingPill = false
+        end
+    end)
     
-    return self
-end
-
-function GlassUI:MakeDraggable(handle, frame)
+    -- Tab container (VERTICAL LEFT SIDE)
+    self.TabContainer = Instance.new("Frame")
+    self.TabContainer.Name = "TabContainer"
+    self.TabContainer.Parent = self.Main
+    self.TabContainer.BackgroundTransparency = 1
+    self.TabContainer.Position = UDim2.new(0, 0, 0, 40)
+    self.TabContainer.Size = UDim2.new(0, 80, 1, -40)
+    
+    -- Content area
+    self.Content = Instance.new("Frame")
+    self.Content.Name = "Content"
+    self.Content.Parent = self.Main
+    self.Content.BackgroundTransparency = 1
+    self.Content.Position = UDim2.new(0, 85, 0, 40)
+    self.Content.Size = UDim2.new(1, -90, 1, -45)
+    self.Content.ClipsDescendants = true
+    
+    -- Scroll frame
+    self.Scroll = Instance.new("ScrollingFrame")
+    self.Scroll.Parent = self.Content
+    self.Scroll.BackgroundTransparency = 1
+    self.Scroll.BorderSizePixel = 0
+    self.Scroll.Size = UDim2.new(1, 0, 1, 0)
+    self.Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.Scroll.ScrollBarThickness = 2
+    self.Scroll.ScrollBarImageColor3 = Theme.Border
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = self.Scroll
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        self.Scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    end)
+    
+    -- Make main window draggable
     local dragging, dragStart, startPos
-    
-    handle.InputBegan:Connect(function(input)
+    self.TitleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
-            startPos = frame.Position
+            startPos = self.Main.Position
         end
     end)
     
-    handle.InputChanged:Connect(function(input)
+    self.TitleBar.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
             local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
+            self.Main.Position = UDim2.new(
                 startPos.X.Scale, startPos.X.Offset + delta.X,
                 startPos.Y.Scale, startPos.Y.Offset + delta.Y
             )
@@ -239,369 +290,333 @@ function GlassUI:MakeDraggable(handle, frame)
             dragging = false
         end
     end)
+    
+    self.Tabs = {}
+    self.CurrentTab = nil
+    
+    return self
 end
 
-function GlassUI:ToggleMinimize()
-    self.IsMinimized = not self.IsMinimized
+function GUI:AddTab(name)
+    local tab = {Name = name, Elements = {}}
     
-    if self.IsMinimized then
-        Tween(self.MainFrame, {Size = UDim2.new(self.Size.X.Scale, self.Size.X.Offset, 0, 50)}, 0.3)
-    else
-        Tween(self.MainFrame, {Size = self.Size}, 0.3)
-    end
-end
-
-function GlassUI:AddTab(config)
-    config = config or {}
-    local tabName = config.Title or "Tab"
+    -- Tab button (VERTICAL)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = self.TabContainer
+    btn.BackgroundColor3 = Theme.Secondary
+    btn.BackgroundTransparency = 1
+    btn.BorderSizePixel = 0
+    btn.Position = UDim2.new(0, 5, 0, #self.Tabs * 35)
+    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = name:upper()
+    btn.TextColor3 = Theme.TextDim
+    btn.TextSize = 10
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.TextXOffset = 8
     
-    local tab = {}
-    tab.Name = tabName
-    tab.Elements = {}
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 4)
+    btnCorner.Parent = btn
     
-    local tabButton = Instance.new("TextButton")
-    tabButton.Name = tabName
-    tabButton.Parent = self.TabContainer
-    tabButton.BackgroundColor3 = Colors.GlassHighlight
-    tabButton.BackgroundTransparency = 0.5
-    tabButton.BorderSizePixel = 0
-    tabButton.Size = UDim2.new(1, -10, 0, 40)
-    tabButton.Position = UDim2.new(0, 5, 0, #self.Tabs * 45)
-    tabButton.Font = Enum.Font.GothamSemibold
-    tabButton.Text = "  " .. tabName
-    tabButton.TextColor3 = Colors.TextSecondary
-    tabButton.TextSize = 14
-    tabButton.TextXAlignment = Enum.TextXAlignment.Left
+    -- Tab content frame
+    tab.Frame = Instance.new("Frame")
+    tab.Frame.Name = name .. "_Content"
+    tab.Frame.Parent = self.Scroll
+    tab.Frame.BackgroundTransparency = 1
+    tab.Frame.Size = UDim2.new(1, 0, 0, 0)
+    tab.Frame.Visible = false
     
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 10)
-    tabCorner.Parent = tabButton
+    local tabLayout = Instance.new("UIListLayout")
+    tabLayout.Parent = tab.Frame
+    tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabLayout.Padding = UDim.new(0, 6)
     
-    tab.ContentFrame = Instance.new("Frame")
-    tab.ContentFrame.Name = tabName .. "_Content"
-    tab.ContentFrame.Parent = self.ContentScroll
-    tab.ContentFrame.BackgroundTransparency = 1
-    tab.ContentFrame.Size = UDim2.new(1, 0, 0, 0)
-    tab.ContentFrame.Visible = false
-    
-    local contentLayout = Instance.new("UIListLayout")
-    contentLayout.Parent = tab.ContentFrame
-    contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    contentLayout.Padding = UDim.new(0, 10)
-    
-    contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        tab.ContentFrame.Size = UDim2.new(1, 0, 0, contentLayout.AbsoluteContentSize.Y)
+    tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tab.Frame.Size = UDim2.new(1, 0, 0, tabLayout.AbsoluteContentSize.Y)
     end)
     
-    tabButton.MouseButton1Click:Connect(function()
+    btn.MouseButton1Click:Connect(function()
         self:SwitchTab(tab)
     end)
     
-    tabButton.MouseEnter:Connect(function()
+    btn.MouseEnter:Connect(function()
         if self.CurrentTab ~= tab then
-            Tween(tabButton, {BackgroundTransparency = 0.3}, 0.2)
+            Tween(btn, {BackgroundTransparency = 0.7}, 0.15)
         end
     end)
     
-    tabButton.MouseLeave:Connect(function()
+    btn.MouseLeave:Connect(function()
         if self.CurrentTab ~= tab then
-            Tween(tabButton, {BackgroundTransparency = 0.5}, 0.2)
+            Tween(btn, {BackgroundTransparency = 1}, 0.15)
         end
     end)
     
-    tab.Button = tabButton
+    tab.Button = btn
     table.insert(self.Tabs, tab)
     
     if #self.Tabs == 1 then
         self:SwitchTab(tab)
     end
     
-    function tab:AddSection(title)
-        local section = {}
+    -- Add toggle method
+    function tab:AddToggle(config)
+        local toggle = {State = config.Default or false}
         
-        local sectionFrame = Instance.new("Frame")
-        sectionFrame.Name = "Section_" .. title
-        sectionFrame.Parent = self.ContentFrame
-        sectionFrame.BackgroundColor3 = Colors.GlassHighlight
-        sectionFrame.BackgroundTransparency = 0.4
-        sectionFrame.BorderSizePixel = 0
-        sectionFrame.Size = UDim2.new(1, 0, 0, 40)
+        local frame = Instance.new("Frame")
+        frame.Parent = self.Frame
+        frame.BackgroundColor3 = Theme.Secondary
+        frame.BorderSizePixel = 0
+        frame.Size = UDim2.new(1, 0, 0, 35)
         
-        local sectionCorner = Instance.new("UICorner")
-        sectionCorner.CornerRadius = UDim.new(0, 10)
-        sectionCorner.Parent = sectionFrame
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = frame
         
-        local sectionBorder = Instance.new("UIStroke")
-        sectionBorder.Color = Colors.Border
-        sectionBorder.Thickness = 1
-        sectionBorder.Transparency = 0.7
-        sectionBorder.Parent = sectionFrame
+        local border = Instance.new("UIStroke")
+        border.Color = Theme.Border
+        border.Thickness = 1
+        border.Parent = frame
         
-        local sectionLabel = Instance.new("TextLabel")
-        sectionLabel.Parent = sectionFrame
-        sectionLabel.BackgroundTransparency = 1
-        sectionLabel.Position = UDim2.new(0, 15, 0, 0)
-        sectionLabel.Size = UDim2.new(1, -30, 1, 0)
-        sectionLabel.Font = Enum.Font.GothamBold
-        sectionLabel.Text = title
-        sectionLabel.TextColor3 = Colors.Accent
-        sectionLabel.TextSize = 14
-        sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        local label = Instance.new("TextLabel")
+        label.Parent = frame
+        label.BackgroundTransparency = 1
+        label.Position = UDim2.new(0, 10, 0, 0)
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.Font = Enum.Font.Gotham
+        label.Text = config.Title
+        label.TextColor3 = Theme.Text
+        label.TextSize = 11
+        label.TextXAlignment = Enum.TextXAlignment.Left
         
-        section.Frame = sectionFrame
-        
-        function section:AddParagraph(config)
-            local paragraph = Instance.new("Frame")
-            paragraph.Name = "Paragraph"
-            paragraph.Parent = self.Frame.Parent
-            paragraph.BackgroundColor3 = Colors.GlassBase
-            paragraph.BackgroundTransparency = 0.3
-            paragraph.BorderSizePixel = 0
-            paragraph.Size = UDim2.new(1, 0, 0, 60)
-            
-            local paragraphCorner = Instance.new("UICorner")
-            paragraphCorner.CornerRadius = UDim.new(0, 10)
-            paragraphCorner.Parent = paragraph
-            
-            local paragraphLabel = Instance.new("TextLabel")
-            paragraphLabel.Parent = paragraph
-            paragraphLabel.BackgroundTransparency = 1
-            paragraphLabel.Position = UDim2.new(0, 15, 0, 10)
-            paragraphLabel.Size = UDim2.new(1, -30, 1, -20)
-            paragraphLabel.Font = Enum.Font.Gotham
-            paragraphLabel.Text = config.Title or "Paragraph"
-            paragraphLabel.TextColor3 = Colors.Text
-            paragraphLabel.TextSize = 13
-            paragraphLabel.TextWrapped = true
-            paragraphLabel.TextXAlignment = Enum.TextXAlignment.Left
-            paragraphLabel.TextYAlignment = Enum.TextYAlignment.Top
-        end
-        
-        return section
-    end
-    
-    function tab:AddToggle(id, config)
-        config = config or {}
-        local toggleTitle = config.Title or "Toggle"
-        local toggleDesc = config.Description or ""
-        local toggleDefault = config.Default or false
-        local toggleCallback = config.Callback or function() end
-        
-        local toggleState = toggleDefault
-        
-        local toggleFrame = Instance.new("Frame")
-        toggleFrame.Name = "Toggle_" .. id
-        toggleFrame.Parent = self.ContentFrame
-        toggleFrame.BackgroundColor3 = Colors.GlassBase
-        toggleFrame.BackgroundTransparency = 0.3
-        toggleFrame.BorderSizePixel = 0
-        toggleFrame.Size = UDim2.new(1, 0, 0, 70)
-        
-        local toggleCorner = Instance.new("UICorner")
-        toggleCorner.CornerRadius = UDim.new(0, 10)
-        toggleCorner.Parent = toggleFrame
-        
-        local toggleBorder = Instance.new("UIStroke")
-        toggleBorder.Color = Colors.Border
-        toggleBorder.Thickness = 1
-        toggleBorder.Transparency = 0.7
-        toggleBorder.Parent = toggleFrame
-        
-        local titleLabel = Instance.new("TextLabel")
-        titleLabel.Parent = toggleFrame
-        titleLabel.BackgroundTransparency = 1
-        titleLabel.Position = UDim2.new(0, 15, 0, 10)
-        titleLabel.Size = UDim2.new(1, -80, 0, 20)
-        titleLabel.Font = Enum.Font.GothamBold
-        titleLabel.Text = toggleTitle
-        titleLabel.TextColor3 = Colors.Text
-        titleLabel.TextSize = 14
-        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-        
-        local descLabel = Instance.new("TextLabel")
-        descLabel.Parent = toggleFrame
-        descLabel.BackgroundTransparency = 1
-        descLabel.Position = UDim2.new(0, 15, 0, 32)
-        descLabel.Size = UDim2.new(1, -80, 0, 28)
-        descLabel.Font = Enum.Font.Gotham
-        descLabel.Text = toggleDesc
-        descLabel.TextColor3 = Colors.TextSecondary
-        descLabel.TextSize = 11
-        descLabel.TextWrapped = true
-        descLabel.TextXAlignment = Enum.TextXAlignment.Left
-        descLabel.TextYAlignment = Enum.TextYAlignment.Top
-        
+        -- Toggle switch
         local switchBg = Instance.new("Frame")
-        switchBg.Name = "SwitchBg"
-        switchBg.Parent = toggleFrame
-        switchBg.BackgroundColor3 = toggleState and Colors.Success or Colors.TextSecondary
-        switchBg.BackgroundTransparency = 0.3
+        switchBg.Parent = frame
+        switchBg.BackgroundColor3 = toggle.State and Theme.Success or Theme.Border
         switchBg.BorderSizePixel = 0
-        switchBg.Position = UDim2.new(1, -60, 0.5, -12)
-        switchBg.Size = UDim2.new(0, 45, 0, 24)
+        switchBg.Position = UDim2.new(1, -40, 0.5, -8)
+        switchBg.Size = UDim2.new(0, 35, 0, 16)
         
         local switchCorner = Instance.new("UICorner")
         switchCorner.CornerRadius = UDim.new(1, 0)
         switchCorner.Parent = switchBg
         
-        local switchKnob = Instance.new("Frame")
-        switchKnob.Name = "SwitchKnob"
-        switchKnob.Parent = switchBg
-        switchKnob.BackgroundColor3 = Colors.Text
-        switchKnob.BorderSizePixel = 0
-        switchKnob.Position = toggleState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-        switchKnob.Size = UDim2.new(0, 20, 0, 20)
+        local knob = Instance.new("Frame")
+        knob.Parent = switchBg
+        knob.BackgroundColor3 = Theme.Accent
+        knob.BorderSizePixel = 0
+        knob.Position = toggle.State and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+        knob.Size = UDim2.new(0, 12, 0, 12)
         
         local knobCorner = Instance.new("UICorner")
         knobCorner.CornerRadius = UDim.new(1, 0)
-        knobCorner.Parent = switchKnob
+        knobCorner.Parent = knob
         
-        local toggleButton = Instance.new("TextButton")
-        toggleButton.Parent = toggleFrame
-        toggleButton.BackgroundTransparency = 1
-        toggleButton.Size = UDim2.new(1, 0, 1, 0)
-        toggleButton.Text = ""
+        local btn = Instance.new("TextButton")
+        btn.Parent = frame
+        btn.BackgroundTransparency = 1
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.Text = ""
         
-        toggleButton.MouseButton1Click:Connect(function()
-            toggleState = not toggleState
-            
-            Tween(switchBg, {
-                BackgroundColor3 = toggleState and Colors.Success or Colors.TextSecondary
-            }, 0.3)
-            
-            Tween(switchKnob, {
-                Position = toggleState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-            }, 0.3, Enum.EasingStyle.Back)
-            
-            pcall(toggleCallback, toggleState)
-        end)
-        
-        toggleButton.MouseEnter:Connect(function()
-            Tween(toggleFrame, {BackgroundTransparency = 0.2}, 0.2)
-            Tween(toggleBorder, {Transparency = 0.4}, 0.2)
-        end)
-        
-        toggleButton.MouseLeave:Connect(function()
-            Tween(toggleFrame, {BackgroundTransparency = 0.3}, 0.2)
-            Tween(toggleBorder, {Transparency = 0.7}, 0.2)
-        end)
-        
-        return {
-            SetValue = function(value)
-                toggleState = value
-                Tween(switchBg, {
-                    BackgroundColor3 = toggleState and Colors.Success or Colors.TextSecondary
-                }, 0.3)
-                Tween(switchKnob, {
-                    Position = toggleState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-                }, 0.3)
+        btn.MouseButton1Click:Connect(function()
+            toggle.State = not toggle.State
+            Tween(switchBg, {BackgroundColor3 = toggle.State and Theme.Success or Theme.Border}, 0.2)
+            Tween(knob, {Position = toggle.State and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}, 0.2)
+            if config.Callback then
+                pcall(config.Callback, toggle.State)
             end
-        }
+        end)
+        
+        btn.MouseEnter:Connect(function()
+            Tween(border, {Color = Theme.Accent}, 0.15)
+        end)
+        
+        btn.MouseLeave:Connect(function()
+            Tween(border, {Color = Theme.Border}, 0.15)
+        end)
+        
+        return toggle
+    end
+    
+    -- Add slider method
+    function tab:AddSlider(config)
+        local slider = {Value = config.Default or config.Min or 0}
+        
+        local frame = Instance.new("Frame")
+        frame.Parent = self.Frame
+        frame.BackgroundColor3 = Theme.Secondary
+        frame.BorderSizePixel = 0
+        frame.Size = UDim2.new(1, 0, 0, 45)
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = frame
+        
+        local border = Instance.new("UIStroke")
+        border.Color = Theme.Border
+        border.Thickness = 1
+        border.Parent = frame
+        
+        local label = Instance.new("TextLabel")
+        label.Parent = frame
+        label.BackgroundTransparency = 1
+        label.Position = UDim2.new(0, 10, 0, 5)
+        label.Size = UDim2.new(1, -60, 0, 15)
+        label.Font = Enum.Font.Gotham
+        label.Text = config.Title
+        label.TextColor3 = Theme.Text
+        label.TextSize = 11
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local valueLabel = Instance.new("TextLabel")
+        valueLabel.Parent = frame
+        valueLabel.BackgroundTransparency = 1
+        valueLabel.Position = UDim2.new(1, -50, 0, 5)
+        valueLabel.Size = UDim2.new(0, 40, 0, 15)
+        valueLabel.Font = Enum.Font.GothamBold
+        valueLabel.Text = tostring(slider.Value)
+        valueLabel.TextColor3 = Theme.Success
+        valueLabel.TextSize = 11
+        valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+        
+        -- Slider bar
+        local sliderBg = Instance.new("Frame")
+        sliderBg.Parent = frame
+        sliderBg.BackgroundColor3 = Theme.Border
+        sliderBg.BorderSizePixel = 0
+        sliderBg.Position = UDim2.new(0, 10, 1, -15)
+        sliderBg.Size = UDim2.new(1, -20, 0, 4)
+        
+        local sliderBgCorner = Instance.new("UICorner")
+        sliderBgCorner.CornerRadius = UDim.new(1, 0)
+        sliderBgCorner.Parent = sliderBg
+        
+        local sliderFill = Instance.new("Frame")
+        sliderFill.Parent = sliderBg
+        sliderFill.BackgroundColor3 = Theme.Success
+        sliderFill.BorderSizePixel = 0
+        sliderFill.Size = UDim2.new(0, 0, 1, 0)
+        
+        local sliderFillCorner = Instance.new("UICorner")
+        sliderFillCorner.CornerRadius = UDim.new(1, 0)
+        sliderFillCorner.Parent = sliderFill
+        
+        local function updateSlider(input)
+            local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+            local min = config.Min or 0
+            local max = config.Max or 100
+            slider.Value = math.floor(min + (max - min) * pos)
+            valueLabel.Text = tostring(slider.Value)
+            sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+            if config.Callback then
+                pcall(config.Callback, slider.Value)
+            end
+        end
+        
+        local dragging = false
+        sliderBg.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                updateSlider(input)
+            end
+        end)
+        
+        sliderBg.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateSlider(input)
+            end
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        
+        -- Set initial value
+        local initialPos = (slider.Value - (config.Min or 0)) / ((config.Max or 100) - (config.Min or 0))
+        sliderFill.Size = UDim2.new(initialPos, 0, 1, 0)
+        
+        return slider
+    end
+    
+    -- Add button method
+    function tab:AddButton(config)
+        local frame = Instance.new("TextButton")
+        frame.Parent = self.Frame
+        frame.BackgroundColor3 = Theme.Secondary
+        frame.BorderSizePixel = 0
+        frame.Size = UDim2.new(1, 0, 0, 35)
+        frame.Font = Enum.Font.GothamBold
+        frame.Text = config.Title
+        frame.TextColor3 = Theme.Accent
+        frame.TextSize = 11
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = frame
+        
+        local border = Instance.new("UIStroke")
+        border.Color = Theme.Border
+        border.Thickness = 1
+        border.Parent = frame
+        
+        frame.MouseButton1Click:Connect(function()
+            if config.Callback then
+                pcall(config.Callback)
+            end
+        end)
+        
+        frame.MouseEnter:Connect(function()
+            Tween(frame, {BackgroundColor3 = Color3.fromRGB(25, 25, 25)}, 0.15)
+            Tween(border, {Color = Theme.Accent}, 0.15)
+        end)
+        
+        frame.MouseLeave:Connect(function()
+            Tween(frame, {BackgroundColor3 = Theme.Secondary}, 0.15)
+            Tween(border, {Color = Theme.Border}, 0.15)
+        end)
     end
     
     return tab
 end
 
-function GlassUI:SwitchTab(tab)
+function GUI:SwitchTab(tab)
     for _, t in ipairs(self.Tabs) do
-        t.ContentFrame.Visible = false
-        Tween(t.Button, {
-            BackgroundTransparency = 0.5,
-            TextColor3 = Colors.TextSecondary
-        }, 0.2)
+        t.Frame.Visible = false
+        Tween(t.Button, {BackgroundTransparency = 1, TextColor3 = Theme.TextDim}, 0.15)
     end
     
-    tab.ContentFrame.Visible = true
+    tab.Frame.Visible = true
     self.CurrentTab = tab
-    Tween(tab.Button, {
-        BackgroundTransparency = 0.2,
-        TextColor3 = Colors.Accent
-    }, 0.2)
-end
-
-function GlassUI:Notify(config)
-    config = config or {}
-    local title = config.Title or "Notification"
-    local content = config.Content or ""
-    local duration = config.Duration or 5
-    
-    local notifFrame = Instance.new("Frame")
-    notifFrame.Name = "Notification"
-    notifFrame.Parent = self.ScreenGui
-    notifFrame.BackgroundColor3 = Colors.GlassBase
-    notifFrame.BackgroundTransparency = 0.2
-    notifFrame.BorderSizePixel = 0
-    notifFrame.Position = UDim2.new(1, 10, 0, 10)
-    notifFrame.Size = UDim2.new(0, 300, 0, 80)
-    
-    local notifCorner = Instance.new("UICorner")
-    notifCorner.CornerRadius = UDim.new(0, 12)
-    notifCorner.Parent = notifFrame
-    
-    local notifBorder = Instance.new("UIStroke")
-    notifBorder.Color = Colors.Accent
-    notifBorder.Thickness = 2
-    notifBorder.Transparency = 0.5
-    notifBorder.Parent = notifFrame
-    
-    local notifTitle = Instance.new("TextLabel")
-    notifTitle.Parent = notifFrame
-    notifTitle.BackgroundTransparency = 1
-    notifTitle.Position = UDim2.new(0, 15, 0, 10)
-    notifTitle.Size = UDim2.new(1, -30, 0, 20)
-    notifTitle.Font = Enum.Font.GothamBold
-    notifTitle.Text = title
-    notifTitle.TextColor3 = Colors.Text
-    notifTitle.TextSize = 14
-    notifTitle.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local notifContent = Instance.new("TextLabel")
-    notifContent.Parent = notifFrame
-    notifContent.BackgroundTransparency = 1
-    notifContent.Position = UDim2.new(0, 15, 0, 32)
-    notifContent.Size = UDim2.new(1, -30, 1, -42)
-    notifContent.Font = Enum.Font.Gotham
-    notifContent.Text = content
-    notifContent.TextColor3 = Colors.TextSecondary
-    notifContent.TextSize = 12
-    notifContent.TextWrapped = true
-    notifContent.TextXAlignment = Enum.TextXAlignment.Left
-    notifContent.TextYAlignment = Enum.TextYAlignment.Top
-    
-    Tween(notifFrame, {Position = UDim2.new(1, -310, 0, 10)}, 0.5, Enum.EasingStyle.Back)
-    
-    if duration then
-        task.delay(duration, function()
-            Tween(notifFrame, {Position = UDim2.new(1, 10, 0, 10)}, 0.3)
-            task.wait(0.3)
-            notifFrame:Destroy()
-        end)
-    end
+    Tween(tab.Button, {BackgroundTransparency = 0, TextColor3 = Theme.Accent}, 0.15)
 end
 
 -- ========================================
--- AUTO PARRY MODULE (MOVEMENT ENABLED)
+-- FEATURES
 -- ========================================
 
-local AutoParryModule = {}
-AutoParryModule.Enabled = false
-AutoParryModule.Connection = nil
+local Features = {
+    AutoParry = {Enabled = false, Connection = nil, Distance = 0.75},
+    ManualSpam = {Enabled = false, Connection = nil},
+    ESP = {Enabled = false, Highlights = {}},
+    BallESP = {Enabled = false, Highlight = nil},
+    Speed = {Enabled = false, Value = 16},
+    Jump = {Enabled = false, Value = 50},
+    Fullbright = {Enabled = false, OriginalBrightness = nil, OriginalAmbient = nil},
+    NoFog = {Enabled = false, OriginalFogEnd = nil},
+    AutoClicker = {Enabled = false, CPS = 10},
+    InfiniteJump = {Enabled = false, Connection = nil}
+}
 
-function AutoParryModule:Start()
+-- Auto Parry (Movement Enabled)
+function Features.AutoParry:Start()
     if self.Enabled then return end
     self.Enabled = true
     
-    local parryDistance = 0.75
-    local parryCooldown = 0.5
-    
-    local RunService = game:GetService("RunService")
-    local Players = game:GetService("Players")
-    local VirtualInputManager = game:GetService("VirtualInputManager")
-    
-    local Player = Players.LocalPlayer
     local Cooldown = tick()
     local Parried = false
-    local Connection = nil
     
     local function GetBall()
         for _, Ball in ipairs(workspace.Balls:GetChildren()) do
@@ -611,36 +626,17 @@ function AutoParryModule:Start()
         end
     end
     
-    local function ResetConnection()
-        if Connection then
-            Connection:Disconnect()
-            Connection = nil
-        end
-    end
-    
-    workspace.Balls.ChildAdded:Connect(function()
-        local Ball = GetBall()
-        if not Ball then return end
-        ResetConnection()
-        Connection = Ball:GetAttributeChangedSignal("target"):Connect(function()
-            Parried = false
-        end)
-    end)
-    
-    -- MOVEMENT-ENABLED PARRY LOOP
     self.Connection = RunService.PreSimulation:Connect(function()
         if not self.Enabled then return end
         
-        local Ball, HRP = GetBall(), Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-        if not Ball or not HRP then
-            return
-        end
+        local Ball = GetBall()
+        local HRP = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not Ball or not HRP then return end
         
         local Speed = Ball.zoomies.VectorVelocity.Magnitude
         local Distance = (HRP.Position - Ball.Position).Magnitude
         
-        if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= parryDistance then
-            -- Use task.spawn to prevent blocking movement
+        if Ball:GetAttribute("target") == Players.LocalPlayer.Name and not Parried and Distance / Speed <= self.Distance then
             task.spawn(function()
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 task.wait(0.05)
@@ -650,221 +646,429 @@ function AutoParryModule:Start()
             Cooldown = tick()
         end
         
-        if Parried and (tick() - Cooldown) >= parryCooldown then
+        if Parried and (tick() - Cooldown) >= 0.5 then
             Parried = false
         end
     end)
-    
-    print("✓ Auto Parry Enabled - Movement Allowed!")
 end
 
-function AutoParryModule:Stop()
+function Features.AutoParry:Stop()
     self.Enabled = false
     if self.Connection then
         self.Connection:Disconnect()
         self.Connection = nil
     end
-    print("✗ Auto Parry Disabled")
 end
 
--- ========================================
--- MANUAL SPAM MODULE
--- ========================================
-
-local ManualSpamModule = {}
-ManualSpamModule.Enabled = false
-ManualSpamModule.ScreenGui = nil
-
-function ManualSpamModule:Start()
+-- Manual Spam
+function Features.ManualSpam:Start()
     if self.Enabled then return end
     self.Enabled = true
     
-    local UserInputService = game:GetService("UserInputService")
-    local VirtualInputManager = game:GetService("VirtualInputManager")
-    
-    local ManualSpam = Instance.new("ScreenGui")
-    ManualSpam.Name = "ManualSpam"
-    ManualSpam.Parent = game.CoreGui
-    ManualSpam.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ManualSpam.ResetOnSpawn = false
-    
-    self.ScreenGui = ManualSpam
-    
-    local Main = Instance.new("Frame")
-    Main.Name = "Main"
-    Main.Parent = ManualSpam
-    Main.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    Main.BackgroundTransparency = 0.2
-    Main.BorderSizePixel = 0
-    Main.Position = UDim2.new(0.414, 0, 0.404, 0)
-    Main.Size = UDim2.new(0.227, 0, 0.191, 0)
-    
-    local UICorner = Instance.new("UICorner", Main)
-    UICorner.CornerRadius = UDim.new(0, 16)
-    
-    local Border = Instance.new("UIStroke", Main)
-    Border.Color = Color3.fromRGB(60, 60, 80)
-    Border.Thickness = 1
-    Border.Transparency = 0.5
-    
-    local Indicator = Instance.new("Frame")
-    Indicator.Name = "Indicator"
-    Indicator.Parent = Main
-    Indicator.BackgroundColor3 = Color3.fromRGB(255, 100, 120)
-    Indicator.BorderSizePixel = 0
-    Indicator.Position = UDim2.new(0.028, 0, 0.073, 0)
-    Indicator.Size = UDim2.new(0.072, 0, 0.12, 0)
-    
-    local UICorner_Indicator = Instance.new("UICorner", Indicator)
-    UICorner_Indicator.CornerRadius = UDim.new(1, 0)
-    
-    local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Name = "ToggleButton"
-    ToggleButton.Parent = Main
-    ToggleButton.BackgroundTransparency = 1.0
-    ToggleButton.Position = UDim2.new(0.164, 0, 0.327, 0)
-    ToggleButton.Size = UDim2.new(0.668, 0, 0.347, 0)
-    ToggleButton.Font = Enum.Font.GothamBold
-    ToggleButton.Text = "Manual Spam"
-    ToggleButton.TextColor3 = Color3.fromRGB(240, 240, 250)
-    ToggleButton.TextScaled = true
-    ToggleButton.TextWrapped = true
-    
-    local isSpamming = false
-    
-    local function toggleSpamClicking()
-        isSpamming = not isSpamming
-        
-        if isSpamming then
-            Indicator.BackgroundColor3 = Color3.fromRGB(100, 255, 150)
-            ToggleButton.TextColor3 = Color3.fromRGB(100, 255, 150)
-            print("✓ Manual Spam Enabled")
-            
-            task.spawn(function()
-                while isSpamming do
-                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
-                    task.wait(0.001)
-                end
-            end)
-        else
-            Indicator.BackgroundColor3 = Color3.fromRGB(255, 100, 120)
-            ToggleButton.TextColor3 = Color3.fromRGB(240, 240, 250)
-            print("✗ Manual Spam Disabled")
-        end
-    end
-    
-    ToggleButton.MouseButton1Click:Connect(toggleSpamClicking)
-    
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.E then
-            toggleSpamClicking()
+    task.spawn(function()
+        while self.Enabled do
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+            task.wait(0.001)
         end
     end)
-    
-    local function makeDraggable(gui)
-        local dragging, dragStart, startPos
-        
-        gui.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = gui.Position
-            end
-        end)
-        
-        gui.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-                local delta = input.Position - dragStart
-                gui.Position = UDim2.new(
-                    startPos.X.Scale, startPos.X.Offset + delta.X,
-                    startPos.Y.Scale, startPos.Y.Offset + delta.Y
-                )
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
-    
-    makeDraggable(Main)
 end
 
-function ManualSpamModule:Stop()
+function Features.ManualSpam:Stop()
     self.Enabled = false
-    if self.ScreenGui then
-        self.ScreenGui:Destroy()
-        self.ScreenGui = nil
+end
+
+-- Player ESP
+function Features.ESP:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    local function addHighlight(player)
+        if player == Players.LocalPlayer then return end
+        
+        local char = player.Character or player.CharacterAdded:Wait()
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = char
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        
+        self.Highlights[player] = highlight
     end
-    print("✗ Manual Spam Disabled")
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Character then
+            addHighlight(player)
+        end
+    end
+    
+    Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function()
+            if self.Enabled then
+                addHighlight(player)
+            end
+        end)
+    end)
+end
+
+function Features.ESP:Stop()
+    self.Enabled = false
+    for _, highlight in pairs(self.Highlights) do
+        highlight:Destroy()
+    end
+    self.Highlights = {}
+end
+
+-- Ball ESP
+function Features.BallESP:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    local function GetBall()
+        for _, Ball in ipairs(workspace.Balls:GetChildren()) do
+            if Ball:GetAttribute("realBall") then
+                return Ball
+            end
+        end
+    end
+    
+    local ball = GetBall()
+    if ball then
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = ball
+        highlight.FillColor = Color3.fromRGB(0, 255, 255)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.FillTransparency = 0.3
+        highlight.OutlineTransparency = 0
+        self.Highlight = highlight
+    end
+end
+
+function Features.BallESP:Stop()
+    self.Enabled = false
+    if self.Highlight then
+        self.Highlight:Destroy()
+        self.Highlight = nil
+    end
+end
+
+-- Speed
+function Features.Speed:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = self.Value
+    end
+end
+
+function Features.Speed:Stop()
+    self.Enabled = false
+    local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = 16
+    end
+end
+
+function Features.Speed:Update()
+    local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    if humanoid and self.Enabled then
+        humanoid.WalkSpeed = self.Value
+    end
+end
+
+-- Jump
+function Features.Jump:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.JumpPower = self.Value
+    end
+end
+
+function Features.Jump:Stop()
+    self.Enabled = false
+    local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.JumpPower = 50
+    end
+end
+
+function Features.Jump:Update()
+    local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    if humanoid and self.Enabled then
+        humanoid.JumpPower = self.Value
+    end
+end
+
+-- Fullbright
+function Features.Fullbright:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    self.OriginalBrightness = Lighting.Brightness
+    self.OriginalAmbient = Lighting.Ambient
+    
+    Lighting.Brightness = 2
+    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+end
+
+function Features.Fullbright:Stop()
+    self.Enabled = false
+    if self.OriginalBrightness then
+        Lighting.Brightness = self.OriginalBrightness
+        Lighting.Ambient = self.OriginalAmbient
+    end
+end
+
+-- No Fog
+function Features.NoFog:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    self.OriginalFogEnd = Lighting.FogEnd
+    Lighting.FogEnd = 100000
+end
+
+function Features.NoFog:Stop()
+    self.Enabled = false
+    if self.OriginalFogEnd then
+        Lighting.FogEnd = self.OriginalFogEnd
+    end
+end
+
+-- Auto Clicker
+function Features.AutoClicker:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    task.spawn(function()
+        while self.Enabled do
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            task.wait(1 / self.CPS)
+        end
+    end)
+end
+
+function Features.AutoClicker:Stop()
+    self.Enabled = false
+end
+
+-- Infinite Jump
+function Features.InfiniteJump:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    
+    self.Connection = UserInputService.JumpRequest:Connect(function()
+        if self.Enabled then
+            local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end)
+end
+
+function Features.InfiniteJump:Stop()
+    self.Enabled = false
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
 end
 
 -- ========================================
--- MAIN GUI INITIALIZATION
+-- INITIALIZE GUI
 -- ========================================
 
-local Window = GlassUI:CreateWindow({
-    Title = "Blade Ball Script",
-    SubTitle = "Custom Glassmorphic Edition",
-    Size = UDim2.fromOffset(600, 480),
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
+local ui = GUI:Create()
 
-Window:Notify({
-    Title = "Welcome!",
-    Content = "Custom dark glassmorphic UI loaded. Movement enabled during auto-parry!",
-    Duration = 5
-})
+-- MAIN TAB
+local mainTab = ui:AddTab("MAIN")
 
-local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "" })
-}
-
-local MainSection = Tabs.Main:AddSection("Combat Features")
-
-MainSection:AddParagraph({
-    Title = "Welcome to the custom glassmorphic Blade Ball script! This version allows you to move freely during auto-parry."
-})
-
-local AutoParryToggle = Tabs.Main:AddToggle("AutoParry", {
+mainTab:AddToggle({
     Title = "Auto Parry",
-    Description = "Automatically parry incoming balls. You can move freely while this is active!",
     Default = false,
     Callback = function(state)
         if state then
-            AutoParryModule:Start()
+            Features.AutoParry:Start()
         else
-            AutoParryModule:Stop()
+            Features.AutoParry:Stop()
         end
     end
 })
 
-local ManualSpamToggle = Tabs.Main:AddToggle("ManualSpam", {
+mainTab:AddSlider({
+    Title = "Parry Distance",
+    Min = 25,
+    Max = 200,
+    Default = 75,
+    Callback = function(value)
+        Features.AutoParry.Distance = value / 100
+    end
+})
+
+mainTab:AddToggle({
     Title = "Manual Spam",
-    Description = "Opens a separate spam window. Toggle with E key or click the window.",
     Default = false,
     Callback = function(state)
         if state then
-            ManualSpamModule:Start()
+            Features.ManualSpam:Start()
         else
-            ManualSpamModule:Stop()
+            Features.ManualSpam:Stop()
         end
     end
 })
 
-local SettingsSection = Tabs.Settings:AddSection("Information")
+mainTab:AddToggle({
+    Title = "Auto Clicker",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.AutoClicker:Start()
+        else
+            Features.AutoClicker:Stop()
+        end
+    end
+})
 
-SettingsSection:AddParagraph({
-    Title = "This script features a custom dark glassmorphic UI design with smooth animations and modern aesthetics. Movement is fully enabled during auto-parry!"
+mainTab:AddSlider({
+    Title = "CPS (Clicks/Sec)",
+    Min = 1,
+    Max = 50,
+    Default = 10,
+    Callback = function(value)
+        Features.AutoClicker.CPS = value
+    end
+})
+
+-- PLAY TAB
+local playTab = ui:AddTab("PLAY")
+
+playTab:AddToggle({
+    Title = "Speed Boost",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.Speed:Start()
+        else
+            Features.Speed:Stop()
+        end
+    end
+})
+
+playTab:AddSlider({
+    Title = "Speed Value",
+    Min = 16,
+    Max = 100,
+    Default = 50,
+    Callback = function(value)
+        Features.Speed.Value = value
+        Features.Speed:Update()
+    end
+})
+
+playTab:AddToggle({
+    Title = "Jump Boost",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.Jump:Start()
+        else
+            Features.Jump:Stop()
+        end
+    end
+})
+
+playTab:AddSlider({
+    Title = "Jump Power",
+    Min = 50,
+    Max = 200,
+    Default = 100,
+    Callback = function(value)
+        Features.Jump.Value = value
+        Features.Jump:Update()
+    end
+})
+
+playTab:AddToggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.InfiniteJump:Start()
+        else
+            Features.InfiniteJump:Stop()
+        end
+    end
+})
+
+playTab:AddToggle({
+    Title = "Fullbright",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.Fullbright:Start()
+        else
+            Features.Fullbright:Stop()
+        end
+    end
+})
+
+playTab:AddToggle({
+    Title = "No Fog",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.NoFog:Start()
+        else
+            Features.NoFog:Stop()
+        end
+    end
+})
+
+-- ESP TAB
+local espTab = ui:AddTab("ESP")
+
+espTab:AddToggle({
+    Title = "Player ESP",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.ESP:Start()
+        else
+            Features.ESP:Stop()
+        end
+    end
+})
+
+espTab:AddToggle({
+    Title = "Ball ESP",
+    Default = false,
+    Callback = function(state)
+        if state then
+            Features.BallESP:Start()
+        else
+            Features.BallESP:Stop()
+        end
+    end
+})
+
+espTab:AddButton({
+    Title = "Refresh ESP",
+    Callback = function()
+        Features.ESP:Stop()
+        task.wait(0.1)
+        Features.ESP:Start()
+    end
 })
 
 print("========================================")
-print("✓ Blade Ball Script Loaded Successfully!")
-print("✓ Custom Glassmorphic UI Active")
-print("✓ Movement Enabled During Auto-Parry")
+print("✓ REAPER HUB | BLADEBALL LOADED")
+print("✓ Minimal Black UI | Movement Enabled")
 print("========================================")
