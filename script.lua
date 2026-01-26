@@ -1,7 +1,3 @@
--- ========================================
--- REAPER HUB | BLADEBALL V2
--- ========================================
-
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -14,16 +10,13 @@ local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MarketplaceService = game:GetService("MarketplaceService")
-local LocalizationService = game:GetService("LocalizationService")
 local Stats = game:GetService("Stats")
 
 local Player = Players.LocalPlayer
 local Balls = Workspace:WaitForChild("Balls")
 
--- Discord Invite Link
 local DISCORD_INVITE = "https://discord.gg/reaperhub"
 
--- Auto copy discord link on execute
 pcall(function()
     if setclipboard then
         setclipboard(DISCORD_INVITE)
@@ -32,45 +25,52 @@ pcall(function()
     end
 end)
 
--- ========================================
--- DISCORD WEBHOOK - EXPANDED INFO (NO EMOJIS)
--- ========================================
 local function SendWebhook()
     local success, err = pcall(function()
         local webhookUrl = "https://discordapp.com/api/webhooks/1465121720611639346/XLgIPcAwvSdN-M6Yibv-AWPsoLmFQpmTfeVOH4sFUIC9NoiXVN6l4lEZ2re2zblJ9OXt"
         
-        -- Get user info
         local userId = Player.UserId
         local username = Player.Name
         local displayName = Player.DisplayName
         local accountAge = Player.AccountAge
         
-        -- Get avatar URL (headshot)
-        local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+        local webAvatarUrl = ""
+        pcall(function()
+            local thumbApi = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
+            local response = nil
+            if game:GetService("HttpService") and game:GetService("HttpService").JSONDecode then
+                if request then
+                    response = request({Url = thumbApi, Method = "GET"})
+                elseif http_request then
+                    response = http_request({Url = thumbApi, Method = "GET"})
+                elseif syn and syn.request then
+                    response = syn.request({Url = thumbApi, Method = "GET"})
+                end
+                if response and response.Body then
+                    local data = game:GetService("HttpService"):JSONDecode(response.Body)
+                    if data and data.data and data.data[1] and data.data[1].imageUrl then
+                        webAvatarUrl = data.data[1].imageUrl
+                    end
+                end
+            end
+        end)
+        if webAvatarUrl == "" then
+            webAvatarUrl = "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-" .. tostring(userId) .. "-420x420.png"
+        end
         
-        -- Get full body avatar URL
-        local fullAvatarUrl = "https://www.roblox.com/avatar-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
-        
-        -- Get game info
         local gameId = game.PlaceId
         local gameName = "Unknown"
         local gameCreator = "Unknown"
-        local gameDescription = "N/A"
-        local gameMaxPlayers = Players.MaxPlayers
-        local gameGenre = "N/A"
         pcall(function()
             local productInfo = MarketplaceService:GetProductInfo(gameId)
             gameName = productInfo.Name or "Unknown"
             gameCreator = productInfo.Creator and productInfo.Creator.Name or "Unknown"
-            gameDescription = productInfo.Description and string.sub(productInfo.Description, 1, 100) or "N/A"
         end)
         
-        -- Get server info
         local serverId = game.JobId
         local serverPlayers = #Players:GetPlayers()
         local maxPlayers = Players.MaxPlayers
         
-        -- Get executor info (if available)
         local executor = "Unknown"
         local executorVersion = "N/A"
         pcall(function()
@@ -83,7 +83,6 @@ local function SendWebhook()
             end
         end)
         
-        -- Get HWID if available
         local hwid = "N/A"
         pcall(function()
             if gethwid then
@@ -93,7 +92,6 @@ local function SendWebhook()
             end
         end)
         
-        -- Get device info
         local device = "Unknown"
         local platform = "Unknown"
         local inputType = "Unknown"
@@ -114,7 +112,6 @@ local function SendWebhook()
             end
         end)
         
-        -- Get screen resolution
         local screenSize = "N/A"
         pcall(function()
             local camera = workspace.CurrentCamera
@@ -123,25 +120,12 @@ local function SendWebhook()
             end
         end)
         
-        -- Get region (if available)
-        local region = "Unknown"
-        local countryCode = "N/A"
-        local language = "N/A"
-        pcall(function()
-            region = LocalizationService.RobloxLocaleId or "Unknown"
-            countryCode = LocalizationService.SystemLocaleId or "N/A"
-            language = string.sub(region, 1, 2):upper()
-        end)
-        
-        -- Get membership
         local membership = "None"
         if Player.MembershipType == Enum.MembershipType.Premium then
             membership = "Premium"
         end
         
-        -- Get follow status and friends count
         local friendsInServer = 0
-        local playerList = {}
         pcall(function()
             for _, p in pairs(Players:GetPlayers()) do
                 if p ~= Player then
@@ -149,68 +133,26 @@ local function SendWebhook()
                     if isFriend then
                         friendsInServer = friendsInServer + 1
                     end
-                    table.insert(playerList, p.Name)
                 end
             end
         end)
         
-        -- Get character info
-        local characterHealth = "N/A"
-        local characterMaxHealth = "N/A"
-        local walkSpeed = "N/A"
-        local jumpPower = "N/A"
-        pcall(function()
-            if Player.Character then
-                local humanoid = Player.Character:FindFirstChild("Humanoid")
-                if humanoid then
-                    characterHealth = math.floor(humanoid.Health)
-                    characterMaxHealth = math.floor(humanoid.MaxHealth)
-                    walkSpeed = math.floor(humanoid.WalkSpeed)
-                    jumpPower = math.floor(humanoid.JumpPower)
-                end
-            end
-        end)
-        
-        -- Get camera info
-        local cameraFOV = "N/A"
-        local cameraType = "N/A"
-        pcall(function()
-            local camera = workspace.CurrentCamera
-            if camera then
-                cameraFOV = math.floor(camera.FieldOfView)
-                cameraType = tostring(camera.CameraType):gsub("Enum.CameraType.", "")
-            end
-        end)
-        
-        -- Get graphics quality
         local graphicsQuality = "N/A"
         pcall(function()
             graphicsQuality = tostring(settings().Rendering.QualityLevel):gsub("Enum.QualityLevel.", "")
         end)
         
-        -- Get FPS estimate
-        local fpsEstimate = "N/A"
-        pcall(function()
-            fpsEstimate = math.floor(1 / RunService.RenderStepped:Wait())
-        end)
-        
-        -- Create timestamp
         local timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        local localTime = os.date("%H:%M:%S")
         
-        -- Build embed with user avatar as webhook profile picture
         local embed = {
             ["username"] = username,
-            ["avatar_url"] = avatarUrl,
+            ["avatar_url"] = webAvatarUrl,
             ["embeds"] = {
                 {
                     ["title"] = "Reaper Hub Executed",
                     ["color"] = 16777215,
                     ["thumbnail"] = {
-                        ["url"] = avatarUrl
-                    },
-                    ["image"] = {
-                        ["url"] = fullAvatarUrl
+                        ["url"] = webAvatarUrl
                     },
                     ["fields"] = {
                         {
@@ -234,21 +176,6 @@ local function SendWebhook()
                             ["inline"] = true
                         },
                         {
-                            ["name"] = "Location Info",
-                            ["value"] = "Locale: " .. region .. "\nSystem: " .. countryCode .. "\nLanguage: " .. language .. "\nLocal Time: " .. localTime,
-                            ["inline"] = true
-                        },
-                        {
-                            ["name"] = "Character Info",
-                            ["value"] = "Health: " .. characterHealth .. "/" .. characterMaxHealth .. "\nWalkSpeed: " .. walkSpeed .. "\nJumpPower: " .. jumpPower .. "\nCamera FOV: " .. cameraFOV,
-                            ["inline"] = true
-                        },
-                        {
-                            ["name"] = "Performance",
-                            ["value"] = "FPS: ~" .. fpsEstimate .. "\nCamera Type: " .. cameraType,
-                            ["inline"] = true
-                        },
-                        {
                             ["name"] = "Script Info",
                             ["value"] = "Script: Reaper Hub V2\nGame: Bladeball",
                             ["inline"] = true
@@ -256,69 +183,54 @@ local function SendWebhook()
                     },
                     ["footer"] = {
                         ["text"] = "Reaper Hub | Bladeball V2",
-                        ["icon_url"] = avatarUrl
+                        ["icon_url"] = webAvatarUrl
                     },
                     ["timestamp"] = timestamp
                 }
             }
         }
         
-        -- Send webhook
         local jsonData = HttpService:JSONEncode(embed)
         
-        -- Try different methods to send
         if request then
             request({
                 Url = webhookUrl,
                 Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
+                Headers = {["Content-Type"] = "application/json"},
                 Body = jsonData
             })
         elseif http_request then
             http_request({
                 Url = webhookUrl,
                 Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
+                Headers = {["Content-Type"] = "application/json"},
                 Body = jsonData
             })
         elseif syn and syn.request then
             syn.request({
                 Url = webhookUrl,
                 Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
+                Headers = {["Content-Type"] = "application/json"},
                 Body = jsonData
             })
         elseif http and http.request then
             http.request({
                 Url = webhookUrl,
                 Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
+                Headers = {["Content-Type"] = "application/json"},
                 Body = jsonData
             })
         end
     end)
 end
 
--- Send webhook on load
 task.spawn(SendWebhook)
 
--- PURE BLACK COLOR SCHEME (No Purple!)
 local Colors = {
     Background = Color3.fromRGB(8, 8, 8),
-    BackgroundTransparency = 0.15,
     Card = Color3.fromRGB(15, 15, 15),
-    CardTransparency = 0.15,
     CardHover = Color3.fromRGB(25, 25, 25),
     Sidebar = Color3.fromRGB(10, 10, 10),
-    SidebarTransparency = 0.15,
     Border = Color3.fromRGB(35, 35, 35),
     Accent = Color3.fromRGB(255, 255, 255),
     AccentDim = Color3.fromRGB(180, 180, 180),
@@ -330,35 +242,26 @@ local Colors = {
     TextMuted = Color3.fromRGB(80, 80, 80)
 }
 
--- GUI Transparency setting (slightly see-through)
 local GUI_TRANSPARENCY = 0.15
 
--- ========================================
--- SMOOTH TWEEN FUNCTION (ENHANCED)
--- ========================================
 local function Tween(obj, props, time, style, dir)
     local tween = TweenService:Create(obj, TweenInfo.new(time or 0.3, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
--- Ultra smooth tween for tab transitions
 local function SmoothTween(obj, props, time)
     local tween = TweenService:Create(obj, TweenInfo.new(time or 0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
--- 3D rotation tween for tab switching
 local function Tween3D(obj, props, time)
     local tween = TweenService:Create(obj, TweenInfo.new(time or 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
--- ========================================
--- MOBILE + PC DRAG FUNCTION
--- ========================================
 local function MakeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -368,12 +271,7 @@ local function MakeDraggable(frame, handle)
     local function update(inputPos)
         if dragging and dragStart and startPos then
             local delta = inputPos - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end
     
@@ -408,7 +306,6 @@ local function MakeDraggable(frame, handle)
     end)
 end
 
--- Destroy old GUI
 if game.CoreGui:FindFirstChild("ReaperHub") then
     game.CoreGui:FindFirstChild("ReaperHub"):Destroy()
 end
@@ -419,9 +316,6 @@ ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
 
--- =====================
--- MINIMIZED PILL (BLACK + TRANSPARENT)
--- =====================
 local MinimizedPill = Instance.new("Frame")
 MinimizedPill.Name = "MinimizedPill"
 MinimizedPill.Parent = ScreenGui
@@ -475,9 +369,6 @@ pillExpand.TextSize = 20
 
 MakeDraggable(MinimizedPill)
 
--- =====================
--- MAIN FRAME (BLACK + TRANSPARENT)
--- =====================
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -497,9 +388,6 @@ mainStroke.Color = Colors.Border
 mainStroke.Thickness = 1
 mainStroke.Parent = MainFrame
 
--- =====================
--- TITLE BAR (BLACK + TRANSPARENT)
--- =====================
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Parent = MainFrame
@@ -520,9 +408,6 @@ titleFix.BorderSizePixel = 0
 titleFix.Position = UDim2.new(0, 0, 1, -12)
 titleFix.Size = UDim2.new(1, 0, 0, 12)
 
--- =====================
--- USER AVATAR DISPLAY
--- =====================
 local AvatarFrame = Instance.new("ImageLabel")
 AvatarFrame.Name = "UserAvatar"
 AvatarFrame.Parent = TitleBar
@@ -541,7 +426,6 @@ avatarStroke.Color = Colors.Accent
 avatarStroke.Thickness = 2
 avatarStroke.Parent = AvatarFrame
 
--- Online indicator
 local onlineIndicator = Instance.new("Frame")
 onlineIndicator.Name = "OnlineIndicator"
 onlineIndicator.Parent = AvatarFrame
@@ -576,7 +460,6 @@ SubTitle.TextColor3 = Colors.TextDim
 SubTitle.TextSize = 10
 SubTitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- Username display
 local UsernameLabel = Instance.new("TextLabel")
 UsernameLabel.Parent = TitleBar
 UsernameLabel.BackgroundTransparency = 1
@@ -599,7 +482,6 @@ UserIdLabel.TextColor3 = Colors.TextMuted
 UserIdLabel.TextSize = 9
 UserIdLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- Window controls
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = TitleBar
 CloseBtn.BackgroundColor3 = Colors.Danger
@@ -632,7 +514,6 @@ minCorner.Parent = MinBtn
 
 MakeDraggable(MainFrame, TitleBar)
 
--- Window control functions
 CloseBtn.MouseButton1Click:Connect(function()
     SmoothTween(MainFrame, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.3)
     task.wait(0.3)
@@ -655,9 +536,6 @@ pillExpand.MouseButton1Click:Connect(function()
     SmoothTween(MainFrame, {Size = UDim2.new(0, 500, 0, 350), Position = UDim2.new(0.5, -250, 0.5, -175)}, 0.4)
 end)
 
--- =====================
--- SIDEBAR (BLACK + TRANSPARENT)
--- =====================
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
@@ -684,9 +562,6 @@ tabLayout.Parent = TabButtonsContainer
 tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
 tabLayout.Padding = UDim.new(0, 6)
 
--- =====================
--- CONTENT AREA (BLACK BACKGROUND + TRANSPARENT)
--- =====================
 local ContentArea = Instance.new("Frame")
 ContentArea.Name = "ContentArea"
 ContentArea.Parent = MainFrame
@@ -696,9 +571,6 @@ ContentArea.Position = UDim2.new(0, 130, 0, 50)
 ContentArea.Size = UDim2.new(1, -130, 1, -50)
 ContentArea.ClipsDescendants = true
 
--- ========================================
--- TAB SYSTEM WITH SMOOTH 3D ANIMATIONS
--- ========================================
 local Tabs = {}
 local CurrentTab = nil
 local TabSwitchDebounce = false
@@ -783,45 +655,26 @@ local function CreateTab(name, icon)
     Tab.Text = tabText
     Tab.Indicator = activeIndicator
     
-    -- ENHANCED SMOOTH 3D TAB SWITCHING
     local function SwitchToTab()
         if CurrentTab == Tab or TabSwitchDebounce then return end
         TabSwitchDebounce = true
         
         if CurrentTab then
             local oldContent = CurrentTab.Content
-            
-            -- Smooth 3D exit animation - slide and fade out
-            SmoothTween(oldContent, {
-                Position = UDim2.new(-0.5, 0, 0, 10),
-                BackgroundTransparency = 1
-            }, 0.25)
-            
+            SmoothTween(oldContent, {Position = UDim2.new(-0.5, 0, 0, 10)}, 0.25)
             task.delay(0.25, function()
                 oldContent.Visible = false
                 oldContent.Position = UDim2.new(0, 10, 0, 10)
-                oldContent.BackgroundTransparency = 1
             end)
-            
-            -- Deactivate old tab button with smooth transition
             CurrentTab.Indicator.Visible = false
             SmoothTween(CurrentTab.Button, {BackgroundTransparency = 1}, 0.2)
             SmoothTween(CurrentTab.Icon, {TextColor3 = Colors.TextMuted}, 0.2)
             SmoothTween(CurrentTab.Text, {TextColor3 = Colors.TextMuted}, 0.2)
         end
         
-        -- Smooth 3D entrance animation - slide in from right with scale
         Tab.Content.Position = UDim2.new(0.5, 0, 0, 10)
-        Tab.Content.BackgroundTransparency = 1
         Tab.Content.Visible = true
-        
-        -- Use exponential easing for ultra smooth feel
-        Tween3D(Tab.Content, {
-            Position = UDim2.new(0, 10, 0, 10),
-            BackgroundTransparency = 1
-        }, 0.35)
-        
-        -- Activate new tab button with bounce effect
+        Tween3D(Tab.Content, {Position = UDim2.new(0, 10, 0, 10)}, 0.35)
         Tab.Indicator.Visible = true
         CurrentTab = Tab
         SmoothTween(Tab.Button, {BackgroundTransparency = 0.5}, 0.2)
@@ -1261,10 +1114,6 @@ local function CreateTab(name, icon)
     return Tab
 end
 
--- ========================================
--- FEATURES
--- ========================================
-
 local Features = {
     AutoParry = {Enabled = false, Connection = nil, Mode = "Normal"},
     ManualSpam = {Enabled = false},
@@ -1280,11 +1129,9 @@ local Features = {
     HitboxExpander = {Enabled = false, Size = 10},
     AutoUseAbility = {Enabled = false, Connection = nil},
     FPSBooster = {Enabled = false},
-    -- Roll Tab Features
-    AutoBuySwordCrate = {Enabled = false, Connection = nil},
-    AutoBuyExplosionCrate = {Enabled = false, Connection = nil},
-    AutoSpinWheel = {Enabled = false, Connection = nil},
-    -- Shader States
+    AutoBuySwordCrate = {Enabled = false},
+    AutoBuyExplosionCrate = {Enabled = false},
+    AutoSpinWheel = {Enabled = false},
     Rain = {Enabled = false, Connection = nil, Folder = nil, Sound = nil},
     Snow = {Enabled = false, Connection = nil, Folder = nil, Sound = nil},
     Thunderstorm = {Enabled = false, Connection = nil, Sound = nil},
@@ -1292,19 +1139,11 @@ local Features = {
     MoonGlow = {Enabled = false}
 }
 
--- Original Lighting Storage
 local OriginalLighting = {}
-
--- Stored speed value for persistence
 local StoredSpeedValue = 50
 local StoredJumpValue = 100
 
--- ========================================
--- AUTO PARRY SYSTEM WITH MODES
--- ========================================
 local parryDistance = 0.75
-local parrySpeed = 20
-local parryCooldown = 0.5
 local Cooldown = tick()
 local Parried = false
 local ParryConnection = nil
@@ -1333,11 +1172,9 @@ Balls.ChildAdded:Connect(function()
     end)
 end)
 
--- Check if player is near another player (for clash detection)
 local function IsNearOtherPlayer(distance)
     local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     if not HRP then return false end
-    
     for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer ~= Player and otherPlayer.Character then
             local otherHRP = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -1355,33 +1192,24 @@ end
 function Features.AutoParry:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     self.Connection = RunService.PreSimulation:Connect(function()
         if not self.Enabled then return end
-        
         local Ball = GetBall()
         local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if not Ball or not HRP then return end
-        
         local Speed = Ball.zoomies.VectorVelocity.Magnitude
         local Distance = (HRP.Position - Ball.Position).Magnitude
-        
         local mode = self.Mode
-        
         if mode == "Normal" then
-            -- Normal mode - standard parry
             if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= parryDistance then
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 Parried = true
                 Cooldown = tick()
             end
         elseif mode == "Rage" then
-            -- Rage mode - spam click when clashing (near another player)
             if Ball:GetAttribute("target") == Player.Name then
-                local nearPlayer = IsNearOtherPlayer(25) -- Within 25 studs of another player
-                
+                local nearPlayer = IsNearOtherPlayer(25)
                 if nearPlayer and Distance <= 30 then
-                    -- Spam click really fast for clashing
                     for i = 1, 5 do
                         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                         task.wait(0.001)
@@ -1394,17 +1222,15 @@ function Features.AutoParry:Start()
                 end
             end
         elseif mode == "Smooth" then
-            -- Smooth mode - slightly earlier parry with smoother timing
             local smoothDistance = parryDistance * 1.2
             if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= smoothDistance then
-                task.wait(0.02) -- Small delay for smoother feel
+                task.wait(0.02)
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 Parried = true
                 Cooldown = tick()
             end
         end
-        
-        if Parried and (tick() - Cooldown) >= parryCooldown then
+        if Parried and (tick() - Cooldown) >= 0.5 then
             Parried = false
         end
     end)
@@ -1426,33 +1252,22 @@ function Features.AutoParry:SetMode(mode)
     self.Mode = mode
 end
 
--- ========================================
--- AUTO USE ABILITY SYSTEM
--- ========================================
 function Features.AutoUseAbility:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     self.Connection = RunService.Heartbeat:Connect(function()
         if not self.Enabled then return end
-        
         pcall(function()
             local Ball = GetBall()
             local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
             if not Ball or not HRP then return end
-            
             local Distance = (HRP.Position - Ball.Position).Magnitude
             local target = Ball:GetAttribute("target")
-            
-            -- Use ability when ball is targeting us and within range
             if target == Player.Name and Distance <= 50 then
-                -- Try to find and use ability
                 local abilityRemote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("UseAbility")
                 if abilityRemote then
                     abilityRemote:FireServer()
                 end
-                
-                -- Alternative: Press ability key (Q or E typically)
                 VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Q, false, game)
                 task.wait(0.05)
                 VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Q, false, game)
@@ -1469,7 +1284,6 @@ function Features.AutoUseAbility:Stop()
     end
 end
 
--- Manual Spam
 function Features.ManualSpam:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1486,15 +1300,12 @@ function Features.ManualSpam:Stop()
     self.Enabled = false
 end
 
--- Ball ESP
 function Features.BallESP:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     local function CreateBallESP(ball)
         if self.Items[ball] then return end
         self.Items[ball] = {}
-        
         local hl = Instance.new("Highlight")
         hl.Parent = ball
         hl.FillColor = Color3.fromRGB(0, 200, 255)
@@ -1502,24 +1313,20 @@ function Features.BallESP:Start()
         hl.FillTransparency = 0.5
         hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         table.insert(self.Items[ball], hl)
-        
         local bb = Instance.new("BillboardGui")
         bb.Parent = ball
         bb.Size = UDim2.new(0, 90, 0, 35)
         bb.StudsOffset = Vector3.new(0, 3, 0)
         bb.AlwaysOnTop = true
         table.insert(self.Items[ball], bb)
-        
         local bg = Instance.new("Frame")
         bg.Parent = bb
         bg.Size = UDim2.new(1, 0, 1, 0)
         bg.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
         bg.BackgroundTransparency = 0.1
-        
         local bgCorner = Instance.new("UICorner")
         bgCorner.CornerRadius = UDim.new(0, 6)
         bgCorner.Parent = bg
-        
         local status = Instance.new("TextLabel")
         status.Name = "Status"
         status.Parent = bg
@@ -1530,7 +1337,6 @@ function Features.BallESP:Start()
         status.Text = "SAFE"
         status.TextColor3 = Colors.Success
         status.TextSize = 11
-        
         local info = Instance.new("TextLabel")
         info.Name = "Info"
         info.Parent = bg
@@ -1541,23 +1347,17 @@ function Features.BallESP:Start()
         info.Text = "0 studs"
         info.TextColor3 = Colors.TextDim
         info.TextSize = 9
-        
         local conn = RunService.RenderStepped:Connect(function()
             if not ball or not ball.Parent then conn:Disconnect() return end
             if not self.Enabled then hl.Enabled = false bb.Enabled = false return end
-            
             hl.Enabled = true
             bb.Enabled = true
-            
             local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
             if not HRP then return end
-            
             local dist = (HRP.Position - ball.Position).Magnitude
             local target = ball:GetAttribute("target")
             local isTargeting = target == Player.Name
-            
             info.Text = string.format("%.0f studs", dist)
-            
             if isTargeting then
                 if dist <= 15 then
                     hl.FillColor = Colors.Danger
@@ -1578,14 +1378,11 @@ function Features.BallESP:Start()
                 status.TextColor3 = Colors.Success
             end
         end)
-        
         table.insert(self.Items[ball], conn)
     end
-    
     for _, ball in pairs(Balls:GetChildren()) do
         if ball:IsA("BasePart") then CreateBallESP(ball) end
     end
-    
     Balls.ChildAdded:Connect(function(ball)
         if self.Enabled and ball:IsA("BasePart") then
             task.wait(0.1)
@@ -1605,11 +1402,9 @@ function Features.BallESP:Stop()
     self.Items = {}
 end
 
--- Player ESP
 function Features.ESP:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     local function addHighlight(player)
         if player == Player then return end
         local function createHighlight(char)
@@ -1628,7 +1423,6 @@ function Features.ESP:Start()
             if self.Enabled then createHighlight(char) end
         end)
     end
-    
     for _, player in ipairs(Players:GetPlayers()) do addHighlight(player) end
     Players.PlayerAdded:Connect(function(player) if self.Enabled then addHighlight(player) end end)
 end
@@ -1639,27 +1433,22 @@ function Features.ESP:Stop()
     self.Items = {}
 end
 
--- Auto Play
 local autoPlayAngle = 0
 local autoPlaySmooth = 0
 
 RunService.Heartbeat:Connect(function(dt)
     if not Features.AutoPlay.Enabled then return end
-    
     local ball = GetBall()
     if not ball or not ball.Parent then return end
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChild("Humanoid")
     local HRP = Character and Character:FindFirstChild("HumanoidRootPart")
     if not Humanoid or not HRP then return end
-    
     local ballPos = ball.Position
     autoPlayAngle = autoPlayAngle + dt * 1.5
     autoPlaySmooth = autoPlaySmooth + (autoPlayAngle - autoPlaySmooth) * 0.1
-    
     local targetPos
     local style = Features.AutoPlay.Style
-    
     if style == "Aggressive" then
         local dist = (HRP.Position - ballPos).Magnitude
         if dist > 12 then targetPos = ballPos
@@ -1669,22 +1458,22 @@ RunService.Heartbeat:Connect(function(dt)
     else
         targetPos = ballPos + Vector3.new(math.cos(autoPlaySmooth) * 16, 0, math.sin(autoPlaySmooth) * 16)
     end
-    
     if targetPos then Humanoid:MoveTo(targetPos) end
 end)
 
--- Speed/Jump with persistence
 function Features.Speed:Start()
     if self.Enabled then return end
     self.Enabled = true
     local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
     if humanoid then humanoid.WalkSpeed = StoredSpeedValue end
 end
+
 function Features.Speed:Stop()
     self.Enabled = false
     local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
     if humanoid then humanoid.WalkSpeed = 16 end
 end
+
 function Features.Speed:Update()
     local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
     if humanoid and self.Enabled then humanoid.WalkSpeed = StoredSpeedValue end
@@ -1696,17 +1485,18 @@ function Features.Jump:Start()
     local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
     if humanoid then humanoid.JumpPower = StoredJumpValue end
 end
+
 function Features.Jump:Stop()
     self.Enabled = false
     local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
     if humanoid then humanoid.JumpPower = 50 end
 end
+
 function Features.Jump:Update()
     local humanoid = Player.Character and Player.Character:FindFirstChild("Humanoid")
     if humanoid and self.Enabled then humanoid.JumpPower = StoredJumpValue end
 end
 
--- Infinite Jump
 function Features.InfiniteJump:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1717,12 +1507,12 @@ function Features.InfiniteJump:Start()
         end
     end)
 end
+
 function Features.InfiniteJump:Stop()
     self.Enabled = false
     if self.Connection then self.Connection:Disconnect() self.Connection = nil end
 end
 
--- Noclip
 function Features.Noclip:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1736,13 +1526,14 @@ function Features.Noclip:Start()
         end
     end)
 end
+
 function Features.Noclip:Stop()
     self.Enabled = false
     if self.Connection then self.Connection:Disconnect() self.Connection = nil end
 end
 
--- Fullbright
 local originalAmbient, originalBrightness, originalOutdoorAmbient
+
 function Features.Fullbright:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1753,6 +1544,7 @@ function Features.Fullbright:Start()
     Lighting.Brightness = 2
     Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
 end
+
 function Features.Fullbright:Stop()
     self.Enabled = false
     if originalAmbient then Lighting.Ambient = originalAmbient end
@@ -1760,11 +1552,9 @@ function Features.Fullbright:Stop()
     if originalOutdoorAmbient then Lighting.OutdoorAmbient = originalOutdoorAmbient end
 end
 
--- Hitbox Expander
 function Features.HitboxExpander:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     local function expandHitbox(player)
         if player == Player then return end
         local char = player.Character
@@ -1779,7 +1569,6 @@ function Features.HitboxExpander:Start()
             end
         end
     end
-    
     for _, player in pairs(Players:GetPlayers()) do
         expandHitbox(player)
         player.CharacterAdded:Connect(function()
@@ -1787,7 +1576,6 @@ function Features.HitboxExpander:Start()
             if self.Enabled then expandHitbox(player) end
         end)
     end
-    
     Players.PlayerAdded:Connect(function(player)
         player.CharacterAdded:Connect(function()
             task.wait(1)
@@ -1810,7 +1598,6 @@ function Features.HitboxExpander:Stop()
     end
 end
 
--- Anti-AFK
 Player.Idled:Connect(function()
     if Features.AntiAFK.Enabled then
         VirtualUser:CaptureController()
@@ -1818,33 +1605,22 @@ Player.Idled:Connect(function()
     end
 end)
 
--- ========================================
--- SPEED PERSISTENCE - FIX FOR ABILITY/GAME END RESET
--- ========================================
--- Monitor humanoid for speed changes and reapply
 local function SetupSpeedPersistence(character)
     if not character then return end
-    
     local humanoid = character:WaitForChild("Humanoid", 5)
     if not humanoid then return end
-    
-    -- Apply stored values immediately
     if Features.Speed.Enabled then
         humanoid.WalkSpeed = StoredSpeedValue
     end
     if Features.Jump.Enabled then
         humanoid.JumpPower = StoredJumpValue
     end
-    
-    -- Monitor for WalkSpeed changes
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         if Features.Speed.Enabled and humanoid.WalkSpeed ~= StoredSpeedValue then
             task.wait(0.1)
             humanoid.WalkSpeed = StoredSpeedValue
         end
     end)
-    
-    -- Monitor for JumpPower changes
     humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
         if Features.Jump.Enabled and humanoid.JumpPower ~= StoredJumpValue then
             task.wait(0.1)
@@ -1853,18 +1629,15 @@ local function SetupSpeedPersistence(character)
     end)
 end
 
--- Setup for current character
 if Player.Character then
     SetupSpeedPersistence(Player.Character)
 end
 
--- Setup for future characters (respawn)
 Player.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     SetupSpeedPersistence(char)
 end)
 
--- Continuous speed enforcement loop
 task.spawn(function()
     while true do
         task.wait(0.5)
@@ -1882,22 +1655,16 @@ task.spawn(function()
     end
 end)
 
--- ========================================
--- FPS BOOSTER SYSTEM
--- ========================================
 function Features.FPSBooster:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-        
         for _, v in pairs(Lighting:GetDescendants()) do
             if v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
                 v.Enabled = false
             end
         end
-        
         for _, v in pairs(workspace:GetDescendants()) do
             if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
                 v.Enabled = false
@@ -1906,14 +1673,12 @@ function Features.FPSBooster:Start()
                 v.Transparency = 1
             end
         end
-        
         pcall(function()
             workspace.Terrain.WaterWaveSize = 0
             workspace.Terrain.WaterWaveSpeed = 0
             workspace.Terrain.WaterReflectance = 0
             workspace.Terrain.WaterTransparency = 0
         end)
-        
         Lighting.GlobalShadows = false
     end)
 end
@@ -1921,16 +1686,13 @@ end
 function Features.FPSBooster:Stop()
     if not self.Enabled then return end
     self.Enabled = false
-    
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-        
         for _, v in pairs(Lighting:GetDescendants()) do
             if v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
                 v.Enabled = true
             end
         end
-        
         for _, v in pairs(workspace:GetDescendants()) do
             if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
                 v.Enabled = true
@@ -1939,56 +1701,74 @@ function Features.FPSBooster:Stop()
                 v.Transparency = 0
             end
         end
-        
         pcall(function()
             workspace.Terrain.WaterWaveSize = 0.15
             workspace.Terrain.WaterWaveSpeed = 10
             workspace.Terrain.WaterReflectance = 1
             workspace.Terrain.WaterTransparency = 0.3
         end)
-        
         Lighting.GlobalShadows = true
     end)
 end
 
--- ========================================
--- ROLL TAB FEATURES
--- ========================================
-
--- Auto Buy Sword Crate
 function Features.AutoBuySwordCrate:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
-    self.Connection = task.spawn(function()
+    task.spawn(function()
         while self.Enabled do
             pcall(function()
-                -- Try to find and fire the buy crate remote
-                local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-                if remotes then
-                    local buyCrate = remotes:FindFirstChild("BuyCrate") or remotes:FindFirstChild("PurchaseCrate")
-                    if buyCrate then
-                        buyCrate:FireServer("Sword") -- or "SwordCrate"
-                        buyCrate:FireServer("SwordCrate")
-                    end
-                end
-                
-                -- Alternative method - look for shop/crate system
                 for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
-                    if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    if remote:IsA("RemoteEvent") then
                         local name = remote.Name:lower()
-                        if name:find("crate") or name:find("buy") or name:find("purchase") then
+                        if name:find("crate") or name:find("buy") or name:find("purchase") or name:find("open") or name:find("roll") then
                             pcall(function()
-                                if remote:IsA("RemoteEvent") then
-                                    remote:FireServer("Sword")
-                                    remote:FireServer("SwordCrate")
-                                end
+                                remote:FireServer("Sword")
+                                remote:FireServer("SwordCrate")
+                                remote:FireServer("sword")
+                                remote:FireServer("Swords")
+                                remote:FireServer(1)
+                            end)
+                        end
+                    elseif remote:IsA("RemoteFunction") then
+                        local name = remote.Name:lower()
+                        if name:find("crate") or name:find("buy") or name:find("purchase") or name:find("open") or name:find("roll") then
+                            pcall(function()
+                                remote:InvokeServer("Sword")
+                                remote:InvokeServer("SwordCrate")
+                                remote:InvokeServer("sword")
+                                remote:InvokeServer(1)
                             end)
                         end
                     end
                 end
+                local playerGui = Player:FindFirstChild("PlayerGui")
+                if playerGui then
+                    for _, gui in pairs(playerGui:GetDescendants()) do
+                        if (gui:IsA("TextButton") or gui:IsA("ImageButton")) and gui.Visible then
+                            local name = gui.Name:lower()
+                            local parentName = gui.Parent and gui.Parent.Name:lower() or ""
+                            if (name:find("sword") or name:find("crate") or name:find("buy") or name:find("open") or name:find("roll")) or
+                               (parentName:find("sword") and (name:find("buy") or name:find("open") or name:find("roll"))) then
+                                pcall(function()
+                                    if gui.Visible and gui.Active ~= false then
+                                        local connection
+                                        connection = gui.MouseButton1Click:Connect(function() end)
+                                        gui.MouseButton1Click:Fire()
+                                        if connection then connection:Disconnect() end
+                                    end
+                                end)
+                                pcall(function()
+                                    local pos = gui.AbsolutePosition + gui.AbsoluteSize / 2
+                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, true, game, 0)
+                                    task.wait(0.02)
+                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, false, game, 0)
+                                end)
+                            end
+                        end
+                    end
+                end
             end)
-            task.wait(1)
+            task.wait(0.5)
         end
     end)
 end
@@ -1997,33 +1777,124 @@ function Features.AutoBuySwordCrate:Stop()
     self.Enabled = false
 end
 
--- Auto Buy Explosion Crate
 function Features.AutoBuyExplosionCrate:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
-    self.Connection = task.spawn(function()
+    task.spawn(function()
         while self.Enabled do
             pcall(function()
-                local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-                if remotes then
-                    local buyCrate = remotes:FindFirstChild("BuyCrate") or remotes:FindFirstChild("PurchaseCrate")
-                    if buyCrate then
-                        buyCrate:FireServer("Explosion")
-                        buyCrate:FireServer("ExplosionCrate")
+                for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
+                    if remote:IsA("RemoteEvent") then
+                        local name = remote.Name:lower()
+                        if name:find("crate") or name:find("buy") or name:find("purchase") or name:find("open") or name:find("roll") then
+                            pcall(function()
+                                remote:FireServer("Explosion")
+                                remote:FireServer("ExplosionCrate")
+                                remote:FireServer("explosion")
+                                remote:FireServer("Explosions")
+                                remote:FireServer(2)
+                            end)
+                        end
+                    elseif remote:IsA("RemoteFunction") then
+                        local name = remote.Name:lower()
+                        if name:find("crate") or name:find("buy") or name:find("purchase") or name:find("open") or name:find("roll") then
+                            pcall(function()
+                                remote:InvokeServer("Explosion")
+                                remote:InvokeServer("ExplosionCrate")
+                                remote:InvokeServer("explosion")
+                                remote:InvokeServer(2)
+                            end)
+                        end
                     end
                 end
-                
+                local playerGui = Player:FindFirstChild("PlayerGui")
+                if playerGui then
+                    for _, gui in pairs(playerGui:GetDescendants()) do
+                        if (gui:IsA("TextButton") or gui:IsA("ImageButton")) and gui.Visible then
+                            local name = gui.Name:lower()
+                            local parentName = gui.Parent and gui.Parent.Name:lower() or ""
+                            if (name:find("explosion") or name:find("crate") or name:find("buy") or name:find("open") or name:find("roll")) or
+                               (parentName:find("explosion") and (name:find("buy") or name:find("open") or name:find("roll"))) then
+                                pcall(function()
+                                    if gui.Visible and gui.Active ~= false then
+                                        local connection
+                                        connection = gui.MouseButton1Click:Connect(function() end)
+                                        gui.MouseButton1Click:Fire()
+                                        if connection then connection:Disconnect() end
+                                    end
+                                end)
+                                pcall(function()
+                                    local pos = gui.AbsolutePosition + gui.AbsoluteSize / 2
+                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, true, game, 0)
+                                    task.wait(0.02)
+                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, false, game, 0)
+                                end)
+                            end
+                        end
+                    end
+                end
+            end)
+            task.wait(0.5)
+        end
+    end)
+end
+
+function Features.AutoBuyExplosionCrate:Stop()
+    self.Enabled = false
+end
+
+function Features.AutoSpinWheel:Start()
+    if self.Enabled then return end
+    self.Enabled = true
+    task.spawn(function()
+        while self.Enabled do
+            pcall(function()
                 for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
-                    if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    if remote:IsA("RemoteEvent") then
                         local name = remote.Name:lower()
-                        if name:find("crate") or name:find("buy") or name:find("purchase") then
+                        if name:find("wheel") or name:find("spin") or name:find("lucky") or name:find("daily") or name:find("free") then
                             pcall(function()
-                                if remote:IsA("RemoteEvent") then
-                                    remote:FireServer("Explosion")
-                                    remote:FireServer("ExplosionCrate")
-                                end
+                                remote:FireServer()
+                                remote:FireServer("Spin")
+                                remote:FireServer("spin")
+                                remote:FireServer(true)
                             end)
+                        end
+                    elseif remote:IsA("RemoteFunction") then
+                        local name = remote.Name:lower()
+                        if name:find("wheel") or name:find("spin") or name:find("lucky") or name:find("daily") or name:find("free") then
+                            pcall(function()
+                                remote:InvokeServer()
+                                remote:InvokeServer("Spin")
+                                remote:InvokeServer(true)
+                            end)
+                        end
+                    end
+                end
+                local playerGui = Player:FindFirstChild("PlayerGui")
+                if playerGui then
+                    for _, gui in pairs(playerGui:GetDescendants()) do
+                        if (gui:IsA("TextButton") or gui:IsA("ImageButton")) and gui.Visible then
+                            local name = gui.Name:lower()
+                            local text = ""
+                            pcall(function() text = gui.Text and gui.Text:lower() or "" end)
+                            if name:find("spin") or name:find("wheel") or name:find("lucky") or name:find("free") or name:find("claim") or
+                               text:find("spin") or text:find("free") or text:find("claim") then
+                                pcall(function()
+                                    if gui.Visible and gui.Active ~= false then
+                                        local connection
+                                        connection = gui.MouseButton1Click:Connect(function() end)
+                                        gui.MouseButton1Click:Fire()
+                                        if connection then connection:Disconnect() end
+                                    end
+                                end)
+                                pcall(function()
+                                    local pos = gui.AbsolutePosition + gui.AbsoluteSize / 2
+                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, true, game, 0)
+                                    task.wait(0.02)
+                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, false, game, 0)
+                                end)
+                            end
                         end
                     end
                 end
@@ -2033,82 +1904,13 @@ function Features.AutoBuyExplosionCrate:Start()
     end)
 end
 
-function Features.AutoBuyExplosionCrate:Stop()
-    self.Enabled = false
-end
-
--- Auto Spin Wheel
-function Features.AutoSpinWheel:Start()
-    if self.Enabled then return end
-    self.Enabled = true
-    
-    self.Connection = task.spawn(function()
-        while self.Enabled do
-            pcall(function()
-                -- Try to find and fire the spin wheel remote
-                local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-                if remotes then
-                    local spinWheel = remotes:FindFirstChild("SpinWheel") or remotes:FindFirstChild("Spin")
-                    if spinWheel then
-                        if spinWheel:IsA("RemoteEvent") then
-                            spinWheel:FireServer()
-                        elseif spinWheel:IsA("RemoteFunction") then
-                            spinWheel:InvokeServer()
-                        end
-                    end
-                end
-                
-                -- Alternative method - search for wheel/spin remotes
-                for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
-                    if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
-                        local name = remote.Name:lower()
-                        if name:find("wheel") or name:find("spin") or name:find("lucky") then
-                            pcall(function()
-                                if remote:IsA("RemoteEvent") then
-                                    remote:FireServer()
-                                elseif remote:IsA("RemoteFunction") then
-                                    remote:InvokeServer()
-                                end
-                            end)
-                        end
-                    end
-                end
-                
-                -- Try clicking spin button if it exists in PlayerGui
-                pcall(function()
-                    local playerGui = Player:FindFirstChild("PlayerGui")
-                    if playerGui then
-                        for _, gui in pairs(playerGui:GetDescendants()) do
-                            if gui:IsA("TextButton") or gui:IsA("ImageButton") then
-                                local name = gui.Name:lower()
-                                if name:find("spin") and gui.Visible then
-                                    -- Simulate click using virtual input
-                                    local pos = gui.AbsolutePosition + gui.AbsoluteSize / 2
-                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, true, game, 0)
-                                    task.wait(0.05)
-                                    VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, false, game, 0)
-                                end
-                            end
-                        end
-                    end
-                end)
-            end)
-            task.wait(3) -- Check every 3 seconds
-        end
-    end)
-end
-
 function Features.AutoSpinWheel:Stop()
     self.Enabled = false
 end
 
--- ========================================
--- SHADER SYSTEM (FROM MM2)
--- ========================================
-
 local SOUND_IDS = {
     Rain = "rbxassetid://9112854440",
-    Thunder = "rbxassetid://9114488091",
+    Thunder = "rbxassetid://6128635929",
     Wind = "rbxassetid://9112849858",
 }
 
@@ -2146,20 +1948,15 @@ local function restoreOriginalLighting()
     end
 end
 
--- RAIN SHADER
 function Features.Rain:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     storeOriginalLighting()
-    
     self.Folder = Instance.new("Folder")
     self.Folder.Name = "RainEffects_Reaper"
     self.Folder.Parent = workspace.CurrentCamera
-    
     local raindrops = {}
     local rainCount = 200
-    
     for i = 1, rainCount do
         local drop = Instance.new("Part")
         drop.Name = "Raindrop"
@@ -2171,14 +1968,12 @@ function Features.Rain:Start()
         drop.CanCollide = false
         drop.CastShadow = false
         drop.Parent = self.Folder
-        
         table.insert(raindrops, {
             part = drop,
             speed = math.random(80, 120),
             offset = Vector3.new(math.random(-60, 60), math.random(20, 80), math.random(-60, 60))
         })
     end
-    
     Lighting.ClockTime = 16
     Lighting.Brightness = 0.5
     Lighting.Ambient = Color3.fromRGB(40, 45, 55)
@@ -2188,7 +1983,6 @@ function Features.Rain:Start()
     Lighting.FogStart = 10
     Lighting.ColorShift_Top = Color3.fromRGB(60, 70, 90)
     Lighting.ColorShift_Bottom = Color3.fromRGB(40, 50, 70)
-    
     local atmo = Instance.new("Atmosphere")
     atmo.Name = "RainAtmosphere"
     atmo.Density = 0.45
@@ -2197,7 +1991,6 @@ function Features.Rain:Start()
     atmo.Haze = 2.5
     atmo.Glare = 0
     atmo.Parent = Lighting
-    
     local cc = Instance.new("ColorCorrectionEffect")
     cc.Name = "RainColorCorrection"
     cc.Brightness = -0.05
@@ -2205,7 +1998,6 @@ function Features.Rain:Start()
     cc.Saturation = -0.2
     cc.TintColor = Color3.fromRGB(180, 190, 210)
     cc.Parent = Lighting
-    
     self.Sound = Instance.new("Sound")
     self.Sound.Name = "RainSound"
     self.Sound.SoundId = SOUND_IDS.Rain
@@ -2213,25 +2005,17 @@ function Features.Rain:Start()
     self.Sound.Looped = true
     self.Sound.Parent = workspace.CurrentCamera
     self.Sound:Play()
-    
     self.Connection = RunService.RenderStepped:Connect(function(dt)
         local camPos = workspace.CurrentCamera.CFrame.Position
-        
         for _, data in ipairs(raindrops) do
             local drop = data.part
             if drop and drop.Parent then
                 local newY = drop.Position.Y - data.speed * dt
-                
                 if newY < camPos.Y - 30 then
                     newY = camPos.Y + math.random(40, 80)
                     data.offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
                 end
-                
-                drop.CFrame = CFrame.new(
-                    camPos.X + data.offset.X,
-                    newY,
-                    camPos.Z + data.offset.Z
-                ) * CFrame.Angles(0, 0, math.rad(math.random(-5, 5)))
+                drop.CFrame = CFrame.new(camPos.X + data.offset.X, newY, camPos.Z + data.offset.Z) * CFrame.Angles(0, 0, math.rad(math.random(-5, 5)))
             end
         end
     end)
@@ -2239,48 +2023,37 @@ end
 
 function Features.Rain:Stop()
     self.Enabled = false
-    
     if self.Connection then
         self.Connection:Disconnect()
         self.Connection = nil
     end
-    
     if self.Folder then
         self.Folder:Destroy()
         self.Folder = nil
     end
-    
     if self.Sound then
         self.Sound:Stop()
         self.Sound:Destroy()
         self.Sound = nil
     end
-    
     local atmo = Lighting:FindFirstChild("RainAtmosphere")
     if atmo then atmo:Destroy() end
-    
     local cc = Lighting:FindFirstChild("RainColorCorrection")
     if cc then cc:Destroy() end
-    
     if not Features.Snow.Enabled and not Features.Thunderstorm.Enabled and not Features.Aurora.Enabled and not Features.MoonGlow.Enabled then
         restoreOriginalLighting()
     end
 end
 
--- SNOW SHADER
 function Features.Snow:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     storeOriginalLighting()
-    
     self.Folder = Instance.new("Folder")
     self.Folder.Name = "SnowEffects_Reaper"
     self.Folder.Parent = workspace.CurrentCamera
-    
     local snowflakes = {}
     local snowCount = 150
-    
     for i = 1, snowCount do
         local flake = Instance.new("Part")
         flake.Name = "Snowflake"
@@ -2293,7 +2066,6 @@ function Features.Snow:Start()
         flake.CanCollide = false
         flake.CastShadow = false
         flake.Parent = self.Folder
-        
         table.insert(snowflakes, {
             part = flake,
             speed = math.random(8, 15),
@@ -2302,7 +2074,6 @@ function Features.Snow:Start()
             offset = Vector3.new(math.random(-50, 50), math.random(20, 60), math.random(-50, 50))
         })
     end
-    
     Lighting.ClockTime = 12
     Lighting.Brightness = 1.2
     Lighting.Ambient = Color3.fromRGB(180, 190, 210)
@@ -2312,7 +2083,6 @@ function Features.Snow:Start()
     Lighting.FogStart = 50
     Lighting.ColorShift_Top = Color3.fromRGB(200, 210, 230)
     Lighting.ColorShift_Bottom = Color3.fromRGB(180, 190, 210)
-    
     local atmo = Instance.new("Atmosphere")
     atmo.Name = "SnowAtmosphere"
     atmo.Density = 0.35
@@ -2321,7 +2091,6 @@ function Features.Snow:Start()
     atmo.Haze = 2
     atmo.Glare = 0.1
     atmo.Parent = Lighting
-    
     local cc = Instance.new("ColorCorrectionEffect")
     cc.Name = "SnowColorCorrection"
     cc.Brightness = 0.05
@@ -2329,7 +2098,6 @@ function Features.Snow:Start()
     cc.Saturation = -0.3
     cc.TintColor = Color3.fromRGB(220, 230, 255)
     cc.Parent = Lighting
-    
     self.Sound = Instance.new("Sound")
     self.Sound.Name = "SnowSound"
     self.Sound.SoundId = SOUND_IDS.Wind
@@ -2337,29 +2105,20 @@ function Features.Snow:Start()
     self.Sound.Looped = true
     self.Sound.Parent = workspace.CurrentCamera
     self.Sound:Play()
-    
     local time = 0
-    
     self.Connection = RunService.RenderStepped:Connect(function(dt)
         time = time + dt
         local camPos = workspace.CurrentCamera.CFrame.Position
-        
         for _, data in ipairs(snowflakes) do
             local flake = data.part
             if flake and flake.Parent then
                 local newY = flake.Position.Y - data.speed * dt
                 local sway = math.sin(time * 2 + data.phase) * data.drift
-                
                 if newY < camPos.Y - 20 then
                     newY = camPos.Y + math.random(30, 60)
                     data.offset = Vector3.new(math.random(-50, 50), 0, math.random(-50, 50))
                 end
-                
-                flake.CFrame = CFrame.new(
-                    camPos.X + data.offset.X + sway,
-                    newY,
-                    camPos.Z + data.offset.Z
-                )
+                flake.CFrame = CFrame.new(camPos.X + data.offset.X + sway, newY, camPos.Z + data.offset.Z)
             end
         end
     end)
@@ -2367,68 +2126,53 @@ end
 
 function Features.Snow:Stop()
     self.Enabled = false
-    
     if self.Connection then
         self.Connection:Disconnect()
         self.Connection = nil
     end
-    
     if self.Folder then
         self.Folder:Destroy()
         self.Folder = nil
     end
-    
     if self.Sound then
         self.Sound:Stop()
         self.Sound:Destroy()
         self.Sound = nil
     end
-    
     local atmo = Lighting:FindFirstChild("SnowAtmosphere")
     if atmo then atmo:Destroy() end
-    
     local cc = Lighting:FindFirstChild("SnowColorCorrection")
     if cc then cc:Destroy() end
-    
     if not Features.Rain.Enabled and not Features.Thunderstorm.Enabled and not Features.Aurora.Enabled and not Features.MoonGlow.Enabled then
         restoreOriginalLighting()
     end
 end
 
--- THUNDERSTORM SHADER
 function Features.Thunderstorm:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     if not Features.Rain.Enabled then
         Features.Rain:Start()
     end
-    
     Lighting.Brightness = 0.3
     Lighting.Ambient = Color3.fromRGB(25, 30, 40)
-    
     local flash = Instance.new("ColorCorrectionEffect")
     flash.Name = "LightningFlash"
     flash.Brightness = 0
     flash.Parent = Lighting
-    
     self.Sound = Instance.new("Sound")
     self.Sound.Name = "ThunderSound"
     self.Sound.SoundId = SOUND_IDS.Thunder
     self.Sound.Volume = 0.8
     self.Sound.Looped = false
     self.Sound.Parent = workspace.CurrentCamera
-    
     local nextLightning = tick() + math.random(3, 8)
-    
     self.Connection = RunService.Heartbeat:Connect(function()
         if tick() >= nextLightning then
             nextLightning = tick() + math.random(5, 15)
-            
             if self.Sound then
                 self.Sound:Play()
             end
-            
             task.spawn(function()
                 flash.Brightness = 4
                 Lighting.Brightness = 5
@@ -2448,46 +2192,36 @@ end
 
 function Features.Thunderstorm:Stop()
     self.Enabled = false
-    
     if self.Connection then
         self.Connection:Disconnect()
         self.Connection = nil
     end
-    
     if self.Sound then
         self.Sound:Stop()
         self.Sound:Destroy()
         self.Sound = nil
     end
-    
     local flash = Lighting:FindFirstChild("LightningFlash")
     if flash then flash:Destroy() end
-    
     if Features.Rain.Enabled then
         Features.Rain:Stop()
     end
 end
 
--- AURORA SHADER
 function Features.Aurora:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     storeOriginalLighting()
-    
     Lighting.ClockTime = 0
     Lighting.Brightness = 0.4
     Lighting.Ambient = Color3.fromRGB(15, 25, 45)
     Lighting.OutdoorAmbient = Color3.fromRGB(25, 40, 65)
     Lighting.ColorShift_Top = Color3.fromRGB(30, 60, 100)
     Lighting.ColorShift_Bottom = Color3.fromRGB(20, 40, 70)
-    
     self.Folder = Instance.new("Folder")
     self.Folder.Name = "AuroraEffects_Reaper"
     self.Folder.Parent = workspace
-    
     local auroraParts = {}
-    
     for i = 1, 15 do
         local part = Instance.new("Part")
         part.Name = "Aurora_" .. i
@@ -2496,41 +2230,30 @@ function Features.Aurora:Start()
         part.Material = Enum.Material.Neon
         part.Transparency = 0.4
         part.Size = Vector3.new(math.random(100, 250), math.random(200, 500), 10)
-        part.CFrame = CFrame.new(
-            math.random(-500, 500),
-            math.random(300, 550),
-            math.random(-500, 500)
-        ) * CFrame.Angles(0, math.rad(math.random(0, 360)), math.rad(math.random(-20, 20)))
+        part.CFrame = CFrame.new(math.random(-500, 500), math.random(300, 550), math.random(-500, 500)) * CFrame.Angles(0, math.rad(math.random(0, 360)), math.rad(math.random(-20, 20)))
         part.Parent = self.Folder
-        
         table.insert(auroraParts, {
             part = part,
             phase = math.random() * math.pi * 2,
             colorPhase = math.random() * math.pi * 2
         })
     end
-    
     local bloom = Instance.new("BloomEffect")
     bloom.Name = "AuroraBloom"
     bloom.Intensity = 2
     bloom.Size = 50
     bloom.Threshold = 0.6
     bloom.Parent = Lighting
-    
     local time = 0
-    
     self.Connection = RunService.Heartbeat:Connect(function(dt)
         time = time + dt
-        
         for _, data in ipairs(auroraParts) do
             local part = data.part
             if part and part.Parent then
                 local wave = math.sin(time * 0.3 + data.phase) * 20
                 part.CFrame = part.CFrame * CFrame.new(0, wave * dt, 0)
-                
                 local hue = (math.sin(time * 0.15 + data.colorPhase) + 1) / 2 * 0.4 + 0.35
                 part.Color = Color3.fromHSV(hue, 0.85, 1)
-                
                 part.Transparency = 0.3 + math.sin(time * 1.5 + data.phase) * 0.2
             end
         end
@@ -2539,46 +2262,37 @@ end
 
 function Features.Aurora:Stop()
     self.Enabled = false
-    
     if self.Connection then
         self.Connection:Disconnect()
         self.Connection = nil
     end
-    
     if self.Folder then
         self.Folder:Destroy()
         self.Folder = nil
     end
-    
     local bloom = Lighting:FindFirstChild("AuroraBloom")
     if bloom then bloom:Destroy() end
-    
     if not Features.Rain.Enabled and not Features.Snow.Enabled and not Features.Thunderstorm.Enabled and not Features.MoonGlow.Enabled then
         restoreOriginalLighting()
     end
 end
 
--- MOON GLOW SHADER
 function Features.MoonGlow:Start()
     if self.Enabled then return end
     self.Enabled = true
-    
     storeOriginalLighting()
-    
     Lighting.ClockTime = 0
     Lighting.Brightness = 0.6
     Lighting.Ambient = Color3.fromRGB(35, 45, 70)
     Lighting.OutdoorAmbient = Color3.fromRGB(45, 55, 85)
     Lighting.ColorShift_Top = Color3.fromRGB(50, 70, 110)
     Lighting.ColorShift_Bottom = Color3.fromRGB(40, 55, 90)
-    
     local bloom = Instance.new("BloomEffect")
     bloom.Name = "MoonBloom"
     bloom.Intensity = 2.5
     bloom.Size = 60
     bloom.Threshold = 0.5
     bloom.Parent = Lighting
-    
     local atmo = Instance.new("Atmosphere")
     atmo.Name = "MoonAtmosphere"
     atmo.Density = 0.25
@@ -2590,21 +2304,14 @@ end
 
 function Features.MoonGlow:Stop()
     self.Enabled = false
-    
     local bloom = Lighting:FindFirstChild("MoonBloom")
     if bloom then bloom:Destroy() end
-    
     local atmo = Lighting:FindFirstChild("MoonAtmosphere")
     if atmo then atmo:Destroy() end
-    
     if not Features.Rain.Enabled and not Features.Snow.Enabled and not Features.Thunderstorm.Enabled and not Features.Aurora.Enabled then
         restoreOriginalLighting()
     end
 end
-
--- ========================================
--- CREATE TABS
--- ========================================
 
 local MainTab = CreateTab("Main", "[M]")
 local PlayTab = CreateTab("Play", "[P]")
@@ -2614,7 +2321,6 @@ local PingFPSTab = CreateTab("Ping | FPS", "[F]")
 local ShadersTab = CreateTab("Shaders", "[S]")
 local MiscTab = CreateTab("Misc", "[+]")
 
--- MAIN TAB
 local CombatSection = MainTab:AddSection("Combat")
 CombatSection:AddToggle({Title = "Auto Parry", Default = false, Callback = function(state) if state then Features.AutoParry:Start() else Features.AutoParry:Stop() end end})
 CombatSection:AddDropdown({Title = "Parry Mode", Options = {"Normal", "Rage", "Smooth"}, Default = "Normal", Callback = function(value) Features.AutoParry:SetMode(value) end})
@@ -2626,7 +2332,6 @@ local HitboxSection = MainTab:AddSection("Hitbox")
 HitboxSection:AddToggle({Title = "Hitbox Expander", Default = false, Callback = function(state) if state then Features.HitboxExpander:Start() else Features.HitboxExpander:Stop() end end})
 HitboxSection:AddSlider({Title = "Hitbox Size", Min = 5, Max = 20, Default = 10, Callback = function(value) Features.HitboxExpander.Size = value end})
 
--- PLAY TAB
 local MovementSection = PlayTab:AddSection("Movement")
 MovementSection:AddToggle({Title = "Speed Boost", Default = false, Callback = function(state) if state then Features.Speed:Start() else Features.Speed:Stop() end end})
 MovementSection:AddSlider({Title = "Speed Value", Min = 16, Max = 100, Default = 50, Callback = function(value) StoredSpeedValue = value Features.Speed:Update() end})
@@ -2639,7 +2344,6 @@ local AutoSection = PlayTab:AddSection("Auto Play")
 AutoSection:AddToggle({Title = "Auto Play", Default = false, Callback = function(state) Features.AutoPlay.Enabled = state end})
 AutoSection:AddDropdown({Title = "Play Style", Options = {"Aggressive", "Balanced", "Defensive"}, Default = "Balanced", Callback = function(value) Features.AutoPlay.Style = value end})
 
--- ESP TAB
 local ESPSection = ESPTab:AddSection("ESP Options")
 ESPSection:AddToggle({Title = "Ball ESP", Default = false, Callback = function(state) if state then Features.BallESP:Start() else Features.BallESP:Stop() end end})
 ESPSection:AddToggle({Title = "Player ESP", Default = false, Callback = function(state) if state then Features.ESP:Start() else Features.ESP:Stop() end end})
@@ -2651,7 +2355,6 @@ end})
 local VisualsSection = ESPTab:AddSection("Visuals")
 VisualsSection:AddToggle({Title = "Fullbright", Default = false, Callback = function(state) if state then Features.Fullbright:Start() else Features.Fullbright:Stop() end end})
 
--- ROLL TAB
 local SwordCrateSection = RollTab:AddSection("SWORD CRATES")
 SwordCrateSection:AddToggle({Title = "Auto Buy Sword Crate", Default = false, Callback = function(state) if state then Features.AutoBuySwordCrate:Start() else Features.AutoBuySwordCrate:Stop() end end})
 SwordCrateSection:AddLabel("Automatically purchases sword crates")
@@ -2664,9 +2367,7 @@ local WheelSection = RollTab:AddSection("Wheel")
 WheelSection:AddToggle({Title = "Auto Spin Wheel", Default = false, Callback = function(state) if state then Features.AutoSpinWheel:Start() else Features.AutoSpinWheel:Stop() end end})
 WheelSection:AddLabel("Automatically spins the lucky wheel")
 
--- PING | FPS TAB
 local PerformanceSection = PingFPSTab:AddSection("Performance")
-
 local fpsLabel = PerformanceSection:AddLabel("FPS: Calculating...")
 local pingLabel = PerformanceSection:AddLabel("Ping: Calculating...")
 
@@ -2675,7 +2376,6 @@ task.spawn(function()
         pcall(function()
             local fps = math.floor(1 / RunService.RenderStepped:Wait())
             fpsLabel:Set("FPS: " .. fps)
-            
             local ping = math.floor(Player:GetNetworkPing() * 1000)
             pingLabel:Set("Ping: " .. ping .. " ms")
         end)
@@ -2698,7 +2398,6 @@ local NetworkSection = PingFPSTab:AddSection("Network Info")
 NetworkSection:AddLabel("Server: " .. (game.JobId ~= "" and string.sub(game.JobId, 1, 15) .. "..." or "N/A"))
 NetworkSection:AddLabel("Players: " .. #Players:GetPlayers() .. "/" .. Players.MaxPlayers)
 
--- SHADERS TAB
 local WeatherSection = ShadersTab:AddSection("Weather Effects")
 WeatherSection:AddToggle({Title = "Rain", Default = false, Callback = function(state) if state then Features.Rain:Start() else Features.Rain:Stop() end end})
 WeatherSection:AddToggle({Title = "Snow", Default = false, Callback = function(state) if state then Features.Snow:Start() else Features.Snow:Stop() end end})
@@ -2720,7 +2419,6 @@ ShaderInfoSection:AddButton({Title = "Reset All Shaders", Callback = function()
     restoreOriginalLighting()
 end})
 
--- MISC TAB
 local UtilSection = MiscTab:AddSection("Utility")
 UtilSection:AddToggle({Title = "Anti-AFK", Default = true, Callback = function(state) Features.AntiAFK.Enabled = state end})
 UtilSection:AddButton({Title = "Rejoin Server", Callback = function() game:GetService("TeleportService"):Teleport(game.PlaceId, Player) end})
@@ -2740,7 +2438,6 @@ InfoSection:AddLabel("Bladeball")
 InfoSection:AddLabel("User: " .. Player.DisplayName)
 InfoSection:AddLabel("ID: " .. Player.UserId)
 
--- Notification
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Reaper Hub",
@@ -2749,12 +2446,5 @@ pcall(function()
     })
 end)
 
-print("========================================")
 print("[R] REAPER HUB | BLADEBALL V2")
-print("[+] User Avatar Display")
-print("[+] Auto Use Ability")
-print("[+] Auto Parry Modes (Normal/Rage/Smooth)")
-print("[+] Roll Tab (Crates + Wheel)")
-print("[+] Speed Persistence Fix")
 print("[+] Discord: " .. DISCORD_INVITE)
-print("========================================")
