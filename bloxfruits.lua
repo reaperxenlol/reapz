@@ -1,27 +1,3 @@
---[[
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║                    BLOX FRUITS PREMIUM SCRIPT                    ║
-    ║                     Version 3.0 - January 2026                   ║
-    ║              Custom Futuristic GUI | Full Feature Set            ║
-    ╚══════════════════════════════════════════════════════════════════╝
-    
-    Features:
-    - Auto Farm Level (All Seas)
-    - Auto Farm Boss
-    - Auto Farm Mastery
-    - Auto Raids
-    - Auto Stats
-    - Devil Fruit Features
-    - Fighting Style Unlocks
-    - Teleportation System
-    - Combat Enhancements
-    - And much more...
-]]
-
--- ═══════════════════════════════════════════════════════════════════
--- SERVICES & INITIALIZATION
--- ═══════════════════════════════════════════════════════════════════
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -2811,29 +2787,3 @@ pcall(function()
         end
     end
 end)
-
--- Display final load message
-print([[
-╔══════════════════════════════════════════════════════════════════╗
-║              ALL MODULES LOADED SUCCESSFULLY!                    ║
-║                                                                  ║
-║  Keybinds:                                                       ║
-║  • Right Control - Toggle GUI                                    ║
-║  • F - Toggle Fly                                                ║
-║  • G - Toggle Auto Farm                                          ║
-║                                                                  ║
-║  Features:                                                       ║
-║  • Auto Farm Level (All Seas)                                    ║
-║  • Auto Boss Farm                                                ║
-║  • Auto Mastery Farm                                             ║
-║  • Auto Raids                                                    ║
-║  • Fruit Sniper                                                  ║
-║  • Fighting Style Unlocks                                        ║
-║  • Teleportation System                                          ║
-║  • ESP System                                                    ║
-║  • Fly System                                                    ║
-║  • Anti-AFK                                                      ║
-║  • Auto Save Settings                                            ║
-║  • And much more...                                              ║
-╚══════════════════════════════════════════════════════════════════╝
-]])
