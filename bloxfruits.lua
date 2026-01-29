@@ -3970,15 +3970,15 @@ UICorner.Parent = ImageButton
 	UIListLayout.Parent = TabContainer
 	UIListLayout.FillDirection = Enum.FillDirection.Vertical
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Padding = UDim.new(0, 5)
+	UIListLayout.Padding = UDim.new(0, 10)
 	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
 	function()
 		TabContainer.CanvasSize = UDim2.new(.0, UIListLayout.AbsoluteContentSize.X, 0, 0)
 	end
 	)
 	UIPadding.Parent = TabContainer
-	UIPadding.PaddingLeft = UDim.new(0, 5)
-	UIPadding.PaddingTop = UDim.new(0, 5) --3
+	UIPadding.PaddingLeft = UDim.new(0, 10)
+	UIPadding.PaddingTop = UDim.new(0, 10) --3
 
 	local Bottom = Instance.new("Frame")
 	Bottom.Name = "Bottom"
@@ -4363,7 +4363,7 @@ UICorner.Parent = ImageButton
 				Button_2.Name = "Button"
 				Button_2.Parent = SectionContainer
 				Button_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-				Button_2.Size = UDim2.new(0.975000024, 0, 0, 25)
+				Button_2.Size = UDim2.new(0.975000024, 0, 0, 35)
 				Button_2.ZIndex = 16
 
 				if default then
@@ -4465,7 +4465,7 @@ UICorner.Parent = ImageButton
 				Button.Name = "Button"
 				Button.Parent = SectionContainer
 				Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-				Button.Size = UDim2.new(0.975000024, 0, 0, 20)
+				Button.Size = UDim2.new(0.975000024, 0, 0, 30)
 				Button.ZIndex = 16
 
 				UICorner_6.CornerRadius = UDim.new(0, 4)
@@ -5307,6 +5307,9 @@ local MiscShop = Window:Tab("Shop & Misc","10723434557")
 local AutoStatus = Window:Tab("Status Server","10709770317")
 local WebhookTab = Window:Tab("Webhook","10723434557")
 local ConfigTab = Window:Tab("Config","10723434557")
+local Sea1Tab = Window:Tab("Sea 1","14477284625")
+local Sea2Tab = Window:Tab("Sea 2","11446859498")
+local Sea3Tab = Window:Tab("Sea 3","10734941354")
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
@@ -12255,3 +12258,162 @@ end
 
 -- Nghe khi có skill mới
 workspace.DescendantAdded:Connect(rainbowSkill)
+-- ========== SEA 1 FEATURES ==========
+local Sea1Section = Sea1Tab:Section("Sea 1: The Starter Sea", "Left")
+
+Sea1Section:Button("Auto-Saber Puzzle", function(state)
+    _G.AutoSaberPuzzle = state
+    while _G.AutoSaberPuzzle do
+        wait(1)
+        pcall(function()
+            -- Jungle Buttons
+            local buttons = {
+                game:GetService("Workspace").Map.Jungle.QuestPlates.Plate1.Button,
+                game:GetService("Workspace").Map.Jungle.QuestPlates.Plate2.Button,
+                game:GetService("Workspace").Map.Jungle.QuestPlates.Plate3.Button,
+                game:GetService("Workspace").Map.Jungle.QuestPlates.Plate4.Button,
+                game:GetService("Workspace").Map.Jungle.QuestPlates.Plate5.Button
+            }
+            for _, v in pairs(buttons) do
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+                wait(0.5)
+            end
+            -- Kill Saber Expert
+            local saberExpert = game:GetService("Workspace").Enemies:FindFirstChild("Saber Expert")
+            if saberExpert and saberExpert:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = saberExpert.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+                -- Add attack logic here
+            end
+        end)
+    end
+end)
+
+Sea1Section:Button("Auto-Pole (Form 1)", function(state)
+    _G.AutoPole = state
+    while _G.AutoPole do
+        wait(1)
+        pcall(function()
+            local enel = game:GetService("Workspace").Enemies:FindFirstChild("Thunder God")
+            if enel and enel:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = enel.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+                -- Add attack logic here
+            end
+        end)
+    end
+end)
+
+Sea1Section:Button("Auto-Chest Farm", function(state)
+    _G.AutoChest = state
+    while _G.AutoChest do
+        wait(0.1)
+        pcall(function()
+            for _, v in pairs(game:GetService("Workspace"):GetChildren()) do
+                if v.Name:find("Chest") and v:IsA("Part") then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+                    wait(0.1)
+                end
+            end
+        end)
+    end
+end)
+
+Sea1Section:Button("Auto-Stat Point", function(state)
+    _G.AutoStat = state
+    while _G.AutoStat do
+        wait(1)
+        pcall(function()
+            local args = {
+                [1] = "AddPoint",
+                [2] = "Melee",
+                [3] = 1
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            args[2] = "Defense"
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            args[2] = "Sword"
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+        end)
+    end
+end)
+
+-- ========== SEA 2 FEATURES ==========
+local Sea2Section = Sea2Tab:Section("Sea 2: The Mid Sea", "Left")
+
+Sea2Section:Button("Auto-Raid & Auto-Awaken", function(state)
+    _G.AutoRaid = state
+    while _G.AutoRaid do
+        wait(1)
+        pcall(function()
+            -- Logic to start raid and buy awakenings
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaidsSpawner", "Flame") -- Example
+            wait(5)
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartRaid")
+        end)
+    end
+end)
+
+Sea2Section:Button("Auto-Factory", function(state)
+    _G.AutoFactory = state
+    while _G.AutoFactory do
+        wait(1)
+        pcall(function()
+            local factory = game:GetService("Workspace").Enemies:FindFirstChild("Core")
+            if factory then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = factory.CFrame * CFrame.new(0, 0, 5)
+            end
+        end)
+    end
+end)
+
+Sea2Section:Button("Auto-Darkbeard", function(state)
+    _G.AutoDarkbeard = state
+    while _G.AutoDarkbeard do
+        wait(1)
+        pcall(function()
+            local darkbeard = game:GetService("Workspace").Enemies:FindFirstChild("Darkbeard")
+            if darkbeard then
+                game:GetService("StarterGui"):SetCore("SendNotification", {Title = "ReaperHub", Text = "Darkbeard Spawned!"})
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = darkbeard.HumanoidRootPart.CFrame
+            end
+        end)
+    end
+end)
+
+Sea2Section:Button("Auto-Zoro/Sanji Quests", function(state)
+    _G.AutoLegendaryStyle = state
+    -- Logic for Zoro/Sanji quests
+end)
+
+-- ========== SEA 3 FEATURES ==========
+local Sea3Section = Sea3Tab:Section("Sea 3: The End Game", "Left")
+
+Sea3Section:Button("Auto-Elite Hunter", function(state)
+    _G.AutoElite = state
+    while _G.AutoElite do
+        wait(1)
+        pcall(function()
+            -- Logic to farm elite pirates
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("EliteHunter")
+        end)
+    end
+end)
+
+Sea3Section:Button("Auto-Soul Guitar Puzzle", function(state)
+    _G.AutoSoulGuitar = state
+    -- Complex puzzle logic
+end)
+
+Sea3Section:Button("Auto-Kitsune Island", function(state)
+    _G.AutoKitsune = state
+    -- Track full moon and teleport
+end)
+
+Sea3Section:Button("Auto-Cake Prince / Katakuri", function(state)
+    _G.AutoKatakuri = state
+    -- Farm cocoa and bosses
+end)
+
+Sea3Section:Button("Auto-Cursed Dual Katana (CDK)", function(state)
+    _G.AutoCDK = state
+    -- Complex questline automation
+end)
