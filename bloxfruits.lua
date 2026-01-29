@@ -3658,8 +3658,8 @@ function library:CreateWindow(title, subtitle)
     MainFrame.BackgroundColor3 = Theme.Background
     MainFrame.BackgroundTransparency = Theme.BackgroundTransparency
     MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.5, -350, 0.5, -250)
-    MainFrame.Size = UDim2.new(0, 700, 0, 500)
+    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.ClipsDescendants = true
     
     local MainCorner = Instance.new("UICorner")
@@ -3723,7 +3723,7 @@ function library:CreateWindow(title, subtitle)
     local function ToggleGUI()
         isToggled = not isToggled
         if isToggled then
-            MainFrame:TweenSize(UDim2.new(0, 700, 0, 500), "Out", "Quart", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 600, 0, 400), "Out", "Quart", 0.3, true)
         else
             MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Quart", 0.3, true)
         end
@@ -3766,7 +3766,7 @@ function library:CreateWindow(title, subtitle)
     Sidebar.BackgroundTransparency = 0.3
     Sidebar.BorderSizePixel = 0
     Sidebar.Position = UDim2.new(0, 0, 0, 50)
-    Sidebar.Size = UDim2.new(0, 160, 1, -50)
+    Sidebar.Size = UDim2.new(0, 140, 1, -50)
     
     local SidebarList = Instance.new("UIListLayout")
     SidebarList.Parent = Sidebar
@@ -3779,14 +3779,24 @@ function library:CreateWindow(title, subtitle)
     SidebarPadding.PaddingLeft = UDim.new(0, 5)
     SidebarPadding.PaddingRight = UDim.new(0, 5)
     
+    -- Separator line between sidebar and content
+    local SeparatorLine = Instance.new("Frame")
+    SeparatorLine.Name = "Separator"
+    SeparatorLine.Parent = MainFrame
+    SeparatorLine.BackgroundColor3 = Theme.Border
+    SeparatorLine.BorderSizePixel = 0
+    SeparatorLine.Position = UDim2.new(0, 140, 0, 50)
+    SeparatorLine.Size = UDim2.new(0, 1, 1, -50)
+    SeparatorLine.ZIndex = 10
+    
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "Content"
     ContentArea.Parent = MainFrame
     ContentArea.BackgroundColor3 = Theme.Content
     ContentArea.BackgroundTransparency = 0.4
     ContentArea.BorderSizePixel = 0
-    ContentArea.Position = UDim2.new(0, 160, 0, 50)
-    ContentArea.Size = UDim2.new(1, -160, 1, -50)
+    ContentArea.Position = UDim2.new(0, 141, 0, 50)
+    ContentArea.Size = UDim2.new(1, -141, 1, -50)
 
     -- Make Draggable
     local dragging, dragInput, dragStart, startPos
@@ -4166,18 +4176,10 @@ end
 local Window = library:CreateWindow("[R] REAPER HUB", "Blox Fruits")
 
 -- Compatibility wrapper for old Tab/Section API
-local function WrapTab(tab)
-    local wrapper = {}
-    function wrapper:Section(name)
-        return tab:CreateSection(name)
-    end
-    return wrapper
-end
-
-local OriginalTab = Window.CreateTab
+-- Remove wrapper - use tabs directly
+local OriginalCreateTab = Window.CreateTab
 function Window:Tab(name)
-    local tab = OriginalTab(self, name)
-    return WrapTab(tab)
+    return OriginalCreateTab(self, name)
 end
 
 local Main = Window:Tab("Farm")
