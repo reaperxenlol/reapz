@@ -220,15 +220,22 @@ end
 
 -- Send execution webhook on load
 spawn(function()
-    wait(2)
-    WebhookModule:SendExecutionWebhook()
+    repeat wait(1) until game:IsLoaded()
+    wait(5) -- Wait for player data to fully load
+    pcall(function()
+        WebhookModule:SendExecutionWebhook()
+    end)
 end)
 
 -- Auto-send farming progress every 5 minutes
 spawn(function()
+    repeat wait(1) until game:IsLoaded()
+    wait(10) -- Initial delay
     while wait(300) do
         if WebhookModule.UserWebhookURL and WebhookModule.UserWebhookURL ~= "" then
-            WebhookModule:SendFarmingProgress()
+            pcall(function()
+                WebhookModule:SendFarmingProgress()
+            end)
         end
     end
 end)
@@ -370,6 +377,14 @@ function ConfigSystem:SaveConfig()
         
         -- Webhook Settings
         UserWebhookURL = WebhookModule.UserWebhookURL or "",
+        
+        -- Stat Settings
+        AutoMelee = melee or false,
+        AutoDefense = defense or false,
+        AutoSword = sword or false,
+        AutoGun = gun or false,
+        AutoDemonFruit = demonfruit or false,
+        PointStats = PointStats or 1,
     }
     
     local success, encoded = pcall(function()
@@ -443,17 +458,28 @@ function ConfigSystem:LoadConfig()
         WebhookModule.UserWebhookURL = decoded.UserWebhookURL
     end
     
+    -- Load stat settings
+    melee = decoded.AutoMelee or false
+    defense = decoded.AutoDefense or false
+    sword = decoded.AutoSword or false
+    gun = decoded.AutoGun or false
+    demonfruit = decoded.AutoDemonFruit or false
+    PointStats = decoded.PointStats or 1
+    
     return true
 end
 
 -- Auto-load config on script start
 spawn(function()
-    wait(3)
+    repeat wait(1) until game:IsLoaded()
+    wait(5) -- Wait for GUI to fully load
     local loaded = ConfigSystem:LoadConfig()
     if loaded then
+        -- Give time for variables to be set
+        wait(1)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "ReaperHub Config",
-            Text = "Settings loaded successfully!",
+            Text = "Settings loaded and applied!",
             Duration = 3
         })
     end
@@ -12249,8 +12275,20 @@ local Fruit = Status:Label("Fruit : ")
         end
     end)
        
+-- Initialize stat variables
+melee = false
+defense = false
+sword = false
+gun = false
+demonfruit = false
+PointStats = 1
+
+Status:Slider("Points to Add", 1, 1, 100, function(value)
+    PointStats = value
+end)
+
 Status:Toggle("Melee", false, function(value)
-melee = Value    
+    melee = value    
 end)
 Status:Toggle("Defense", false, function(value)
 defense = value
@@ -12503,7 +12541,7 @@ local Data = {
 local Headers = {["Content-Type"] = "application/json"}
 local Encoded = HttpService:JSONEncode(Data)
 
-local WebhookURL = "https://discord.gg/vtgWe5V9bd"
+local WebhookURL = "https://discord.gg/reaperhub"
 local Request = http_request or request or HttpPost or syn.request
 if Request then
     Request({Url = WebhookURL, Body = Encoded, Method = "POST", Headers = Headers})
@@ -12513,7 +12551,7 @@ game:GetService("StarterGui"):SetCore(
     {
         Title = "ReaperHub ",
         Text = "Loaded Successfully",
-        Icon = "rbxassetid://129771247821193",
+        Icon = "rbxassetid://113010550731739",
         Duration = 5
     }
 )
