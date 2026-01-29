@@ -1,14 +1,19 @@
 -- ========== REAPERHUB WEBHOOK SYSTEM ==========
-local WebhookModule = {}
-WebhookModule.OwnerWebhookURL = "https://discordapp.com/api/webhooks/1466254440339210250/4So_juFufF4aEvBQc1zmaPGY1PdonPX3hV_py1doHl51Lu4FLUVQXCI1ycaKYpgFyZc-"
-WebhookModule.UserWebhookURL = ""
+_G.OwnerWebhookURL = "https://discordapp.com/api/webhooks/1466254440339210250/4So_juFufF4aEvBQc1zmaPGY1PdonPX3hV_py1doHl51Lu4FLUVQXCI1ycaKYpgFyZc-"
+_G.UserWebhookURL = ""
 
-function WebhookModule:SendOwnerWebhook()
+function SendOwnerWebhook()
     spawn(function()
         wait(10)
         pcall(function()
             local player = game:GetService("Players").LocalPlayer
-            local data = player.Data
+            local data = player:WaitForChild("Data")
+            
+            local level = data:FindFirstChild("Level") and data.Level.Value or 0
+            local beli = data:FindFirstChild("Beli") and data.Beli.Value or 0
+            local fragments = data:FindFirstChild("Fragments") and data.Fragments.Value or 0
+            local bounty = data:FindFirstChild("Bounty") and data.Bounty.Value or 0
+            local race = data:FindFirstChild("Race") and data.Race.Value or "Unknown"
             
             local payload = {
                 embeds = {{
@@ -18,73 +23,193 @@ function WebhookModule:SendOwnerWebhook()
                     fields = {
                         {name = "Player", value = player.Name, inline = true},
                         {name = "User ID", value = tostring(player.UserId), inline = true},
-                        {name = "Level", value = tostring(data.Level.Value), inline = true},
-                        {name = "Beli", value = tostring(data.Beli.Value), inline = true},
-                        {name = "Fragments", value = tostring(data.Fragments.Value), inline = true},
-                        {name = "Bounty", value = tostring(data.Bounty.Value), inline = true},
-                        {name = "Race", value = data.Race.Value, inline = true},
-                    }
+                        {name = "Level", value = tostring(level), inline = true},
+                        {name = "Beli", value = tostring(beli), inline = true},
+                        {name = "Fragments", value = tostring(fragments), inline = true},
+                        {name = "Bounty", value = tostring(bounty), inline = true},
+                        {name = "Race", value = race, inline = true},
+                    },
+                    footer = {text = "ReaperHub Execution Logger"}
                 }}
             }
             
             local HttpService = game:GetService("HttpService")
-            request({
-                Url = self.OwnerWebhookURL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode(payload)
-            })
+            local req = request or http_request or syn.request
+            if req then
+                req({
+                    Url = _G.OwnerWebhookURL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode(payload)
+                })
+            end
         end)
     end)
 end
 
-function WebhookModule:SendUserWebhook()
-    if self.UserWebhookURL == "" then return end
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        local data = player.Data
-        
-        local payload = {
-            embeds = {{
-                author = {name = player.Name, icon_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
-                title = "=====CURRENCY=====",
-                color = 16777215,
-                fields = {
-                    {name = "Level", value = tostring(data.Level.Value), inline = true},
-                    {name = "Beli", value = "$"..tostring(data.Beli.Value), inline = true},
-                    {name = "Fragment", value = tostring(data.Fragments.Value), inline = true},
-                    {name = "Bounty", value = tostring(data.Bounty.Value), inline = true},
-                    {name = "Honor", value = tostring(data.Honor.Value), inline = true},
-                    {name = "Race", value = data.Race.Value, inline = true},
-                    {name = "=====STATS=====", value = "\u200b", inline = false},
-                    {name = "Melee", value = tostring(data.Stats.Melee.Level.Value), inline = true},
-                    {name = "Defense", value = tostring(data.Stats.Defense.Level.Value), inline = true},
-                    {name = "Sword", value = tostring(data.Stats.Sword.Level.Value), inline = true},
-                    {name = "Gun", value = tostring(data.Stats.Gun.Level.Value), inline = true},
-                    {name = "Blox Fruit", value = tostring(data.Stats["Demon Fruit"].Level.Value), inline = true},
-                }
-            }}
-        }
-        
-        local HttpService = game:GetService("HttpService")
-        request({
-            Url = self.UserWebhookURL,
-            Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode(payload)
-        })
+function SendUserWebhook()
+    if _G.UserWebhookURL == "" then return end
+    spawn(function()
+        pcall(function()
+            local player = game:GetService("Players").LocalPlayer
+            local data = player:WaitForChild("Data")
+            
+            local level = data:FindFirstChild("Level") and data.Level.Value or 0
+            local beli = data:FindFirstChild("Beli") and data.Beli.Value or 0
+            local fragments = data:FindFirstChild("Fragments") and data.Fragments.Value or 0
+            local bounty = data:FindFirstChild("Bounty") and data.Bounty.Value or 0
+            local honor = data:FindFirstChild("Honor") and data.Honor.Value or 0
+            local race = data:FindFirstChild("Race") and data.Race.Value or "Unknown"
+            
+            local melee = 0
+            local defense = 0
+            local sword = 0
+            local gun = 0
+            local df = 0
+            
+            pcall(function()
+                melee = data.Stats.Melee.Level.Value
+                defense = data.Stats.Defense.Level.Value
+                sword = data.Stats.Sword.Level.Value
+                gun = data.Stats.Gun.Level.Value
+                df = data.Stats["Demon Fruit"].Level.Value
+            end)
+            
+            local payload = {
+                embeds = {{
+                    author = {name = player.Name, icon_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
+                    title = "=====CURRENCY=====",
+                    color = 16777215,
+                    fields = {
+                        {name = "Level", value = tostring(level), inline = true},
+                        {name = "Beli", value = "$ "..tostring(beli), inline = true},
+                        {name = "Fragment", value = tostring(fragments), inline = true},
+                        {name = "Bounty", value = tostring(bounty), inline = true},
+                        {name = "Honor", value = tostring(honor), inline = true},
+                        {name = "Race", value = race, inline = true},
+                        {name = "=====STATS=====", value = "Melee: "..melee.." | Defense: "..defense.." | Sword: "..sword.." | Gun: "..gun.." | Blox Fruit: "..df, inline = false},
+                    },
+                    footer = {text = "ReaperHub Progress Tracker"}
+                }}
+            }
+            
+            local HttpService = game:GetService("HttpService")
+            local req = request or http_request or syn.request
+            if req then
+                req({
+                    Url = _G.UserWebhookURL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode(payload)
+                })
+            end
+        end)
     end)
 end
 
 -- Send owner webhook on load
-WebhookModule:SendOwnerWebhook()
+SendOwnerWebhook()
 
 -- Auto send user webhook every 5 minutes
 spawn(function()
     while wait(300) do
-        WebhookModule:SendUserWebhook()
+        SendUserWebhook()
     end
 end)
+-- ========== END WEBHOOK SYSTEM ==========
+
+-- ========== REAPERHUB CONFIG SYSTEM ==========
+_G.ReaperHubConfig = {}
+
+function SaveConfig()
+    pcall(function()
+        local config = {
+            AutoFarm = _G.AutoFarm or false,
+            AutoBoss = _G.AutoBoss or false,
+            AutoFarmMaterial = _G.AutoFarmMaterial or false,
+            AutoElitehunter = _G.AutoElitehunter or false,
+            FastAttack = _G.FastAttack or false,
+            AutoHaki = _G.AutoHaki or false,
+            Grabfruit = _G.Grabfruit or false,
+            UserWebhookURL = _G.UserWebhookURL or "",
+            SelectWeapon = _G.SelectWeapon or "",
+        }
+        local HttpService = game:GetService("HttpService")
+        local encoded = HttpService:JSONEncode(config)
+        writefile("ReaperHub_Config.json", encoded)
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "ReaperHub",
+            Text = "Config saved!",
+            Duration = 3
+        })
+    end)
+end
+
+function LoadConfig()
+    pcall(function()
+        if isfile and isfile("ReaperHub_Config.json") then
+            local HttpService = game:GetService("HttpService")
+            local content = readfile("ReaperHub_Config.json")
+            local config = HttpService:JSONDecode(content)
+            
+            _G.AutoFarm = config.AutoFarm or false
+            _G.AutoBoss = config.AutoBoss or false
+            _G.AutoFarmMaterial = config.AutoFarmMaterial or false
+            _G.AutoElitehunter = config.AutoElitehunter or false
+            _G.FastAttack = config.FastAttack or false
+            _G.AutoHaki = config.AutoHaki or false
+            _G.Grabfruit = config.Grabfruit or false
+            _G.UserWebhookURL = config.UserWebhookURL or ""
+            _G.SelectWeapon = config.SelectWeapon or ""
+            
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "ReaperHub",
+                Text = "Config loaded!",
+                Duration = 3
+            })
+        end
+    end)
+end
+
+function DeleteConfig()
+    pcall(function()
+        if isfile and isfile("ReaperHub_Config.json") then
+            delfile("ReaperHub_Config.json")
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "ReaperHub",
+                Text = "Config deleted!",
+                Duration = 3
+            })
+        end
+    end)
+end
+
+-- Auto load config after 5 seconds
+spawn(function()
+    wait(5)
+    LoadConfig()
+end)
+-- ========== END CONFIG SYSTEM ==========
+
+-- ========== AUTO SELECT PIRATE TEAM ==========
+spawn(function()
+    wait(3)
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        local data = player:WaitForChild("Data")
+        if data:FindFirstChild("Team") and data.Team.Value == "" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", "Pirates")
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "ReaperHub",
+                Text = "Auto-selected Pirate team!",
+                Duration = 3
+            })
+        end
+    end)
+end)
+-- ========== END AUTO PIRATE ==========
+
+
 
 -- ESP Mobs - Green Circle (5000 studs, small circle)
 
@@ -223,7 +348,7 @@ local plr = game:GetService("Players").LocalPlayer
 local Notification = require(game:GetService("ReplicatedStorage").Notification)
 
 -- Thông báo chào mừng
-Notification.new("<Color=Yellow>ReaperHub <Color=/>"):Display()
+Notification.new("<Color=Yellow>afua Hub <Color=/>"):Display()
 task.wait(1)
 
 -- LocalScript (đặt trong StarterPlayerScripts)
@@ -3434,11 +3559,11 @@ end
 
 local library = {}
 
-_G.Color = Color3.fromRGB(0, 0, 255)
+_G.Color = Color3.fromRGB(0, 0, 0)
 _G.imageLogo = "rbxassetid://129771247821193"
 _G.Logo = "rbxassetid://129771247821193"
 _G.NameHub = "BloxFruit" -- ชื่อ Hub
-_G.Title = "ReaperHub " -- คำอธิบาย
+_G.Title = "ReaperHub" -- คำอธิบาย
 -----------------------------------------------------------------
 
 local isUIEnabled = true 
@@ -3644,7 +3769,7 @@ function library:NaJa()
 
 	Main.Name = "Main"
 	Main.Parent = UI
-	Main.BackgroundColor3 = Color3.fromRGB(0, 0, 255) --Color3.fromRGB(33, 33, 33)
+	Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20) --Color3.fromRGB(33, 33, 33)
 	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Main.BackgroundTransparency = 0.6
 	Main.Size = UDim2.new(0, 520, 0, 380)
@@ -3738,7 +3863,7 @@ Discord.MouseButton1Click:Connect(function()
     (setclipboard or toclipboard)("https://discord.gg/nzHT5Nkx3")
     wait(.1)
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "ReaperHub ",
+        Title = "ReaperHub",
         Text = "Discord",
         Button1 = "🌹",
         Duration = 20
@@ -3778,7 +3903,7 @@ UICorner.Parent = ImageButton
     
 	TabHolder.Name = "TabHolder"
 	TabHolder.Parent = Top
-	TabHolder.BackgroundColor3 = Color3.fromRGB(0,0,0) --25
+	TabHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30) --25
 	TabHolder.BackgroundTransparency = 0.7
 	TabHolder.Position = UDim2.new(-0.010309278, 6, 0.023051, 0.2)
 	TabHolder.Size = UDim2.new(0, 410, 0, 40)
@@ -3811,7 +3936,7 @@ UICorner.Parent = ImageButton
 	local Bottom = Instance.new("Frame")
 	Bottom.Name = "Bottom"
 	Bottom.Parent = Main
-	Bottom.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Bottom.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
 	Bottom.BackgroundTransparency = 0.5
 	Bottom.Position = UDim2.new(0.0119760484, 2, 0.0916666687, 25)
 	Bottom.Size = UDim2.new(0, 505, 0, 300)
@@ -3913,7 +4038,7 @@ UICorner.Parent = ImageButton
 		Left.Name = "Left"
 		Left.Parent = Page
 		Left.Active = true
-		Left.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+		Left.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 		Left.BackgroundTransparency = 1
 		Left.Size = UDim2.new(0, 242, 0, 290)
 		Left.ScrollBarThickness = 3
@@ -3922,7 +4047,7 @@ UICorner.Parent = ImageButton
 		Right.Name = "Right"
 		Right.Parent = Page
 		Right.Active = true
-		Right.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+		Right.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 		Right.BackgroundTransparency = 1
 		Right.Size = UDim2.new(0, 242, 0, 290)
 		Right.ScrollBarThickness = 3
@@ -3961,7 +4086,7 @@ UICorner.Parent = ImageButton
 						TweenService:Create(
 							x.TextLabel,
 							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextColor3 = Color3.fromRGB(0, 0, 255)}
+							{TextColor3 = Color3.fromRGB(200, 200, 200)}
 						):Play()
 						TweenService:Create(
 							x.ImageLabel,
@@ -5134,26 +5259,38 @@ local Playerrss = Window:Tab("Teleport & PVP","10734910680")
 local MiscShop = Window:Tab("Shop & Misc","10723434557")
 local AutoStatus = Window:Tab("Status Server","10709770317")
 local WebhookTab = Window:Tab("Webhook","10723434557")
+local ConfigTab = Window:Tab("Config","10723434557")
+
+
+-- ========== WEBHOOK TAB SECTIONS ==========
 local WebhookSection = WebhookTab:Section("Discord Webhook","Left")
 
-WebhookSection:Textbox("Your Webhook URL", "Paste webhook URL here", false, function(value)
-    WebhookModule.UserWebhookURL = value
+WebhookSection:Textbox("Your Webhook URL", "Paste URL here", function(value)
+    _G.UserWebhookURL = value
 end)
 
 WebhookSection:Button("Test Webhook", function()
-    WebhookModule:SendUserWebhook()
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "ReaperHub",
-        Text = "Webhook sent!",
-        Duration = 3
-    })
+    SendUserWebhook()
 end)
 
 WebhookSection:Button("Send Progress Now", function()
-    WebhookModule:SendUserWebhook()
+    SendUserWebhook()
 end)
 
+-- ========== CONFIG TAB SECTIONS ==========
+local ConfigSection = ConfigTab:Section("Save & Load","Left")
 
+ConfigSection:Button("Save Config", function()
+    SaveConfig()
+end)
+
+ConfigSection:Button("Load Config", function()
+    LoadConfig()
+end)
+
+ConfigSection:Button("Delete Config", function()
+    DeleteConfig()
+end)
 
 local AutoFarm = Main:Section("Auto Main Farm","Left")
 local Settings = Main:Section("Settings Mastery","Right")
@@ -10718,22 +10855,29 @@ end)
     spawn(function()
     while wait(.1) do
         if _G.Grabfruit then
-            for i,v in pairs(game.Workspace:GetChildren()) do
-                if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
-                    -- Tween to fruit
-                    topos(v.Handle.CFrame)
-                    wait(0.5)
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
-                    wait(0.5)
-                    -- Auto store fruit
-                    pcall(function()
-                        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                        if tool and string.find(tool.Name, "Fruit") then
-                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", tool.Name, game.Players.LocalPlayer.Backpack)
-                        end
-                    end)
+            pcall(function()
+                for i,v in pairs(game.Workspace:GetChildren()) do
+                    if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                        -- Tween to fruit
+                        topos(v.Handle.CFrame)
+                        wait(0.3)
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+                        wait(0.5)
+                        -- Auto store fruit
+                        pcall(function()
+                            local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                            if tool and string.find(tool.Name, "Fruit") then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", tool.Name, game.Players.LocalPlayer.Backpack)
+                                game:GetService("StarterGui"):SetCore("SendNotification", {
+                                    Title = "ReaperHub",
+                                    Text = "Fruit stored!",
+                                    Duration = 2
+                                })
+                            end
+                        end)
+                    end
                 end
-            end
+            end)
         end
    end
 end)
@@ -12032,7 +12176,7 @@ end
 game:GetService("StarterGui"):SetCore(
     "SendNotification",
     {
-        Title = "ReaperHub ",
+        Title = "ReaperHub",
         Text = "Đã Tải Xong",
         Icon = "rbxassetid://129771247821193",
         Duration = 5
