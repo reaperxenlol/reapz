@@ -348,7 +348,7 @@ local plr = game:GetService("Players").LocalPlayer
 local Notification = require(game:GetService("ReplicatedStorage").Notification)
 
 -- Thông báo chào mừng
-Notification.new("<Color=Yellow>afua Hub <Color=/>"):Display()
+Notification.new("<Color=Yellow>ReaperHub <Color=/>"):Display()
 task.wait(1)
 
 -- LocalScript (đặt trong StarterPlayerScripts)
@@ -358,7 +358,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Tùy chỉnh
-local TEXT = "afuanohack"
+local TEXT = "ReaperHub"
 local TEXT_SIZE = 14                 -- kích thước chữ (không quá to)
 local GUI_OFFSET = Vector3.new(0, 1.8, 0) -- khoảng cách so với đầu
 local RAINBOW_SPEED = 1.0           -- tốc độ đổi màu (1 = bình thường, tăng để nhanh hơn)
@@ -3559,9 +3559,9 @@ end
 
 local library = {}
 
-_G.Color = Color3.fromRGB(0, 0, 0)
-_G.imageLogo = "rbxassetid://113010550731739"
-_G.Logo = "rbxassetid://113010550731739"
+_G.Color = Color3.fromRGB(255, 255, 255)
+_G.imageLogo = "rbxassetid://129771247821193"
+_G.Logo = "rbxassetid://129771247821193"
 _G.NameHub = "BloxFruit" -- ชื่อ Hub
 _G.Title = "ReaperHub" -- คำอธิบาย
 -----------------------------------------------------------------
@@ -3598,7 +3598,7 @@ ImageButton.BorderSizePixel = 0
 ImageButton.Position = UDim2.new(0.120833337 - 0.10, 0, 0.0952890813 + 0.01, 0)
 ImageButton.Size = UDim2.new(0, 50, 0, 50)
 ImageButton.Draggable = true
-ImageButton.Image = "rbxassetid://113010550731739"
+ImageButton.Image = "rbxassetid://129771247821193"
 
 UICorner.CornerRadius = UDim.new(1, 0)
 UICorner.Parent = ImageButton
@@ -3654,7 +3654,7 @@ function CircleClick(Button, X, Y)
 				Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Circle.BackgroundTransparency = 1.000
 				Circle.ZIndex = 10
-				Circle.Image = "rbxassetid://113010550731739"
+				Circle.Image = "rbxassetid://129771247821193"
 				Circle.ImageColor3 = Color3.fromRGB(255, 255, 255)
 				Circle.ImageTransparency = 0.7
 				local NewX = X - Circle.AbsolutePosition.X
@@ -3769,7 +3769,7 @@ function library:NaJa()
 
 	Main.Name = "Main"
 	Main.Parent = UI
-	Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20) --Color3.fromRGB(33, 33, 33)
+	Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15) --Color3.fromRGB(33, 33, 33)
 	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Main.BackgroundTransparency = 0.6
 	Main.Size = UDim2.new(0, 520, 0, 380)
@@ -3829,7 +3829,7 @@ Disc_Logo.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Disc_Logo.BorderSizePixel = 0
 Disc_Logo.Position = UDim2.new(0, 5, 0, 1)
 Disc_Logo.Size = UDim2.new(0, 23, 0, 23)
-Disc_Logo.Image = "http://www.roblox.com/asset/?id=113010550731739"
+Disc_Logo.Image = "http://www.roblox.com/asset/?id=129771247821193"
 
 Disc_Title.Name = "Disc_Title"
 Disc_Title.Parent = Discord
@@ -3903,7 +3903,7 @@ UICorner.Parent = ImageButton
     
 	TabHolder.Name = "TabHolder"
 	TabHolder.Parent = Top
-	TabHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30) --25
+	TabHolder.BackgroundColor3 = Color3.fromRGB(20, 20, 20) --25
 	TabHolder.BackgroundTransparency = 0.7
 	TabHolder.Position = UDim2.new(-0.010309278, 6, 0.023051, 0.2)
 	TabHolder.Size = UDim2.new(0, 410, 0, 40)
@@ -3997,7 +3997,7 @@ UICorner.Parent = ImageButton
 		ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		ImageLabel.Position = UDim2.new(0, 5, 0.2, 0)
 		ImageLabel.Size = UDim2.new(0, 20, 0, 20)
-		ImageLabel.Image = "http://www.roblox.com/asset/?id=113010550731739" .. icon
+		ImageLabel.Image = "http://www.roblox.com/asset/?id=129771247821193" .. icon
 		ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
 		ImageLabel.ImageTransparency = 0.2
 		ImageLabel.BackgroundTransparency = 1
@@ -4038,7 +4038,7 @@ UICorner.Parent = ImageButton
 		Left.Name = "Left"
 		Left.Parent = Page
 		Left.Active = true
-		Left.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+		Left.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Left.BackgroundTransparency = 1
 		Left.Size = UDim2.new(0, 242, 0, 290)
 		Left.ScrollBarThickness = 3
@@ -4047,7 +4047,7 @@ UICorner.Parent = ImageButton
 		Right.Name = "Right"
 		Right.Parent = Page
 		Right.Active = true
-		Right.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+		Right.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Right.BackgroundTransparency = 1
 		Right.Size = UDim2.new(0, 242, 0, 290)
 		Right.ScrollBarThickness = 3
@@ -4086,7 +4086,7 @@ UICorner.Parent = ImageButton
 						TweenService:Create(
 							x.TextLabel,
 							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextColor3 = Color3.fromRGB(200, 200, 200)}
+							{TextColor3 = Color3.fromRGB(255, 255, 255)}
 						):Play()
 						TweenService:Create(
 							x.ImageLabel,
@@ -4169,7 +4169,7 @@ UICorner.Parent = ImageButton
 
 			Section.Name = "Section"
 			Section.Parent = GetType(side)
-			Section.BackgroundColor3 = Color3.fromRGB(0, 0, 255) --25
+			Section.BackgroundColor3 = Color3.fromRGB(25, 25, 25) --25
 			Section.BackgroundTransparency = 0.9
 			Section.ClipsDescendants = true
 			Section.Size = UDim2.new(0, 240, 0, 340)
@@ -4315,12 +4315,12 @@ UICorner.Parent = ImageButton
 
 				Button_2.Name = "Button"
 				Button_2.Parent = SectionContainer
-				Button_2.BackgroundColor3 = Color3.fromRGB(154, 240, 17)
+				Button_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 				Button_2.Size = UDim2.new(0.975000024, 0, 0, 25)
 				Button_2.ZIndex = 16
 
 				if default then
-					Button_2.BackgroundColor3 = Color3.fromRGB(154, 240, 17)
+					Button_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 				else
 					Button_2.BackgroundColor3 = _G.Color
 				end
@@ -4471,7 +4471,7 @@ UICorner.Parent = ImageButton
 
 				MainToggle.Name = "MainToggle"
 				MainToggle.Parent = SectionContainer
-				MainToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+				MainToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 				MainToggle.BackgroundTransparency = 0.700
 				MainToggle.BorderSizePixel = 0
 				MainToggle.ClipsDescendants = true
@@ -4606,7 +4606,7 @@ UICorner.Parent = ImageButton
 				local HeadTitle = Instance.new("TextBox")
 				Textbox.Name = "Textbox"
 				Textbox.Parent = SectionContainer
-				Textbox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+				Textbox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 				Textbox.BackgroundTransparency = 0.700
 				Textbox.BorderSizePixel = 0
 				Textbox.ClipsDescendants = true
@@ -11914,69 +11914,74 @@ local Fruit = Status:Label("Fruit : ")
         end
     end)
        
-Status:Toggle("Melee", false, function(value)
-melee = Value    
-end)
-Status:Toggle("Defense", false, function(value)
-defense = value
-end)
-Status:Toggle("Sword", false, function(value)
-sword = value
-end)
-Status:Toggle("Gun", false, function(value)
-gun = value
-end)
-Status:Toggle("Devil Fruit", false, function(value)
-demonfruit = value
+-- Initialize stat variables
+_G.MeleeTarget = 0
+_G.DefenseTarget = 0
+_G.SwordTarget = 0
+_G.GunTarget = 0
+_G.DemonFruitTarget = 0
+_G.PointsPerCycle = 1
+_G.AutoStats = false
+
+Status:Seperator("Auto Stat Assignment")
+
+Status:Textbox("Melee Target", "Enter target level", function(value)
+    _G.MeleeTarget = tonumber(value) or 0
 end)
 
+Status:Textbox("Defense Target", "Enter target level", function(value)
+    _G.DefenseTarget = tonumber(value) or 0
+end)
 
+Status:Textbox("Sword Target", "Enter target level", function(value)
+    _G.SwordTarget = tonumber(value) or 0
+end)
+
+Status:Textbox("Gun Target", "Enter target level", function(value)
+    _G.GunTarget = tonumber(value) or 0
+end)
+
+Status:Textbox("Demon Fruit Target", "Enter target level", function(value)
+    _G.DemonFruitTarget = tonumber(value) or 0
+end)
+
+Status:Slider("Points Per Cycle", 1, 100, 1, function(value)
+    _G.PointsPerCycle = value
+end)
+
+Status:Toggle("Enable Auto Stats", false, function(value)
+    _G.AutoStats = value
+end)
+
+-- Auto stat assignment loop
 spawn(function()
-		while wait() do
-			if game.Players.localPlayer.Data.Points.Value >= PointStats then
-				if melee then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Melee",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if defense then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Defense",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if sword then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Sword",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if gun then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Gun",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if demonfruit then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Demon Fruit",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end
-			end
-		end
-	end)
+    while wait(1) do
+        if _G.AutoStats then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local data = player.Data
+                local points = data.Points.Value
+                
+                if points >= _G.PointsPerCycle then
+                    local stats = data.Stats
+                    
+                    -- Priority order: Melee -> Defense -> Sword -> Gun -> Demon Fruit
+                    if stats.Melee.Level.Value < _G.MeleeTarget then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", _G.PointsPerCycle)
+                    elseif stats.Defense.Level.Value < _G.DefenseTarget then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Defense", _G.PointsPerCycle)
+                    elseif stats.Sword.Level.Value < _G.SwordTarget then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Sword", _G.PointsPerCycle)
+                    elseif stats.Gun.Level.Value < _G.GunTarget then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Gun", _G.PointsPerCycle)
+                    elseif stats["Demon Fruit"].Level.Value < _G.DemonFruitTarget then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", _G.PointsPerCycle)
+                    end
+                end
+            end)
+        end
+    end
+end)
 	    
 
 Time = StatusTime:Label("Executor Time")
@@ -12178,7 +12183,7 @@ game:GetService("StarterGui"):SetCore(
     {
         Title = "ReaperHub",
         Text = "Đã Tải Xong",
-        Icon = "rbxassetid://113010550731739",
+        Icon = "rbxassetid://129771247821193",
         Duration = 5
     }
 )
