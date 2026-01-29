@@ -3658,8 +3658,8 @@ function library:CreateWindow(title, subtitle)
     MainFrame.BackgroundColor3 = Theme.Background
     MainFrame.BackgroundTransparency = Theme.BackgroundTransparency
     MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -160)
-    MainFrame.Size = UDim2.new(0, 500, 0, 320)
+    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
+    MainFrame.Size = UDim2.new(0, 550, 0, 350)
     MainFrame.ClipsDescendants = true
     
     local MainCorner = Instance.new("UICorner")
@@ -3723,7 +3723,7 @@ function library:CreateWindow(title, subtitle)
     local function ToggleGUI()
         isToggled = not isToggled
         if isToggled then
-            MainFrame:TweenSize(UDim2.new(0, 500, 0, 320), "Out", "Quart", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 550, 0, 350), "Out", "Quart", 0.3, true)
         else
             MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Quart", 0.3, true)
         end
@@ -3861,7 +3861,7 @@ function library:CreateWindow(title, subtitle)
             TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 20)
         end)
 
-        TabButton.MouseButton1Click:Connect(function()
+                TabButton.MouseButton1Click:Connect(function()
             for _, t in pairs(Window.Tabs) do
                 t.Button.TextColor3 = Theme.TextDim
                 t.Button.BackgroundTransparency = 1
@@ -3880,9 +3880,19 @@ function library:CreateWindow(title, subtitle)
             TabButton.TextColor3 = Theme.Text
             TabButton.BackgroundTransparency = 0.8
             TabContent.Visible = true
+        end)
+
+        Tab.Button = TabButton
+        Tab.Content = TabContent
+        table.insert(Window.Tabs, Tab)
+
+        if #Window.Tabs == 1 then
+            TabButton.TextColor3 = Theme.Text
+            TabButton.BackgroundTransparency = 0.8
+            TabContent.Visible = true
         end
 
-        function Tab:CreateSection(name)
+                function Tab:CreateSection(name)
             local Section = {}
             
             local SectionFrame = Instance.new("Frame")
@@ -3924,6 +3934,12 @@ function library:CreateWindow(title, subtitle)
             SectionTitle.TextColor3 = Theme.Accent
             SectionTitle.TextSize = 11
             SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+            local function UpdateSize()
+                SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 40)
+            end
+            SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateSize)
+            UpdateSize()
 
             SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
                 SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 40)
@@ -4178,16 +4194,16 @@ function Window:Tab(name)
     return WrapTab(tab)
 end
 
-local Main = Window:Tab("Main")
-local AutoQuest = Window:Tab("Farm")
-local Events = Window:Tab("ES")
-local Racer = Window:Tab("Raid")
-local RaidFruit = Window:Tab("Stats")
-local Playerrss = Window:Tab("Visuals")
-local MiscShop = Window:Tab("Misc")
-local AutoStatus = Window:Tab("Status")
-local WebhookTab = Window:Tab("Webhook")
-local ConfigTab = Window:Tab("Config")
+local Main = Window:Tab("Farm")
+local AutoQuest = Window:Tab("ES")
+local Events = Window:Tab("Raid")
+local Racer = Window:Tab("Stats")
+local RaidFruit = Window:Tab("Visuals")
+local Playerrss = Window:Tab("Misc")
+local MiscShop = Window:Tab("Status")
+local AutoStatus = Window:Tab("Webhook")
+local WebhookTab = Window:Tab("Config")
+local ConfigTab = Window:Tab("Settings")
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
