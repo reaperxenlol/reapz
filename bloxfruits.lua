@@ -3861,7 +3861,7 @@ function library:CreateWindow(title, subtitle)
             TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 20)
         end)
 
-                TabButton.MouseButton1Click:Connect(function()
+        TabButton.MouseButton1Click:Connect(function()
             for _, t in pairs(Window.Tabs) do
                 t.Button.TextColor3 = Theme.TextDim
                 t.Button.BackgroundTransparency = 1
@@ -3880,19 +3880,9 @@ function library:CreateWindow(title, subtitle)
             TabButton.TextColor3 = Theme.Text
             TabButton.BackgroundTransparency = 0.8
             TabContent.Visible = true
-        end)
-
-        Tab.Button = TabButton
-        Tab.Content = TabContent
-        table.insert(Window.Tabs, Tab)
-
-        if #Window.Tabs == 1 then
-            TabButton.TextColor3 = Theme.Text
-            TabButton.BackgroundTransparency = 0.8
-            TabContent.Visible = true
         end
 
-                function Tab:CreateSection(name)
+        function Tab:CreateSection(name)
             local Section = {}
             
             local SectionFrame = Instance.new("Frame")
@@ -3940,10 +3930,6 @@ function library:CreateWindow(title, subtitle)
             end
             SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateSize)
             UpdateSize()
-
-            SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 40)
-            end)
 
             function Section:CreateToggle(name, default, callback)
                 local toggled = default or false
@@ -4177,7 +4163,7 @@ function library:CreateWindow(title, subtitle)
 end
 
 -- Initialize the new Reaper Hub GUI
-local Window = library:CreateWindow("[R] REAPER HUB", "Bladeball | V2")
+local Window = library:CreateWindow("[R] REAPER HUB", "Blox Fruits")
 
 -- Compatibility wrapper for old Tab/Section API
 local function WrapTab(tab)
