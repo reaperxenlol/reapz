@@ -1,511 +1,90 @@
-
--- ========== REAPERHUB ADVANCED WEBHOOK SYSTEM ==========
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
+-- ========== REAPERHUB WEBHOOK SYSTEM ==========
 local WebhookModule = {}
 WebhookModule.OwnerWebhookURL = "https://discordapp.com/api/webhooks/1466254440339210250/4So_juFufF4aEvBQc1zmaPGY1PdonPX3hV_py1doHl51Lu4FLUVQXCI1ycaKYpgFyZc-"
-WebhookModule.UserWebhookURL = nil
+WebhookModule.UserWebhookURL = ""
 
--- Wait for player data to load
-local function WaitForData()
-    local maxWait = 30
-    local waited = 0
-    
-    while waited < maxWait do
-        if LocalPlayer and LocalPlayer:FindFirstChild("Data") then
-            local data = LocalPlayer.Data
-            if data:FindFirstChild("Level") and data:FindFirstChild("Beli") then
-                return true
-            end
-        end
-        wait(1)
-        waited = waited + 1
-    end
-    
-    return false
-end
-
--- Get comprehensive player data
-function WebhookModule:GetComprehensiveData()
-    local data = {}
-    
-    local success = pcall(function()
-        local playerData = LocalPlayer.Data
-        
-        -- Basic Stats
-        data.Level = playerData:FindFirstChild("Level") and playerData.Level.Value or 0
-        data.Beli = playerData:FindFirstChild("Beli") and playerData.Beli.Value or 0
-        data.Fragments = playerData:FindFirstChild("Fragments") and playerData.Fragments.Value or 0
-        data.Bounty = playerData:FindFirstChild("Bounty") and playerData.Bounty.Value or 0
-        data.Honor = playerData:FindFirstChild("Honor") and playerData.Honor.Value or 0
-        data.Race = playerData:FindFirstChild("Race") and playerData.Race.Value or "Unknown"
-        
-        -- Equipped Items
-        data.DevilFruit = playerData:FindFirstChild("DevilFruit") and playerData.DevilFruit.Value or "None"
-        data.FightingStyle = playerData:FindFirstChild("FightingStyle") and playerData.FightingStyle.Value or "None"
-        
-        -- World/Sea
-        local placeId = game.PlaceId
-        if placeId == 2753915549 then
-            data.World = "First Sea"
-        elseif placeId == 4442272183 then
-            data.World = "Second Sea"
-        elseif placeId == 7449423635 then
-            data.World = "Third Sea"
-        else
-            data.World = "Unknown"
-        end
-        
-        -- Additional stats
-        data.ExpToNextLevel = playerData:FindFirstChild("Exp") and playerData.Exp.Value or 0
-        data.Points = playerData:FindFirstChild("Points") and playerData.Points.Value or 0
-        
-        -- Combat stats
-        if playerData:FindFirstChild("Stats") then
-            local stats = playerData.Stats
-            data.Melee = stats:FindFirstChild("Melee") and stats.Melee.Level.Value or 0
-            data.Defense = stats:FindFirstChild("Defense") and stats.Defense.Level.Value or 0
-            data.Sword = stats:FindFirstChild("Sword") and stats.Sword.Level.Value or 0
-            data.Gun = stats:FindFirstChild("Gun") and stats.Gun.Level.Value or 0
-            data.DevilFruitStat = stats:FindFirstChild("Demon Fruit") and stats["Demon Fruit"].Level.Value or 0
-        end
-        
-        -- Crew info
-        if playerData:FindFirstChild("Crew") then
-            data.CrewName = playerData.Crew.Value or "None"
-        else
-            data.CrewName = "None"
-        end
-        
-        -- Account info
-        data.Username = LocalPlayer.Name
-        data.DisplayName = LocalPlayer.DisplayName
-        data.UserId = LocalPlayer.UserId
-        data.AccountAge = LocalPlayer.AccountAge
+function WebhookModule:SendOwnerWebhook()
+    spawn(function()
+        wait(10)
+        pcall(function()
+            local player = game:GetService("Players").LocalPlayer
+            local data = player.Data
+            
+            local payload = {
+                embeds = {{
+                    title = "ReaperHub Executed",
+                    color = 16777215,
+                    thumbnail = {url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
+                    fields = {
+                        {name = "Player", value = player.Name, inline = true},
+                        {name = "User ID", value = tostring(player.UserId), inline = true},
+                        {name = "Level", value = tostring(data.Level.Value), inline = true},
+                        {name = "Beli", value = tostring(data.Beli.Value), inline = true},
+                        {name = "Fragments", value = tostring(data.Fragments.Value), inline = true},
+                        {name = "Bounty", value = tostring(data.Bounty.Value), inline = true},
+                        {name = "Race", value = data.Race.Value, inline = true},
+                    }
+                }}
+            }
+            
+            local HttpService = game:GetService("HttpService")
+            request({
+                Url = self.OwnerWebhookURL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode(payload)
+            })
+        end)
     end)
-    
-    if not success then
-        print("[ReaperHub Webhook] Failed to get player data")
-    end
-    
-    return data
 end
 
--- Enhanced Owner Execution Webhook
-function WebhookModule:SendExecutionWebhook()
-    if not WaitForData() then
-        print("[ReaperHub Webhook] Data failed to load, skipping execution webhook")
-        return
-    end
-    
-    local data = self:GetComprehensiveData()
-    
-    local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId="..data.UserId.."&width=420&height=420&format=png"
-    
-    local embed = {
-        ["title"] = "🔥 ReaperHub Executed",
-        ["color"] = 16777215,
-        ["thumbnail"] = {
-            ["url"] = avatarUrl
-        },
-        ["fields"] = {
-            {["name"] = "👤 Player", ["value"] = data.Username.." (@"..data.DisplayName..")", ["inline"] = true},
-            {["name"] = "🆔 User ID", ["value"] = tostring(data.UserId), ["inline"] = true},
-            {["name"] = "📅 Account Age", ["value"] = data.AccountAge.." days", ["inline"] = true},
-            {["name"] = "⚔️ Level", ["value"] = tostring(data.Level), ["inline"] = true},
-            {["name"] = "🌊 World", ["value"] = data.World, ["inline"] = true},
-            {["name"] = "🧬 Race", ["value"] = data.Race, ["inline"] = true},
-            {["name"] = "💰 Beli", ["value"] = tostring(data.Beli), ["inline"] = true},
-            {["name"] = "💎 Fragments", ["value"] = tostring(data.Fragments), ["inline"] = true},
-            {["name"] = "💀 Bounty", ["value"] = tostring(data.Bounty), ["inline"] = true},
-            {["name"] = "🏆 Honor", ["value"] = tostring(data.Honor), ["inline"] = true},
-            {["name"] = "📊 Points", ["value"] = tostring(data.Points), ["inline"] = true},
-            {["name"] = "👥 Crew", ["value"] = data.CrewName, ["inline"] = true},
-            {["name"] = "🍎 Devil Fruit", ["value"] = data.DevilFruit, ["inline"] = false},
-            {["name"] = "🥊 Fighting Style", ["value"] = data.FightingStyle, ["inline"] = false},
-            {["name"] = "💪 Melee", ["value"] = tostring(data.Melee), ["inline"] = true},
-            {["name"] = "🛡️ Defense", ["value"] = tostring(data.Defense), ["inline"] = true},
-            {["name"] = "⚔️ Sword", ["value"] = tostring(data.Sword), ["inline"] = true},
-            {["name"] = "🔫 Gun", ["value"] = tostring(data.Gun), ["inline"] = true},
-            {["name"] = "🍇 DF Stat", ["value"] = tostring(data.DevilFruitStat), ["inline"] = true},
-        },
-        ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
-    }
-    
-    local payload = {
-        ["embeds"] = {embed}
-    }
-    
-    local success, result = pcall(function()
-        local jsonPayload = HttpService:JSONEncode(payload)
-        local response = request({
-            Url = self.OwnerWebhookURL,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = jsonPayload
-        })
-        return response
-    end)
-    
-    if success then
-        print("[ReaperHub Webhook] Execution webhook sent successfully")
-    else
-        print("[ReaperHub Webhook] Failed to send execution webhook: "..tostring(result))
-    end
-end
-
--- User Farming Progress Webhook
-function WebhookModule:SendFarmingProgress()
-    if not self.UserWebhookURL or self.UserWebhookURL == "" then
-        return
-    end
-    
-    if not WaitForData() then
-        print("[ReaperHub Webhook] Data not loaded, skipping farming webhook")
-        return
-    end
-    
-    local data = self:GetComprehensiveData()
-    
-    local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId="..data.UserId.."&width=420&height=420&format=png"
-    
-    local embed = {
-        ["author"] = {
-            ["name"] = data.Username.." (@"..data.DisplayName..")",
-            ["icon_url"] = avatarUrl
-        },
-        ["title"] = "=====CURRENCY=====",
-        ["color"] = 16777215,
-        ["fields"] = {
-            {["name"] = "Level:", ["value"] = tostring(data.Level), ["inline"] = true},
-            {["name"] = "Beli:", ["value"] = "$"..tostring(data.Beli), ["inline"] = true},
-            {["name"] = "Fragment:", ["value"] = tostring(data.Fragments), ["inline"] = true},
-            {["name"] = "Bounty:", ["value"] = tostring(data.Bounty), ["inline"] = true},
-            {["name"] = "Honor:", ["value"] = tostring(data.Honor), ["inline"] = true},
-            {["name"] = "Points:", ["value"] = tostring(data.Points), ["inline"] = true},
-            {["name"] = "=====DATA=====", ["value"] = "\u200b", ["inline"] = false},
-            {["name"] = "Race:", ["value"] = data.Race, ["inline"] = true},
-            {["name"] = "World:", ["value"] = data.World, ["inline"] = true},
-            {["name"] = "Crew:", ["value"] = data.CrewName, ["inline"] = true},
-            {["name"] = "=====EQUIPMENT=====", ["value"] = "\u200b", ["inline"] = false},
-            {["name"] = "Fruit:", ["value"] = data.DevilFruit, ["inline"] = true},
-            {["name"] = "Fighting Style:", ["value"] = data.FightingStyle, ["inline"] = true},
-            {["name"] = "=====STATS=====", ["value"] = "\u200b", ["inline"] = false},
-            {["name"] = "Melee:", ["value"] = tostring(data.Melee), ["inline"] = true},
-            {["name"] = "Defense:", ["value"] = tostring(data.Defense), ["inline"] = true},
-            {["name"] = "Sword:", ["value"] = tostring(data.Sword), ["inline"] = true},
-            {["name"] = "Gun:", ["value"] = tostring(data.Gun), ["inline"] = true},
-            {["name"] = "Blox Fruit:", ["value"] = tostring(data.DevilFruitStat), ["inline"] = true},
-        },
-        ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
-    }
-    
-    local payload = {
-        ["embeds"] = {embed}
-    }
-    
-    local success, result = pcall(function()
-        local jsonPayload = HttpService:JSONEncode(payload)
-        local response = request({
+function WebhookModule:SendUserWebhook()
+    if self.UserWebhookURL == "" then return end
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        local data = player.Data
+        
+        local payload = {
+            embeds = {{
+                author = {name = player.Name, icon_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
+                title = "=====CURRENCY=====",
+                color = 16777215,
+                fields = {
+                    {name = "Level", value = tostring(data.Level.Value), inline = true},
+                    {name = "Beli", value = "$"..tostring(data.Beli.Value), inline = true},
+                    {name = "Fragment", value = tostring(data.Fragments.Value), inline = true},
+                    {name = "Bounty", value = tostring(data.Bounty.Value), inline = true},
+                    {name = "Honor", value = tostring(data.Honor.Value), inline = true},
+                    {name = "Race", value = data.Race.Value, inline = true},
+                    {name = "=====STATS=====", value = "\u200b", inline = false},
+                    {name = "Melee", value = tostring(data.Stats.Melee.Level.Value), inline = true},
+                    {name = "Defense", value = tostring(data.Stats.Defense.Level.Value), inline = true},
+                    {name = "Sword", value = tostring(data.Stats.Sword.Level.Value), inline = true},
+                    {name = "Gun", value = tostring(data.Stats.Gun.Level.Value), inline = true},
+                    {name = "Blox Fruit", value = tostring(data.Stats["Demon Fruit"].Level.Value), inline = true},
+                }
+            }}
+        }
+        
+        local HttpService = game:GetService("HttpService")
+        request({
             Url = self.UserWebhookURL,
             Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = jsonPayload
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode(payload)
         })
-        return response
     end)
-    
-    if success then
-        print("[ReaperHub Webhook] Farming progress sent successfully")
-    else
-        print("[ReaperHub Webhook] Failed to send farming progress: "..tostring(result))
-    end
 end
 
--- Send execution webhook on load
-spawn(function()
-    repeat wait(1) until game:IsLoaded()
-    wait(8) -- Extended wait for data
-    WebhookModule:SendExecutionWebhook()
-end)
+-- Send owner webhook on load
+WebhookModule:SendOwnerWebhook()
 
--- Auto-send farming progress every 5 minutes
+-- Auto send user webhook every 5 minutes
 spawn(function()
-    repeat wait(1) until game:IsLoaded()
-    wait(15) -- Initial delay
     while wait(300) do
-        pcall(function()
-            WebhookModule:SendFarmingProgress()
-        end)
+        WebhookModule:SendUserWebhook()
     end
 end)
-
--- ========== AUTO-SELECT PIRATE TEAM ==========
-spawn(function()
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    
-    -- Wait for game to load
-    wait(1)
-    
-    -- Check if player hasn't chosen a team yet
-    local function selectPirateTeam()
-        -- Try multiple times in case of delays
-        for i = 1, 10 do
-            pcall(function()
-                -- Check if team selection is needed
-                if not LocalPlayer.Team or LocalPlayer.Team.Name == "Neutral" then
-                    -- Method 1: Try RemoteEvent
-                    if ReplicatedStorage:FindFirstChild("Remotes") then
-                        local remotes = ReplicatedStorage.Remotes
-                        if remotes:FindFirstChild("CommF_") then
-                            remotes.CommF_:InvokeServer("SetTeam", "Pirates")
-                        end
-                    end
-                    
-                    -- Method 2: Try direct team assignment
-                    local teams = game:GetService("Teams")
-                    if teams:FindFirstChild("Pirates") then
-                        LocalPlayer.Team = teams.Pirates
-                    end
-                    
-                    -- Method 3: Click the pirate button if GUI exists
-                    if LocalPlayer.PlayerGui:FindFirstChild("Main") then
-                        local main = LocalPlayer.PlayerGui.Main
-                        if main:FindFirstChild("ChooseTeam") then
-                            local chooseTeam = main.ChooseTeam
-                            if chooseTeam:FindFirstChild("Container") then
-                                local container = chooseTeam.Container
-                                if container:FindFirstChild("Pirates") then
-                                    local piratesButton = container.Pirates
-                                    if piratesButton:FindFirstChild("ViewportFrame") then
-                                        -- Simulate button click
-                                        for _, v in pairs(getconnections(piratesButton.MouseButton1Click)) do
-                                            v:Fire()
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-            
-            -- Check if successful
-            if LocalPlayer.Team and LocalPlayer.Team.Name == "Pirates" then
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "ReaperHub",
-                    Text = "Auto-selected Pirate team!",
-                    Duration = 3
-                })
-                break
-            end
-            
-            wait(0.5)
-        end
-    end
-    
-    -- Try to select team
-    selectPirateTeam()
-    
-    -- Also watch for respawns/resets
-    LocalPlayer.CharacterAdded:Connect(function()
-        wait(1)
-        selectPirateTeam()
-    end)
-end)
--- ========== END AUTO-SELECT TEAM ==========
-
-
--- ========== REAPERHUB CONFIG SYSTEM ==========
-local ConfigSystem = {}
-ConfigSystem.ConfigFile = "ReaperHub_Config.json"
-ConfigSystem.Settings = {}
-
--- Save current settings to file
-function ConfigSystem:SaveConfig()
-    local config = {
-        -- Auto Farm Settings
-        AutoFarm = _G.AutoFarm or false,
-        AutoFarmLevel = _G.AutoFarmLevel or false,
-        SelectWeapon = _G.SelectWeapon or "Melee",
-        
-        -- Auto Quest Settings
-        AutoBartilo = _G.AutoBartilo or false,
-        AutoThirdSea = _G.AutoThirdSea or false,
-        
-        -- Auto Boss Settings
-        AutoAllBoss = _G.AutoAllBoss or false,
-        SelectBoss = _G.SelectBoss or "",
-        
-        -- Auto Material Settings
-        AutoFarmMaterial = _G.AutoFarmMaterial or false,
-        SelectMaterial = _G.SelectMaterial or "",
-        
-        -- Auto Sea Event Settings
-        AutoKillShark = _G.KillShark or false,
-        AutoKillPiranha = _G.KillPiranha or false,
-        AutoKillTerrorShark = _G.Autoterrorshark or false,
-        AutoSeaBeast = _G.SeaBeasts or false,
-        
-        -- Auto Raid Settings
-        AutoRaid = _G.AutoRaid or false,
-        SelectChip = _G.SelectChip or "",
-        
-        -- Race V4 Settings
-        AutoCompleteRace = _G.AutoCompleteRace or false,
-        AutoQuestRace = _G.AutoQuestRace or false,
-        
-        -- Mastery Settings
-        AutoFarmGunMastery = _G.AutoFarmGunMastery or false,
-        AutoFarmFruitMastery = _G.AutoFarmFruitMastery or false,
-        
-        -- Combat Settings
-        FastAttack = _G.FastAttack or false,
-        AutoHaki = _G.AutoHaki or false,
-        
-        -- Teleport Settings
-        TeleportIsland = _G.TeleportIsland or false,
-        SelectIsland = _G.SelectIsland or "",
-        
-        -- Misc Settings
-        AutoBuyChip = _G.AutoBuyChip or false,
-        AntiAFK = _G.AntiAFK or false,
-        
-        -- Webhook Settings
-        UserWebhookURL = WebhookModule.UserWebhookURL or "",
-        
-        -- Stat Settings
-        MeleeTarget = _G.MeleeTarget or 0,
-        DefenseTarget = _G.DefenseTarget or 0,
-        SwordTarget = _G.SwordTarget or 0,
-        GunTarget = _G.GunTarget or 0,
-        DemonFruitTarget = _G.DemonFruitTarget or 0,
-        PointsPerCycle = _G.PointsPerCycle or 1,
-        AutoStats = _G.AutoStats or false,
-        AutoDefense = defense or false,
-        AutoSword = sword or false,
-        AutoGun = gun or false,
-        AutoDemonFruit = demonfruit or false,
-        PointStats = PointStats or 1,
-    }
-    
-    local success, encoded = pcall(function()
-        return game:GetService("HttpService"):JSONEncode(config)
-    end)
-    
-    if success then
-        writefile(self.ConfigFile, encoded)
-        return true
-    end
-    return false
-end
-
--- Load settings from file
-function ConfigSystem:LoadConfig()
-    if not isfile(self.ConfigFile) then
-        return false
-    end
-    
-    local success, content = pcall(function()
-        return readfile(self.ConfigFile)
-    end)
-    
-    if not success then return false end
-    
-    local decoded
-    success, decoded = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(content)
-    end)
-    
-    if not success or not decoded then return false end
-    
-    -- Apply loaded settings
-    _G.AutoFarm = decoded.AutoFarm or false
-    _G.AutoFarmLevel = decoded.AutoFarmLevel or false
-    _G.SelectWeapon = decoded.SelectWeapon or "Melee"
-    
-    _G.AutoBartilo = decoded.AutoBartilo or false
-    _G.AutoThirdSea = decoded.AutoThirdSea or false
-    
-    _G.AutoAllBoss = decoded.AutoAllBoss or false
-    _G.SelectBoss = decoded.SelectBoss or ""
-    
-    _G.AutoFarmMaterial = decoded.AutoFarmMaterial or false
-    _G.SelectMaterial = decoded.SelectMaterial or ""
-    
-    _G.KillShark = decoded.AutoKillShark or false
-    _G.KillPiranha = decoded.AutoKillPiranha or false
-    _G.Autoterrorshark = decoded.AutoKillTerrorShark or false
-    _G.SeaBeasts = decoded.AutoSeaBeast or false
-    
-    _G.AutoRaid = decoded.AutoRaid or false
-    _G.SelectChip = decoded.SelectChip or ""
-    
-    _G.AutoCompleteRace = decoded.AutoCompleteRace or false
-    _G.AutoQuestRace = decoded.AutoQuestRace or false
-    
-    _G.AutoFarmGunMastery = decoded.AutoFarmGunMastery or false
-    _G.AutoFarmFruitMastery = decoded.AutoFarmFruitMastery or false
-    
-    _G.FastAttack = decoded.FastAttack or false
-    _G.AutoHaki = decoded.AutoHaki or false
-    
-    _G.TeleportIsland = decoded.TeleportIsland or false
-    _G.SelectIsland = decoded.SelectIsland or ""
-    
-    _G.AutoBuyChip = decoded.AutoBuyChip or false
-    _G.AntiAFK = decoded.AntiAFK or false
-    
-    if decoded.UserWebhookURL and decoded.UserWebhookURL ~= "" then
-        WebhookModule.UserWebhookURL = decoded.UserWebhookURL
-    end
-    
-    -- Load stat settings
-    _G.MeleeTarget = decoded.MeleeTarget or 0
-    _G.DefenseTarget = decoded.DefenseTarget or 0
-    _G.SwordTarget = decoded.SwordTarget or 0
-    _G.GunTarget = decoded.GunTarget or 0
-    _G.DemonFruitTarget = decoded.DemonFruitTarget or 0
-    _G.PointsPerCycle = decoded.PointsPerCycle or 1
-    _G.AutoStats = decoded.AutoStats or false
-    defense = decoded.AutoDefense or false
-    sword = decoded.AutoSword or false
-    gun = decoded.AutoGun or false
-    demonfruit = decoded.AutoDemonFruit or false
-    PointStats = decoded.PointStats or 1
-    
-    return true
-end
-
--- Auto-load config on script start
-spawn(function()
-    repeat wait(1) until game:IsLoaded()
-    wait(5) -- Wait for GUI to fully load
-    local loaded = ConfigSystem:LoadConfig()
-    if loaded then
-        -- Give time for variables to be set
-        wait(1)
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub Config",
-            Text = "Settings loaded and applied!",
-            Duration = 3
-        })
-    end
-end)
--- ========== END CONFIG SYSTEM ==========
-
-
-
-
 
 -- ESP Mobs - Green Circle (5000 studs, small circle)
 
@@ -654,7 +233,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Tùy chỉnh
-local TEXT = "ReaperHubnohack"
+local TEXT = "afuanohack"
 local TEXT_SIZE = 14                 -- kích thước chữ (không quá to)
 local GUI_OFFSET = Vector3.new(0, 1.8, 0) -- khoảng cách so với đầu
 local RAINBOW_SPEED = 1.0           -- tốc độ đổi màu (1 = bình thường, tăng để nhanh hơn)
@@ -1926,7 +1505,7 @@ function UpdateChestESP()
                         name.TextYAlignment = "Top"
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255) -- Màu vàng cho chest
+                        name.TextColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng cho chest
                     else
                         local distance = round((game:GetService("Players").LocalPlayer.Character.Head.Position - chest:GetPivot().Position).Magnitude / 3)
                         chest["ChestEsp"].TextLabel.Text = ("Chest\n" .. distance .. " M")
@@ -1998,14 +1577,14 @@ function UpdateFlowerChams()
 						name.TextYAlignment = 'Top'
 						name.BackgroundTransparency = 1
 						name.TextStrokeTransparency = 0.5
-						name.TextColor3 = Color3.fromRGB(255, 255, 255)
+						name.TextColor3 = Color3.fromRGB(255, 0, 0)
 						if v.Name == "Flower1" then 
 							name.Text = ("Blue Flower" ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
-							name.TextColor3 = Color3.fromRGB(255, 255, 255)
+							name.TextColor3 = Color3.fromRGB(0, 0, 255)
 						end
 						if v.Name == "Flower2" then
 							name.Text = ("Red Flower" ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
-							name.TextColor3 = Color3.fromRGB(255, 255, 255)
+							name.TextColor3 = Color3.fromRGB(255, 0, 0)
 						end
 					else
 						v['NameEsp'..Number].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
@@ -2038,7 +1617,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(255, 0, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2068,7 +1647,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(255, 174, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2098,7 +1677,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(251, 255, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2132,7 +1711,7 @@ function UpdateIslandESP()
                             name.TextYAlignment = 'Top'
                             name.BackgroundTransparency = 1
                             name.TextStrokeTransparency = 0.5
-                            name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            name.TextColor3 = Color3.fromRGB(8, 247, 255)
                         else
                             v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
                         end
@@ -2210,7 +1789,7 @@ function UpdateChestESP()
                         name.TextYAlignment = "Top"
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255) -- Màu vàng cho chest
+                        name.TextColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng cho chest
                     else
                         local distance = round((game:GetService("Players").LocalPlayer.Character.Head.Position - chest:GetPivot().Position).Magnitude / 3)
                         chest["ChestEsp"].TextLabel.Text = ("Chest\n" .. distance .. " M")
@@ -2282,14 +1861,14 @@ function UpdateFlowerChams()
 						name.TextYAlignment = 'Top'
 						name.BackgroundTransparency = 1
 						name.TextStrokeTransparency = 0.5
-						name.TextColor3 = Color3.fromRGB(255, 255, 255)
+						name.TextColor3 = Color3.fromRGB(255, 0, 0)
 						if v.Name == "Flower1" then 
 							name.Text = ("Blue Flower" ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
-							name.TextColor3 = Color3.fromRGB(255, 255, 255)
+							name.TextColor3 = Color3.fromRGB(0, 0, 255)
 						end
 						if v.Name == "Flower2" then
 							name.Text = ("Red Flower" ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
-							name.TextColor3 = Color3.fromRGB(255, 255, 255)
+							name.TextColor3 = Color3.fromRGB(255, 0, 0)
 						end
 					else
 						v['NameEsp'..Number].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
@@ -2323,7 +1902,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(255, 0, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2353,7 +1932,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(255, 174, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2383,7 +1962,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(251, 255, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2417,7 +1996,7 @@ function UpdateIslandESP()
                             name.TextYAlignment = 'Top'
                             name.BackgroundTransparency = 1
                             name.TextStrokeTransparency = 0.5
-                            name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            name.TextColor3 = Color3.fromRGB(8, 247, 255)
                         else
                             v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
                         end
@@ -2495,7 +2074,7 @@ function UpdateChestESP()
                         name.TextYAlignment = "Top"
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255) -- Màu vàng cho chest
+                        name.TextColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng cho chest
                     else
                         local distance = round((game:GetService("Players").LocalPlayer.Character.Head.Position - chest:GetPivot().Position).Magnitude / 3)
                         chest["ChestEsp"].TextLabel.Text = ("Chest\n" .. distance .. " M")
@@ -2567,14 +2146,14 @@ function UpdateFlowerChams()
 						name.TextYAlignment = 'Top'
 						name.BackgroundTransparency = 1
 						name.TextStrokeTransparency = 0.5
-						name.TextColor3 = Color3.fromRGB(255, 255, 255)
+						name.TextColor3 = Color3.fromRGB(255, 0, 0)
 						if v.Name == "Flower1" then 
 							name.Text = ("Blue Flower" ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
-							name.TextColor3 = Color3.fromRGB(255, 255, 255)
+							name.TextColor3 = Color3.fromRGB(0, 0, 255)
 						end
 						if v.Name == "Flower2" then
 							name.Text = ("Red Flower" ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
-							name.TextColor3 = Color3.fromRGB(255, 255, 255)
+							name.TextColor3 = Color3.fromRGB(255, 0, 0)
 						end
 					else
 						v['NameEsp'..Number].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' Distance')
@@ -2607,7 +2186,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(255, 0, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2637,7 +2216,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(255, 174, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2667,7 +2246,7 @@ function UpdateRealFruitChams()
 					name.TextYAlignment = 'Top'
 					name.BackgroundTransparency = 1
 					name.TextStrokeTransparency = 0.5
-					name.TextColor3 = Color3.fromRGB(255, 255, 255)
+					name.TextColor3 = Color3.fromRGB(251, 255, 0)
 					name.Text = (v.Name ..' \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
 				else
 					v.Handle['NameEsp'..Number].TextLabel.Text = (v.Name ..' '.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Handle.Position).Magnitude/3) ..' Distance')
@@ -2701,11 +2280,11 @@ spawn(function()
                             BillboardGui.StudsOffset = Vector3.new(0, 2.5, 0)
 
                             TextLabel.Parent = BillboardGui
-                            TextLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                             TextLabel.BackgroundTransparency = 1.000
                             TextLabel.Size = UDim2.new(0, 200, 0, 50)
                             TextLabel.Font = Enum.Font.GothamBold
-                            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            TextLabel.TextColor3 = Color3.fromRGB(7, 236, 240)
                             TextLabel.Text.Size = 35
                         end
                         local Dis = math.floor((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude)
@@ -2743,11 +2322,11 @@ spawn(function()
                             BillboardGui.StudsOffset = Vector3.new(0, 2.5, 0)
 
                             TextLabel.Parent = BillboardGui
-                            TextLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                             TextLabel.BackgroundTransparency = 1.000
                             TextLabel.Size = UDim2.new(0, 200, 0, 50)
                             TextLabel.Font = Enum.Font.GothamBold
-                            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            TextLabel.TextColor3 = Color3.fromRGB(7, 236, 240)
                             TextLabel.Text.Size = 35
                         end
                         local Dis = math.floor((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude)
@@ -2785,11 +2364,11 @@ spawn(function()
                             BillboardGui.StudsOffset = Vector3.new(0, 2.5, 0)
 
                             TextLabel.Parent = BillboardGui
-                            TextLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                             TextLabel.BackgroundTransparency = 1.000
                             TextLabel.Size = UDim2.new(0, 200, 0, 50)
                             TextLabel.Font = Enum.Font.GothamBold
-                            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            TextLabel.TextColor3 = Color3.fromRGB(7, 236, 240)
                             TextLabel.Text.Size = 35
                         end
                         local Dis = math.floor((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude)
@@ -2835,7 +2414,7 @@ function UpdateIslandMirageESP()
                         name.TextYAlignment = 'Top'
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(80, 245, 245)
                     else
                         v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                     end
@@ -2869,7 +2448,7 @@ function UpdatePrehistoricIslandESP()
                         name.TextYAlignment = 'Top'
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(80, 245, 245)
                     else
                         v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                     end
@@ -2903,7 +2482,7 @@ function UpdateAfdESP()
                         name.TextYAlignment = 'Top'
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(80, 245, 245)
                     else
                         v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                     end
@@ -2937,7 +2516,7 @@ function UpdateAuraESP()
                         name.TextYAlignment = 'Top'
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(80, 245, 245)
                     else
                         v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                     end
@@ -2971,7 +2550,7 @@ function UpdateLSDESP()
                         name.TextYAlignment = 'Top'
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(80, 245, 245)
                     else
                         v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                     end
@@ -3047,7 +2626,7 @@ function UpdateGeaESP()
                         name.TextYAlignment = 'Top'
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(80, 245, 245)
                     else
                         v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                     end
@@ -3083,7 +2662,7 @@ function UpdateBerriesESP()
                         name.TextYAlignment = Enum.TextYAlignment.Top
                         name.BackgroundTransparency = 1
                         name.TextStrokeTransparency = 0.5
-                        name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        name.TextColor3 = Color3.fromRGB(255, 255, 0)
                         name.Text = Berry 
                     end
                     if Bush.Parent:FindFirstChild("BerryESP") then
@@ -3124,7 +2703,7 @@ function UpdateIslandKisuneESP()
                             name.TextYAlignment = 'Top'
                             name.BackgroundTransparency = 1
                             name.TextStrokeTransparency = 0.5
-                            name.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            name.TextColor3 = Color3.fromRGB(80, 245, 245)
                         else
                             v['NameEsp'].TextLabel.Text = (v.Name ..'   \n'.. round((game:GetService('Players').LocalPlayer.Character.Head.Position - v.Position).Magnitude/3) ..' M')
                         end
@@ -3888,7 +3467,7 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 ImageButton.Parent = ScreenGui
-ImageButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ImageButton.BackgroundTransparency = 1 -- Nền trong suốt
 ImageButton.BorderSizePixel = 0
 ImageButton.Position = UDim2.new(0.120833337 - 0.10, 0, 0.0952890813 + 0.01, 0)
@@ -3947,7 +3526,7 @@ function CircleClick(Button, X, Y)
 				local Circle = Instance.new("ImageLabel")
 				Circle.Parent = Button
 				Circle.Name = "Circle"
-				Circle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Circle.BackgroundTransparency = 1.000
 				Circle.ZIndex = 10
 				Circle.Image = "rbxassetid://129771247821193"
@@ -4065,7 +3644,7 @@ function library:NaJa()
 
 	Main.Name = "Main"
 	Main.Parent = UI
-	Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0) --Color3.fromRGB(33, 33, 33)
+	Main.BackgroundColor3 = Color3.fromRGB(0, 0, 255) --Color3.fromRGB(33, 33, 33)
 	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Main.BackgroundTransparency = 0.6
 	Main.Size = UDim2.new(0, 520, 0, 380)
@@ -4075,14 +3654,14 @@ function library:NaJa()
 	local ClickFrame = Instance.new("Frame")
 	ClickFrame.Name = "Top"
 	ClickFrame.Parent = Main
-	ClickFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	ClickFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	ClickFrame.BackgroundTransparency = 1
 	ClickFrame.Position = UDim2.new(0, 0, 0, 50)
 	ClickFrame.Size = UDim2.new(0, 520, 0, 360)
 
 	Top.Name = "Top"
 	Top.Parent = Main
-	Top.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Top.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	Top.BackgroundTransparency = 1.000
 	Top.Position = UDim2.new(0.021956088, 0, 0.01, 5)
 	Top.Size = UDim2.new(0, 414, 0, 43)
@@ -4102,16 +3681,16 @@ local Disc_Title = Instance.new("TextLabel")
 
 Discord.Name = "Tik Tok"
 Discord.Parent = Main
-Discord.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Discord.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 Discord.BackgroundTransparency = 1 -- Làm cho nền trong suốt
-Discord.BorderColor3 = Color3.fromRGB(255, 255, 255)
+Discord.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Discord.BorderSizePixel = 0
 Discord.Position = UDim2.new(0, 430, 0, 16)
 Discord.Size = UDim2.new(0, 85, 0, 25)
 Discord.AutoButtonColor = false
 Discord.Font = Enum.Font.SourceSans
 Discord.Text = ""
-Discord.TextColor3 = Color3.fromRGB(255, 255, 255)
+Discord.TextColor3 = Color3.fromRGB(0, 0, 0)
 Discord.TextSize = 14.000
 
 UICorner.CornerRadius = UDim.new(0, 5)
@@ -4119,9 +3698,9 @@ UICorner.Parent = Discord
 
 Disc_Logo.Name = "Disc_Logo"
 Disc_Logo.Parent = Discord
-Disc_Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Disc_Logo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Disc_Logo.BackgroundTransparency = 1.000
-Disc_Logo.BorderColor3 = Color3.fromRGB(255, 255, 255)
+Disc_Logo.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Disc_Logo.BorderSizePixel = 0
 Disc_Logo.Position = UDim2.new(0, 5, 0, 1)
 Disc_Logo.Size = UDim2.new(0, 23, 0, 23)
@@ -4129,9 +3708,9 @@ Disc_Logo.Image = "http://www.roblox.com/asset/?id=129771247821193"
 
 Disc_Title.Name = "Disc_Title"
 Disc_Title.Parent = Discord
-Disc_Title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Disc_Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Disc_Title.BackgroundTransparency = 1.000
-Disc_Title.BorderColor3 = Color3.fromRGB(255, 255, 255)
+Disc_Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Disc_Title.BorderSizePixel = 0
 Disc_Title.Position = UDim2.new(0, 35, 0, 0)
 Disc_Title.Size = UDim2.new(0, 40, 0, 25)
@@ -4199,7 +3778,7 @@ UICorner.Parent = ImageButton
     
 	TabHolder.Name = "TabHolder"
 	TabHolder.Parent = Top
-	TabHolder.BackgroundColor3 = Color3.fromRGB(0, 0, 0) --25
+	TabHolder.BackgroundColor3 = Color3.fromRGB(0,0,0) --25
 	TabHolder.BackgroundTransparency = 0.7
 	TabHolder.Position = UDim2.new(-0.010309278, 6, 0.023051, 0.2)
 	TabHolder.Size = UDim2.new(0, 410, 0, 40)
@@ -4209,7 +3788,7 @@ UICorner.Parent = ImageButton
 	TabContainer.Name = "TabContainer"
 	TabContainer.Parent = TabHolder
 	TabContainer.Active = true
-	TabContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TabContainer.BackgroundColor3 = Color3.fromRGB(16, 42, 220)
 	TabContainer.BackgroundTransparency = 1.000
 	TabContainer.Size = UDim2.new(0, 405, 0, 45)
 	TabContainer.CanvasSize = UDim2.new(2, 0, 0, 0)
@@ -4274,7 +3853,7 @@ UICorner.Parent = ImageButton
 
 		FrameTab.Name = "FrameTab"
 		FrameTab.Parent = Tab
-		FrameTab.BackgroundColor3 = Color3.fromRGB(0, 0, 0) --34
+		FrameTab.BackgroundColor3 = Color3.fromRGB(4, 175, 236) --34
 		FrameTab.Size = UDim2.new(0, 130, 0, 30)
 		FrameTab.BackgroundTransparency = 1.4
 		UICorner_Tab.CornerRadius = UDim.new(0, 3)
@@ -4282,7 +3861,7 @@ UICorner.Parent = ImageButton
 
 		Tab.Name = "Tab"
 		Tab.Parent = TabContainer
-		Tab.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		Tab.BackgroundColor3 = Color3.fromRGB(9, 137, 207)
 		Tab.Size = UDim2.new(0, 130, 0, 30)
 		Tab.BackgroundTransparency = 0.5
 		Tab.Text = ""
@@ -4290,7 +3869,7 @@ UICorner.Parent = ImageButton
 		UICorner_3.Parent = Tab
 
 		ImageLabel.Parent = Tab
-		ImageLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		ImageLabel.Position = UDim2.new(0, 5, 0.2, 0)
 		ImageLabel.Size = UDim2.new(0, 20, 0, 20)
 		ImageLabel.Image = "http://www.roblox.com/asset/?id=129771247821193" .. icon
@@ -4301,7 +3880,7 @@ UICorner.Parent = ImageButton
 		TextLabel.Parent = Tab
 		TextLabel.Text = Name.." "
 
-		TextLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		TextLabel.BackgroundTransparency = 1.000
 		TextLabel.Position = UDim2.new(0.342105269, 0, 0.100000001, 0)
 		TextLabel.Size = UDim2.new(0, 87, 0, 27)
@@ -4323,7 +3902,7 @@ UICorner.Parent = ImageButton
 
 		Page.Name = "Page"
 		Page.Parent = Bottom
-		Page.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		Page.BackgroundColor3 = Color3.fromRGB(98, 37, 209)
 		Page.Position = UDim2.new(0.01, 0, 0.015, 0)
 		Page.BackgroundTransparency = 1.000
 		Page.Size = UDim2.new(0, 495, 0, 295)
@@ -4334,7 +3913,7 @@ UICorner.Parent = ImageButton
 		Left.Name = "Left"
 		Left.Parent = Page
 		Left.Active = true
-		Left.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		Left.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
 		Left.BackgroundTransparency = 1
 		Left.Size = UDim2.new(0, 242, 0, 290)
 		Left.ScrollBarThickness = 3
@@ -4343,7 +3922,7 @@ UICorner.Parent = ImageButton
 		Right.Name = "Right"
 		Right.Parent = Page
 		Right.Active = true
-		Right.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		Right.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
 		Right.BackgroundTransparency = 1
 		Right.Size = UDim2.new(0, 242, 0, 290)
 		Right.ScrollBarThickness = 3
@@ -4382,7 +3961,7 @@ UICorner.Parent = ImageButton
 						TweenService:Create(
 							x.TextLabel,
 							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextColor3 = Color3.fromRGB(255, 255, 255)}
+							{TextColor3 = Color3.fromRGB(0, 0, 255)}
 						):Play()
 						TweenService:Create(
 							x.ImageLabel,
@@ -4465,7 +4044,7 @@ UICorner.Parent = ImageButton
 
 			Section.Name = "Section"
 			Section.Parent = GetType(side)
-			Section.BackgroundColor3 = Color3.fromRGB(0, 0, 0) --25
+			Section.BackgroundColor3 = Color3.fromRGB(0, 0, 255) --25
 			Section.BackgroundTransparency = 0.9
 			Section.ClipsDescendants = true
 			Section.Size = UDim2.new(0, 240, 0, 340)
@@ -4475,9 +4054,9 @@ UICorner.Parent = ImageButton
 
 			Top_2.Name = "Top"
 			Top_2.Parent = Section
-			Top_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			Top_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			Top_2.BackgroundTransparency = 1.000
-			Top_2.BorderColor3 = Color3.fromRGB(255, 255, 255)
+			Top_2.BorderColor3 = Color3.fromRGB(27, 42, 53)
 			Top_2.Size = UDim2.new(0, 238, 0, 35)
 
 			Line.Name = "Line"
@@ -4493,7 +4072,7 @@ UICorner.Parent = ImageButton
 			            -- Set the color to a single color (e.g., green)
 			            game:GetService('TweenService'):Create(
     			            Line, TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
- 			               {BackgroundColor3 = Color3.fromRGB(0, 0, 0)} -- green color
+ 			               {BackgroundColor3 = Color3.fromRGB(0, 255, 0)} -- green color
 			            ):Play() 
 			            wait(0.5)            
 			        end)
@@ -4502,7 +4081,7 @@ UICorner.Parent = ImageButton
 
 			Sectionname.Name = "Sectionname"
 			Sectionname.Parent = Top_2
-			Sectionname.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			Sectionname.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			Sectionname.BackgroundTransparency = 1.000
 			Sectionname.Position = UDim2.new(0.3, 0, 0.1, 0)
 			Sectionname.Size = UDim2.new(0, 100, 0, 20)
@@ -4515,7 +4094,7 @@ UICorner.Parent = ImageButton
 
 			SectionContainer.Name = "SectionContainer"
 			SectionContainer.Parent = Top_2
-			SectionContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			SectionContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			SectionContainer.BackgroundTransparency = 1.000
 			SectionContainer.BorderSizePixel = 0
 			SectionContainer.Position = UDim2.new(0, 0, 0.796416223, 0)
@@ -4523,7 +4102,7 @@ UICorner.Parent = ImageButton
 
 			SectionContainer_2.Name = "SectionContainer_2"
 			SectionContainer_2.Parent = Top_2
-			SectionContainer_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			SectionContainer_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			SectionContainer_2.BackgroundTransparency = 1.000
 			SectionContainer_2.BorderSizePixel = 0
 			SectionContainer_2.Position = UDim2.new(0, 0, 0.796416223, 0)
@@ -4557,7 +4136,7 @@ UICorner.Parent = ImageButton
 				Text.Name = "Text"
 				Text.Parent = Label
 				Text.AnchorPoint = Vector2.new(0.5, 0.5)
-				Text.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Text.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Text.BackgroundTransparency = 1.000
 				Text.Position = UDim2.new(0.5, 0, 0.5, 0)
 				Text.Size = UDim2.new(0, 53, 0, 12)
@@ -4585,14 +4164,14 @@ UICorner.Parent = ImageButton
 				Text.Name = "Text"
 				Text.Parent = Label
 				Text.AnchorPoint = Vector2.new(0.5, 0.5)
-				Text.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Text.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Text.BackgroundTransparency = 1.000
 				Text.Position = UDim2.new(0.5, 0, 0.5, 0)
 				Text.Size = UDim2.new(0, 53, 0, 12)
 				Text.ZIndex = 16
 				Text.Font = Enum.Font.GothamBold
 				Text.Text = text
-				Text.TextColor3 = Color3.fromRGB(255, 255, 255)
+				Text.TextColor3 = Color3.fromRGB(color)
 				Text.TextSize = 12.000
 				function textas:Set(newtext)
 					Text.Text = newtext
@@ -4611,12 +4190,12 @@ UICorner.Parent = ImageButton
 
 				Button_2.Name = "Button"
 				Button_2.Parent = SectionContainer
-				Button_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Button_2.BackgroundColor3 = Color3.fromRGB(154, 240, 17)
 				Button_2.Size = UDim2.new(0.975000024, 0, 0, 25)
 				Button_2.ZIndex = 16
 
 				if default then
-					Button_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+					Button_2.BackgroundColor3 = Color3.fromRGB(154, 240, 17)
 				else
 					Button_2.BackgroundColor3 = _G.Color
 				end
@@ -4626,7 +4205,7 @@ UICorner.Parent = ImageButton
 
 				TextLabel_4.Parent = Button_2
 				TextLabel_4.AnchorPoint = Vector2.new(0.5, 0.5)
-				TextLabel_4.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				TextLabel_4.BackgroundTransparency = 1.000
 				TextLabel_4.Position = UDim2.new(0.5, 0, 0.5, 0)
 				TextLabel_4.Size = UDim2.new(0, 40, 0, 12)
@@ -4637,7 +4216,7 @@ UICorner.Parent = ImageButton
 				TextLabel_4.TextSize = 12.000
 
 				TextButton_4.Parent = Button_2
-				TextButton_4.BackgroundColor3 = Color3.fromRGB(0, 0, 0) --25
+				TextButton_4.BackgroundColor3 = Color3.fromRGB(10, 10, 10) --25
 				TextButton_4.BackgroundTransparency = 1.000
 				TextButton_4.BorderSizePixel = 0
 				TextButton_4.ClipsDescendants = true
@@ -4689,13 +4268,13 @@ UICorner.Parent = ImageButton
 
 	   Seperator.Name = "Seperator"
 	   Seperator.Parent = SectionContainer
-	   Seperator.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	   Seperator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	   Seperator.BackgroundTransparency = 1.000
 	   Seperator.Size = UDim2.new(0.975, 0, 0, 20)
 
 	   Sep2.Name = "Sep2"
 	   Sep2.Parent = Seperator
-	   Sep2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	   Sep2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	   Sep2.BackgroundTransparency = 1.000
 	   Sep2.Size = UDim2.new(0, 100, 0, 20)
 	   Sep2.Position = UDim2.new(0.5, -50, 0, 0)
@@ -4722,7 +4301,7 @@ UICorner.Parent = ImageButton
 
 				TextLabel_3.Parent = Button
 				TextLabel_3.AnchorPoint = Vector2.new(0.5, 0.5)
-				TextLabel_3.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				TextLabel_3.BackgroundTransparency = 1.000
 				TextLabel_3.Position = UDim2.new(0.5, 0, 0.5, 0)
 				TextLabel_3.Size = UDim2.new(0, 40, 0, 12)
@@ -4733,7 +4312,7 @@ UICorner.Parent = ImageButton
 				TextLabel_3.TextSize = 12.000
 
 				TextButton.Parent = Button
-				TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				TextButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 				TextButton.BackgroundTransparency = 1.000
 				TextButton.BorderSizePixel = 0
 				TextButton.ClipsDescendants = true
@@ -4767,7 +4346,7 @@ UICorner.Parent = ImageButton
 
 				MainToggle.Name = "MainToggle"
 				MainToggle.Parent = SectionContainer
-				MainToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				MainToggle.BackgroundTransparency = 0.700
 				MainToggle.BorderSizePixel = 0
 				MainToggle.ClipsDescendants = true
@@ -4779,7 +4358,7 @@ UICorner.Parent = ImageButton
 
 				Text.Name = "Text"
 				Text.Parent = MainToggle
-				Text.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Text.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Text.BackgroundTransparency = 1.000
 				Text.Position = UDim2.new(0, 10, 0, 10)
 				Text.Size = UDim2.new(0, 100, 0, 12)
@@ -4794,7 +4373,7 @@ UICorner.Parent = ImageButton
 				MainToggle_2.Name = "MainToggle"
 				MainToggle_2.Parent = MainToggle
 				MainToggle_2.AnchorPoint = Vector2.new(0.5, 0.5)
-				MainToggle_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainToggle_2.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 				MainToggle_2.ClipsDescendants = true
 				MainToggle_2.Position = UDim2.new(0.899999976, 0, 0.5, 0)
 				MainToggle_2.Size = UDim2.new(0, 23, 0, 23)
@@ -4806,7 +4385,7 @@ UICorner.Parent = ImageButton
 				MainToggle_3.Name = "MainToggle"
 				MainToggle_3.Parent = MainToggle_2
 				MainToggle_3.AnchorPoint = Vector2.new(0.5, 0.5)
-				MainToggle_3.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainToggle_3.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 				MainToggle_3.ClipsDescendants = true
 				MainToggle_3.Position = UDim2.new(0.5, 0, 0.5, 0)
 				MainToggle_3.Size = UDim2.new(0, 0, 0, 0)
@@ -4819,7 +4398,7 @@ UICorner.Parent = ImageButton
 
 				TextButton.Name = ""
 				TextButton.Parent = MainToggle
-				TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				TextButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 				TextButton.BackgroundTransparency = 1.000
 				TextButton.BorderSizePixel = 0
 				TextButton.Size = UDim2.new(1, 0, 1, 0)
@@ -4902,7 +4481,7 @@ UICorner.Parent = ImageButton
 				local HeadTitle = Instance.new("TextBox")
 				Textbox.Name = "Textbox"
 				Textbox.Parent = SectionContainer
-				Textbox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Textbox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				Textbox.BackgroundTransparency = 0.700
 				Textbox.BorderSizePixel = 0
 				Textbox.ClipsDescendants = true
@@ -4914,7 +4493,7 @@ UICorner.Parent = ImageButton
 
 				Text_5.Name = "Text"
 				Text_5.Parent = Textbox
-				Text_5.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Text_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Text_5.BackgroundTransparency = 1.000
 				Text_5.Position = UDim2.new(0, 10, 0, 10)
 				Text_5.Size = UDim2.new(0, 43, 0, 12)
@@ -4928,7 +4507,7 @@ UICorner.Parent = ImageButton
 				TextboxHoler.Name = "TextboxHoler"
 				TextboxHoler.Parent = Textbox
 				TextboxHoler.AnchorPoint = Vector2.new(0.5, 0.5)
-				TextboxHoler.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				TextboxHoler.BackgroundColor3 = Color3.fromRGB(13, 13, 15)
 				TextboxHoler.BackgroundTransparency = 1.000
 				TextboxHoler.BorderSizePixel = 0
 				TextboxHoler.Position = UDim2.new(0.5, 0, 0.5, 13)
@@ -4940,7 +4519,7 @@ UICorner.Parent = ImageButton
 				HeadTitle.Name = "HeadTitle"
 				HeadTitle.Parent = TextboxHoler
 				HeadTitle.AnchorPoint = Vector2.new(0.5, 0.5)
-				HeadTitle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				HeadTitle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				HeadTitle.BackgroundTransparency = 1.000
 				HeadTitle.BorderSizePixel = 0
 				HeadTitle.ClipsDescendants = true
@@ -4948,7 +4527,7 @@ UICorner.Parent = ImageButton
 				HeadTitle.Size = UDim2.new(0.949999988, 0, 0, 40)
 				HeadTitle.ZIndex = 16
 				HeadTitle.Font = Enum.Font.GothamBold
-				HeadTitle.PlaceholderColor3 = Color3.fromRGB(180, 180, 180)
+				HeadTitle.PlaceholderColor3 = Color3.fromRGB(255, 255, 255)
 				HeadTitle.PlaceholderText = Placeholder
 				HeadTitle.Text = ""
 				HeadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -4983,7 +4562,7 @@ UICorner.Parent = ImageButton
 
 				MainDropDown.Name = "MainDropDown"
 				MainDropDown.Parent = SectionContainer
-				MainDropDown.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainDropDown.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				MainDropDown.BackgroundTransparency = 0.700
 				MainDropDown.BorderSizePixel = 0
 				MainDropDown.ClipsDescendants = true
@@ -4995,7 +4574,7 @@ UICorner.Parent = ImageButton
 
 				MainDropDown_2.Name = "MainDropDown"
 				MainDropDown_2.Parent = MainDropDown
-				MainDropDown_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainDropDown_2.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				MainDropDown_2.BackgroundTransparency = 0.700
 				MainDropDown_2.BorderSizePixel = 0
 				MainDropDown_2.ClipsDescendants = true
@@ -5007,7 +4586,7 @@ UICorner.Parent = ImageButton
 
 				v.Name = "v"
 				v.Parent = MainDropDown_2
-				v.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				v.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				v.BackgroundTransparency = 1.000
 				v.BorderSizePixel = 0
 				v.Size = UDim2.new(1, 0, 1, 0)
@@ -5031,7 +4610,7 @@ UICorner.Parent = ImageButton
 				end
 				Text_2.Name = "Text"
 				Text_2.Parent = MainDropDown_2
-				Text_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Text_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Text_2.BackgroundTransparency = 1.000
 				Text_2.Position = UDim2.new(0, 10, 0, 10)
 				Text_2.Size = UDim2.new(0, 62, 0, 12)
@@ -5053,7 +4632,7 @@ UICorner.Parent = ImageButton
 				Scroll_Items.Name = "Scroll_Items"
 				Scroll_Items.Parent = MainDropDown
 				Scroll_Items.Active = true
-				Scroll_Items.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Scroll_Items.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Scroll_Items.BackgroundTransparency = 1.000
 				Scroll_Items.BorderSizePixel = 0
 				Scroll_Items.Position = UDim2.new(0, 0, 0, 35)
@@ -5112,7 +4691,7 @@ UICorner.Parent = ImageButton
 					local UICorner_9 = Instance.new("UICorner")
 					_5.Name = Text
 					_5.Parent = Scroll_Items
-					_5.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+					_5.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 					_5.BorderSizePixel = 0
 					_5.ClipsDescendants = true
 					_5.Size = UDim2.new(1, -10, 0, 20)
@@ -5162,7 +4741,7 @@ UICorner.Parent = ImageButton
 
 				MainDropDown.Name = "MainDropDown"
 				MainDropDown.Parent = SectionContainer
-				MainDropDown.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainDropDown.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				MainDropDown.BackgroundTransparency = 0.700
 				MainDropDown.BorderSizePixel = 0
 				MainDropDown.ClipsDescendants = true
@@ -5174,7 +4753,7 @@ UICorner.Parent = ImageButton
 
 				MainDropDown_2.Name = "MainDropDown"
 				MainDropDown_2.Parent = MainDropDown
-				MainDropDown_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				MainDropDown_2.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 				MainDropDown_2.BackgroundTransparency = 0.700
 				MainDropDown_2.BorderSizePixel = 0
 				MainDropDown_2.ClipsDescendants = true
@@ -5186,7 +4765,7 @@ UICorner.Parent = ImageButton
 
 				v.Name = "v"
 				v.Parent = MainDropDown_2
-				v.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				v.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				v.BackgroundTransparency = 1.000
 				v.BorderSizePixel = 0
 				v.Size = UDim2.new(1, 0, 1, 0)
@@ -5213,7 +4792,7 @@ UICorner.Parent = ImageButton
 
 				Text_2.Name = "Text"
 				Text_2.Parent = MainDropDown_2
-				Text_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Text_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Text_2.BackgroundTransparency = 1.000
 				Text_2.Position = UDim2.new(0, 10, 0, 10)
 				Text_2.Size = UDim2.new(0, 62, 0, 12)
@@ -5235,7 +4814,7 @@ UICorner.Parent = ImageButton
 				Scroll_Items.Name = "Scroll_Items"
 				Scroll_Items.Parent = MainDropDown
 				Scroll_Items.Active = true
-				Scroll_Items.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				Scroll_Items.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				Scroll_Items.BackgroundTransparency = 1.000
 				Scroll_Items.BorderSizePixel = 0
 				Scroll_Items.Position = UDim2.new(0, 0, 0, 35)
@@ -5286,7 +4865,7 @@ UICorner.Parent = ImageButton
 					local UICorner_9 = Instance.new("UICorner")
 					_5.Name = Text
 					_5.Parent = Scroll_Items
-					_5.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+					_5.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 					_5.BorderSizePixel = 0
 					_5.ClipsDescendants = true
 					_5.Size = UDim2.new(1, -10, 0, 20)
@@ -5358,7 +4937,7 @@ UICorner.Parent = ImageButton
 
     SliderFrame.Name = "SliderFrame"
     SliderFrame.Parent = SectionContainer
-    SliderFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
     SliderFrame.Position = UDim2.new(0.109489053, 0, 0.708609283, 0)
     SliderFrame.Size = UDim2.new(0.975000024, 0, 0, 45)
     SliderFrame.BackgroundTransparency = 0.8  -- Adjusted transparency
@@ -5375,7 +4954,7 @@ UICorner.Parent = ImageButton
 
     LabelNameSlider.Name = "LabelNameSlider"
     LabelNameSlider.Parent = SliderFrame
-    LabelNameSlider.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    LabelNameSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     LabelNameSlider.BackgroundTransparency = 1.000
     LabelNameSlider.Position = UDim2.new(0.0729926974, 0, 0.0396823473, 0)
     LabelNameSlider.Size = UDim2.new(0, 182, 0, 25)
@@ -5387,7 +4966,7 @@ UICorner.Parent = ImageButton
 
     ShowValueFrame.Name = "ShowValueFrame"
     ShowValueFrame.Parent = SliderFrame
-    ShowValueFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ShowValueFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
     ShowValueFrame.BackgroundTransparency = 0.8  -- Adjusted transparency
     ShowValueFrame.Position = UDim2.new(0.733576655, 0, 0.0656082779, 0)
     ShowValueFrame.Size = UDim2.new(0, 58, 0, 21)
@@ -5395,7 +4974,7 @@ UICorner.Parent = ImageButton
     CustomValue.Name = "CustomValue"
     CustomValue.Parent = ShowValueFrame
     CustomValue.AnchorPoint = Vector2.new(0.5, 0.5)
-    CustomValue.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    CustomValue.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     CustomValue.BackgroundTransparency = 0.9  -- Adjusted transparency for the text box
     CustomValue.Position = UDim2.new(0.5, 0, 0.5, 0)
     CustomValue.Size = UDim2.new(0, 55, 0, 21)
@@ -5411,7 +4990,7 @@ UICorner.Parent = ImageButton
     ValueFrame.Name = "ValueFrame"
     ValueFrame.Parent = SliderFrame
     ValueFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    ValueFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ValueFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     ValueFrame.BackgroundTransparency = 0.9  -- Adjusted transparency
     ValueFrame.Position = UDim2.new(0.5, 0, 0.8, 0)
     ValueFrame.Size = UDim2.new(0, 200, 0, 5)
@@ -5423,7 +5002,7 @@ UICorner.Parent = ImageButton
     PartValue.Name = "PartValue"
     PartValue.Parent = ValueFrame
     PartValue.AnchorPoint = Vector2.new(0.5, 0.5)
-    PartValue.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    PartValue.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     PartValue.BackgroundTransparency = 1.0  -- Full transparency
     PartValue.Position = UDim2.new(0.5, 0, 0.8, 0)
     PartValue.Size = UDim2.new(0, 200, 0, 5)
@@ -5554,138 +5133,26 @@ local RaidFruit = Window:Tab("Raid & Fruits","10734975692")
 local Playerrss = Window:Tab("Teleport & PVP","10734910680")
 local MiscShop = Window:Tab("Shop & Misc","10723434557")
 local AutoStatus = Window:Tab("Status Server","10709770317")
+local WebhookTab = Window:Tab("Webhook","10723434557")
+local WebhookSection = WebhookTab:Section("Discord Webhook","Left")
 
-local Webhook = Window:Tab("Webhook","10723434557")
-local WebhookSettings = Webhook:Section("Webhook Configuration","Left")
-local WebhookStatus = Webhook:Section("Status & Info","Right")
-
-WebhookSettings:Textbox("Discord Webhook URL", "Paste your Discord webhook URL here", function(value)
+WebhookSection:Textbox("Your Webhook URL", "Paste webhook URL here", false, function(value)
     WebhookModule.UserWebhookURL = value
-    if value and value ~= "" then
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub",
-            Text = "Webhook URL saved successfully!",
-            Duration = 3
-        })
-    end
 end)
 
-WebhookSettings:Button("Test Webhook", function()
-    if WebhookModule.UserWebhookURL and WebhookModule.UserWebhookURL ~= "" then
-        WebhookModule:SendFarmingProgress()
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub",
-            Text = "Test webhook sent! Check your Discord.",
-            Duration = 3
-        })
-    else
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub",
-            Text = "Please enter a webhook URL first!",
-            Duration = 3
-        })
-    end
+WebhookSection:Button("Test Webhook", function()
+    WebhookModule:SendUserWebhook()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "ReaperHub",
+        Text = "Webhook sent!",
+        Duration = 3
+    })
 end)
 
-WebhookSettings:Button("Send Progress Now", function()
-    if WebhookModule.UserWebhookURL and WebhookModule.UserWebhookURL ~= "" then
-        WebhookModule:SendFarmingProgress()
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub",
-            Text = "Progress sent to your webhook!",
-            Duration = 3
-        })
-    else
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub",
-            Text = "Please enter a webhook URL first!",
-            Duration = 3
-        })
-    end
+WebhookSection:Button("Send Progress Now", function()
+    WebhookModule:SendUserWebhook()
 end)
 
-WebhookStatus:Label("Auto-Update: Every 5 minutes")
-WebhookStatus:Label("Includes: Level, Beli, Fragments, Stats")
-
-
-local Config = Window:Tab("Config","10734941354")
-local ConfigSave = Config:Section("Save & Load Settings","Left")
-local ConfigInfo = Config:Section("Config Information","Right")
-
-ConfigSave:Button("💾 Save Current Settings", function()
-    local success = ConfigSystem:SaveConfig()
-    if success then
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub Config",
-            Text = "All settings saved successfully!",
-            Duration = 3
-        })
-    else
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub Config",
-            Text = "Failed to save settings!",
-            Duration = 3
-        })
-    end
-end)
-
-ConfigSave:Button("📂 Load Saved Settings", function()
-    local success = ConfigSystem:LoadConfig()
-    if success then
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub Config",
-            Text = "Settings loaded! Re-execute script to apply.",
-            Duration = 4
-        })
-    else
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "ReaperHub Config",
-            Text = "No saved config found!",
-            Duration = 3
-        })
-    end
-end)
-
-ConfigSave:Button("🗑️ Delete Saved Config", function()
-    pcall(function()
-        if isfile(ConfigSystem.ConfigFile) then
-            delfile(ConfigSystem.ConfigFile)
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "ReaperHub Config",
-                Text = "Config deleted successfully!",
-                Duration = 3
-            })
-        else
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "ReaperHub Config",
-                Text = "No config file to delete!",
-                Duration = 3
-            })
-        end
-    end)
-end)
-
-ConfigInfo:Label("Auto-saves your settings to file")
-ConfigInfo:Label("Settings auto-load on script start")
-ConfigInfo:Label("")
-ConfigInfo:Label("Saved settings include:")
-ConfigInfo:Label("- Auto Farm toggles")
-ConfigInfo:Label("- Selected weapons/bosses/materials")
-ConfigInfo:Label("- Auto quest settings")
-ConfigInfo:Label("- Sea event settings")
-ConfigInfo:Label("- Raid settings")
-ConfigInfo:Label("- Race V4 settings")
-ConfigInfo:Label("- Mastery settings")
-ConfigInfo:Label("- Combat settings")
-ConfigInfo:Label("- Teleport settings")
-ConfigInfo:Label("- Webhook URL")
-ConfigInfo:Label("")
-ConfigInfo:Label("Config file: ReaperHub_Config.json")
-
-WebhookStatus:Label("Equipment: Fruit, Fighting Style, Weapons")
-WebhookStatus:Label("Combat: Melee, Defense, Sword, Gun, DF")
-WebhookStatus:Label("")
-WebhookStatus:Label("Owner gets notified on script execution")
 
 
 local AutoFarm = Main:Section("Auto Main Farm","Left")
@@ -11245,93 +10712,31 @@ end)
         end
     end)
     
-    Autofruit:Toggle("Auto Grab Fruit (Priority)", false, function(value)
+    Autofruit:Toggle("Auto Grab Fruit", false, function(value)
     _G.Grabfruit = value
     end)
-    
-    -- Priority Fruit Collection System
-    _G.FruitCollecting = false
-    _G.PreviousFarmState = {}
-    
     spawn(function()
-        while wait(0.5) do
-            if _G.Grabfruit then
-                pcall(function()
-                    -- Scan for fruits in workspace
-                    for i,v in pairs(game.Workspace:GetChildren()) do
-                        if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
-                            -- FRUIT DETECTED - INTERRUPT EVERYTHING
-                            _G.FruitCollecting = true
-                            
-                            -- Save current farm states
-                            _G.PreviousFarmState = {
-                                AutoFarm = _G.AutoFarm or false,
-                                AutoBoss = _G.AutoBoss or false,
-                                AutoFarmMaterial = _G.AutoFarmMaterial or false,
-                                AutoFarmFruits = _G.AutoFarmFruits or false,
-                                AutoElitehunter = _G.AutoElitehunter or false,
-                                AutoRaid = _G.AutoRaid or false
-                            }
-                            
-                            -- STOP ALL FARMING
-                            _G.AutoFarm = false
-                            _G.AutoBoss = false
-                            _G.AutoFarmMaterial = false
-                            _G.AutoFarmFruits = false
-                            _G.AutoElitehunter = false
-                            _G.AutoRaid = false
-                            
-                            wait(0.5) -- Let farming loops stop
-                            
-                            -- Tween to fruit
-                            local fruitPos = v.Handle.CFrame
-                            topos(fruitPos)
-                            
-                            -- Wait until close enough
-                            repeat wait(0.1) until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Handle.Position).Magnitude < 10 or not v.Parent
-                            
-                            -- Collect fruit (touch it)
-                            if v.Parent then
-                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
-                                wait(0.3)
-                            end
-                            
-                            -- Auto-store fruit
-                            wait(0.5)
-                            pcall(function()
-                                local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                                if tool and string.find(tool.Name, "Fruit") then
-                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", tool.Name, game.Players.LocalPlayer.Backpack)
-                                end
-                            end)
-                            
-                            wait(1)
-                            
-                            -- RESUME FARMING
-                            _G.AutoFarm = _G.PreviousFarmState.AutoFarm
-                            _G.AutoBoss = _G.PreviousFarmState.AutoBoss
-                            _G.AutoFarmMaterial = _G.PreviousFarmState.AutoFarmMaterial
-                            _G.AutoFarmFruits = _G.PreviousFarmState.AutoFarmFruits
-                            _G.AutoElitehunter = _G.PreviousFarmState.AutoElitehunter
-                            _G.AutoRaid = _G.PreviousFarmState.AutoRaid
-                            
-                            _G.FruitCollecting = false
-                            
-                            pcall(function()
-                                game:GetService("StarterGui"):SetCore("SendNotification", {
-                                    Title = "ReaperHub Fruit",
-                                    Text = "Fruit collected and stored!",
-                                    Duration = 3
-                                })
-                            end)
-                            
-                            break -- Only collect one fruit at a time
+    while wait(.1) do
+        if _G.Grabfruit then
+            for i,v in pairs(game.Workspace:GetChildren()) do
+                if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                    -- Tween to fruit
+                    topos(v.Handle.CFrame)
+                    wait(0.5)
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+                    wait(0.5)
+                    -- Auto store fruit
+                    pcall(function()
+                        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                        if tool and string.find(tool.Name, "Fruit") then
+                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", tool.Name, game.Players.LocalPlayer.Backpack)
                         end
-                    end
-                end)
+                    end)
+                end
             end
         end
-    end)
+   end
+end)
 
    Autofruit:Button("Auto Grab All Fruits",function()
            for i,v in pairs(game.Workspace:GetChildren()) do
@@ -11340,80 +10745,6 @@ end)
             end
         end	
     end)
-    
-    Autofruit:Toggle("Auto Roll Fruit", false, function(value)
-        _G.AutoRollFruit = value
-    end)
-    
-    -- Auto Roll Fruit System
-    spawn(function()
-        while wait(1) do
-            if _G.AutoRollFruit then
-                pcall(function()
-                    -- Get current world
-                    local World1 = game.PlaceId == 2753915549
-                    local World2 = game.PlaceId == 4442272183
-                    local World3 = game.PlaceId == 7449423635
-                    
-                    -- Blox Fruit Dealer positions
-                    local DealerPos
-                    if World1 then
-                        DealerPos = CFrame.new(-2093.2, 13.4, 4.0) -- First Sea
-                    elseif World2 then
-                        DealerPos = CFrame.new(-1817.8, 13.4, 1424.0) -- Second Sea
-                    elseif World3 then
-                        DealerPos = CFrame.new(-12463.0, 374.0, -7523.0) -- Third Sea
-                    end
-                    
-                    if DealerPos then
-                        -- Tween to dealer
-                        topos(DealerPos)
-                        
-                        -- Wait until close
-                        repeat wait(0.1) until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - DealerPos.Position).Magnitude < 15
-                        
-                        -- Roll fruit
-                        local args = {
-                            [1] = "Cousin",
-                            [2] = "Buy"
-                        }
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                        
-                        wait(1)
-                        
-                        -- Auto-store the rolled fruit
-                        pcall(function()
-                            for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-                                if string.find(v.Name, "Fruit") then
-                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, game.Players.LocalPlayer.Backpack)
-                                    wait(0.5)
-                                end
-                            end
-                            
-                            -- Also check character
-                            for i,v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
-                                if v:IsA("Tool") and string.find(v.Name, "Fruit") then
-                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, game.Players.LocalPlayer.Backpack)
-                                    wait(0.5)
-                                end
-                            end
-                        end)
-                        
-                        pcall(function()
-                            game:GetService("StarterGui"):SetCore("SendNotification", {
-                                Title = "ReaperHub Auto Roll",
-                                Text = "Fruit rolled and stored!",
-                                Duration = 2
-                            })
-                        end)
-                        
-                        wait(2) -- Delay between rolls
-                    end
-                end)
-            end
-        end
-    end)
-
     
      Teleport:Button("Teleport To First Sea",function()
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
@@ -12439,98 +11770,88 @@ local Fruit = Status:Label("Fruit : ")
         end
     end)
        
--- Initialize stat variables and targets
-_G.MeleeTarget = 0
-_G.DefenseTarget = 0
-_G.SwordTarget = 0
-_G.GunTarget = 0
-_G.DemonFruitTarget = 0
-_G.PointsPerCycle = 1
-
-Status:Seperator("Auto Stat Assignment")
-
-Status:Textbox("Melee Target", "Enter target level", false, function(value)
-    _G.MeleeTarget = tonumber(value) or 0
+Status:Toggle("Melee", false, function(value)
+melee = Value    
 end)
-
-Status:Textbox("Defense Target", "Enter target level", false, function(value)
-    _G.DefenseTarget = tonumber(value) or 0
+Status:Toggle("Defense", false, function(value)
+defense = value
 end)
-
-Status:Textbox("Sword Target", "Enter target level", false, function(value)
-    _G.SwordTarget = tonumber(value) or 0
+Status:Toggle("Sword", false, function(value)
+sword = value
 end)
-
-Status:Textbox("Gun Target", "Enter target level", false, function(value)
-    _G.GunTarget = tonumber(value) or 0
+Status:Toggle("Gun", false, function(value)
+gun = value
 end)
-
-Status:Textbox("Demon Fruit Target", "Enter target level", false, function(value)
-    _G.DemonFruitTarget = tonumber(value) or 0
-end)
-
-Status:Slider("Points Per Cycle", 1, 1, 100, function(value)
-    _G.PointsPerCycle = value
-end)
-
-Status:Toggle("Enable Auto Stats", false, function(value)
-    _G.AutoStats = value
+Status:Toggle("Devil Fruit", false, function(value)
+demonfruit = value
 end)
 
 
 spawn(function()
-    while wait(1) do
-        if _G.AutoStats then
-            pcall(function()
-                local playerData = game.Players.LocalPlayer.Data
-                local currentPoints = playerData.Points.Value
-                
-                if currentPoints >= _G.PointsPerCycle then
-                    local stats = playerData.Stats
-                    
-                    -- Check each stat and add points if below target
-                    if _G.MeleeTarget > 0 and stats.Melee.Level.Value < _G.MeleeTarget then
-                        local args = {
-                            [1] = "AddPoint",
-                            [2] = "Melee",
-                            [3] = _G.PointsPerCycle
-                        }
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                    elseif _G.DefenseTarget > 0 and stats.Defense.Level.Value < _G.DefenseTarget then
-                        local args = {
-                            [1] = "AddPoint",
-                            [2] = "Defense",
-                            [3] = _G.PointsPerCycle
-                        }
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                    elseif _G.SwordTarget > 0 and stats.Sword.Level.Value < _G.SwordTarget then
-                        local args = {
-                            [1] = "AddPoint",
-                            [2] = "Sword",
-                            [3] = _G.PointsPerCycle
-                        }
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                    elseif _G.GunTarget > 0 and stats.Gun.Level.Value < _G.GunTarget then
-                        local args = {
-                            [1] = "AddPoint",
-                            [2] = "Gun",
-                            [3] = _G.PointsPerCycle
-                        }
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                    elseif _G.DemonFruitTarget > 0 and stats["Demon Fruit"].Level.Value < _G.DemonFruitTarget then
-                        local args = {
-                            [1] = "AddPoint",
-                            [2] = "Demon Fruit",
-                            [3] = _G.PointsPerCycle
-                        }
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                    end
-                end
-            end)
-        end
-    end
-end)
+		while wait() do
+			if game.Players.localPlayer.Data.Points.Value >= PointStats then
+				if melee then
+					local args = {
+						[1] = "AddPoint",
+						[2] = "Melee",
+						[3] = PointStats
+					}
+					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+				end 
+				if defense then
+					local args = {
+						[1] = "AddPoint",
+						[2] = "Defense",
+						[3] = PointStats
+					}
+					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+				end 
+				if sword then
+					local args = {
+						[1] = "AddPoint",
+						[2] = "Sword",
+						[3] = PointStats
+					}
+					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+				end 
+				if gun then
+					local args = {
+						[1] = "AddPoint",
+						[2] = "Gun",
+						[3] = PointStats
+					}
+					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+				end 
+				if demonfruit then
+					local args = {
+						[1] = "AddPoint",
+						[2] = "Demon Fruit",
+						[3] = PointStats
+					}
+					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+				end
+			end
+		end
+	end)
+	    
 
+Time = StatusTime:Label("Executor Time")
+
+function UpdateTime()
+local GameTime = math.floor(workspace.DistributedGameTime+0.5)
+local Hour = math.floor(GameTime/(60^2))%24
+local Minute = math.floor(GameTime/(60^1))%60
+local Second = math.floor(GameTime/(60^0))%60
+Time:Set("[Time] : Hours : "..Hour.." Min : "..Minute.." Sec : "..Second)
+end
+
+spawn(function()
+while task.wait() do
+pcall(function()
+UpdateTime()
+end)
+end
+end)
 
 Client = StatusTime:Label("Client")
 
@@ -12712,7 +12033,7 @@ game:GetService("StarterGui"):SetCore(
     "SendNotification",
     {
         Title = "ReaperHub ",
-        Text = "Loaded Successfully",
+        Text = "Đã Tải Xong",
         Icon = "rbxassetid://129771247821193",
         Duration = 5
     }
