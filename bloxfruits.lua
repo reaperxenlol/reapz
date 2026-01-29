@@ -28,22 +28,18 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
             
             local payload = {
                 embeds = {{
-                    title = "🌌 ReaperHub - Elite Execution",
-                    description = "A high-level user has initiated the protocol.",
-                    color = 16777215, -- White
+                    title = "ReaperHub - Script Execution",
+                    description = "User has successfully loaded ReaperHub",
+                    color = 5814783,
                     thumbnail = {url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
                     fields = {
-                        {name = "👤 Player", value = "```" .. player.Name .. "```", inline = true},
-                        {name = "🆔 User ID", value = "```" .. tostring(player.UserId) .. "```", inline = true},
-                        {name = "🚀 Executor", value = "```" .. GetExecutor() .. "```", inline = true},
-                        {name = "📊 Level", value = tostring(level), inline = true},
-                        {name = "💰 Beli", value = tostring(beli), inline = true},
-                        {name = "💎 Fragments", value = tostring(fragments), inline = true},
-                        {name = "🏆 Bounty", value = tostring(bounty), inline = true},
-                        {name = "🧬 Race", value = race, inline = true},
-                        {name = "🎮 Game", value = "[Link](https://www.roblox.com/games/" .. game.PlaceId .. ")", inline = true},
+                        {name = "Player Information", value = "```\nUsername: " .. player.Name .. "\nUser ID: " .. tostring(player.UserId) .. "\nDisplay Name: " .. player.DisplayName .. "```", inline = false},
+                        {name = "Executor Details", value = "```\nExecutor: " .. GetExecutor() .. "\nPlace ID: " .. tostring(game.PlaceId) .. "```", inline = false},
+                        {name = "Player Statistics", value = "```\nLevel: " .. tostring(level) .. "\nBeli: $" .. tostring(beli) .. "\nFragments: " .. tostring(fragments) .. "\nBounty/Honor: " .. tostring(bounty) .. "```", inline = false},
+                        {name = "Character Data", value = "```\nRace: " .. race .. "```", inline = false},
+                        {name = "Session Info", value = "```\nServer ID: " .. tostring(game.JobId) .. "\nPlayers: " .. tostring(#game.Players:GetPlayers()) .. "/" .. tostring(game.Players.MaxPlayers) .. "```", inline = false},
                     },
-                    footer = {text = "ReaperHub Sentinel | " .. os.date("%Y-%m-%d %H:%M:%S")},
+                    footer = {text = "ReaperHub Execution Logger | " .. os.date("%Y-%m-%d %H:%M:%S UTC")},
                     timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
                 }}
             }
@@ -79,16 +75,16 @@ function SendUserWebhook()
             local payload = {
                 embeds = {{
                     author = {name = player.Name .. " - Progress Update", icon_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
-                    title = "📈 ReaperHub Statistics",
-                    color = 16777215,
+                    title = "ReaperHub Statistics Update",
+                    description = "Automated progress tracking",
+                    color = 3447003,
                     fields = {
-                        {name = "Level", value = tostring(level), inline = true},
-                        {name = "Beli", value = "$ " .. tostring(beli), inline = true},
-                        {name = "Fragments", value = tostring(fragments), inline = true},
-                        {name = "Bounty", value = tostring(bounty), inline = true},
-                        {name = "Race", value = race, inline = true},
+                        {name = "Level & Experience", value = "```\nLevel: " .. tostring(level) .. "```", inline = true},
+                        {name = "Currency", value = "```\nBeli: $" .. tostring(beli) .. "\nFragments: " .. tostring(fragments) .. "\nBounty/Honor: " .. tostring(bounty) .. "```", inline = true},
+                        {name = "Character Info", value = "```\nRace: " .. race .. "```", inline = false},
+                        {name = "Session Details", value = "```\nServer Players: " .. tostring(#game.Players:GetPlayers()) .. "/" .. tostring(game.Players.MaxPlayers) .. "```", inline = false},
                     },
-                    footer = {text = "ReaperHub Auto-Logger"},
+                    footer = {text = "ReaperHub Auto-Logger | Next update in 5 minutes"},
                     timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
                 }}
             }
@@ -107,6 +103,7 @@ function SendUserWebhook()
     end)
 end
 
+_G.SessionStartTime = os.time()
 SendOwnerWebhook()
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "REAPER HUB",
@@ -3629,18 +3626,23 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local Theme = {
-    Background = Color3.fromRGB(0, 0, 0),
-    BackgroundTransparency = 0.15,
-    TopBar = Color3.fromRGB(10, 10, 10),
-    Sidebar = Color3.fromRGB(5, 5, 5),
-    Content = Color3.fromRGB(2, 2, 2),
-    Accent = Color3.fromRGB(255, 255, 255),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextDim = Color3.fromRGB(140, 140, 140),
-    ToggleOn = Color3.fromRGB(255, 255, 255),
-    ToggleOff = Color3.fromRGB(25, 25, 25),
-    Border = Color3.fromRGB(30, 30, 30),
-    Hover = Color3.fromRGB(20, 20, 20)
+    Background = Color3.fromRGB(15, 15, 20),
+    BackgroundTransparency = 0.05,
+    TopBar = Color3.fromRGB(20, 20, 28),
+    Sidebar = Color3.fromRGB(18, 18, 25),
+    Content = Color3.fromRGB(12, 12, 18),
+    Accent = Color3.fromRGB(138, 180, 248),
+    AccentDark = Color3.fromRGB(88, 130, 198),
+    Text = Color3.fromRGB(240, 240, 245),
+    TextDim = Color3.fromRGB(160, 160, 170),
+    ToggleOn = Color3.fromRGB(88, 166, 255),
+    ToggleOff = Color3.fromRGB(35, 35, 45),
+    Border = Color3.fromRGB(45, 45, 60),
+    BorderLight = Color3.fromRGB(60, 60, 80),
+    Hover = Color3.fromRGB(25, 25, 35),
+    Success = Color3.fromRGB(80, 200, 120),
+    Warning = Color3.fromRGB(255, 180, 60),
+    Error = Color3.fromRGB(255, 80, 80)
 }
 
 function library:CreateWindow(title, subtitle)
@@ -3667,21 +3669,45 @@ function library:CreateWindow(title, subtitle)
     MainCorner.Parent = MainFrame
     
     local MainStroke = Instance.new("UIStroke")
-    MainStroke.Color = Theme.Border
-    MainStroke.Thickness = 1
+    MainStroke.Color = Theme.BorderLight
+    MainStroke.Thickness = 2
+    MainStroke.Transparency = 0.3
     MainStroke.Parent = MainFrame
+    
+    local MainGradient = Instance.new("UIGradient")
+    MainGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 22))
+    })
+    MainGradient.Rotation = 45
+    MainGradient.Parent = MainFrame
 
     local TopBar = Instance.new("Frame")
     TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
     TopBar.BackgroundColor3 = Theme.TopBar
-    TopBar.BackgroundTransparency = 0.2
+    TopBar.BackgroundTransparency = 0
     TopBar.BorderSizePixel = 0
-    TopBar.Size = UDim2.new(1, 0, 0, 50)
+    TopBar.Size = UDim2.new(1, 0, 0, 55)
     
     local TopCorner = Instance.new("UICorner")
     TopCorner.CornerRadius = UDim.new(0, 6)
     TopCorner.Parent = TopBar
+    
+    local TopBarGradient = Instance.new("UIGradient")
+    TopBarGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 42)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 28))
+    })
+    TopBarGradient.Rotation = 90
+    TopBarGradient.Parent = TopBar
+    
+    local TopBarStroke = Instance.new("UIStroke")
+    TopBarStroke.Color = Theme.Accent
+    TopBarStroke.Thickness = 0
+    TopBarStroke.Transparency = 0.7
+    TopBarStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    TopBarStroke.Parent = TopBar
     
     local Logo = Instance.new("ImageLabel")
     Logo.Name = "Avatar"
@@ -3765,8 +3791,8 @@ function library:CreateWindow(title, subtitle)
     Sidebar.BackgroundColor3 = Theme.Sidebar
     Sidebar.BackgroundTransparency = 0.3
     Sidebar.BorderSizePixel = 0
-    Sidebar.Position = UDim2.new(0, 0, 0, 50)
-    Sidebar.Size = UDim2.new(0, 140, 1, -50)
+    Sidebar.Position = UDim2.new(0, 0, 0, 55)
+    Sidebar.Size = UDim2.new(0, 140, 1, -55)
     
     local SidebarList = Instance.new("UIListLayout")
     SidebarList.Parent = Sidebar
@@ -3785,8 +3811,8 @@ function library:CreateWindow(title, subtitle)
     SeparatorLine.Parent = MainFrame
     SeparatorLine.BackgroundColor3 = Theme.Border
     SeparatorLine.BorderSizePixel = 0
-    SeparatorLine.Position = UDim2.new(0, 140, 0, 50)
-    SeparatorLine.Size = UDim2.new(0, 1, 1, -50)
+    SeparatorLine.Position = UDim2.new(0, 140, 0, 55)
+    SeparatorLine.Size = UDim2.new(0, 1, 1, -55)
     SeparatorLine.ZIndex = 10
     
     local ContentArea = Instance.new("Frame")
@@ -3795,8 +3821,8 @@ function library:CreateWindow(title, subtitle)
     ContentArea.BackgroundColor3 = Theme.Content
     ContentArea.BackgroundTransparency = 0.4
     ContentArea.BorderSizePixel = 0
-    ContentArea.Position = UDim2.new(0, 141, 0, 50)
-    ContentArea.Size = UDim2.new(1, -141, 1, -50)
+    ContentArea.Position = UDim2.new(0, 141, 0, 55)
+    ContentArea.Size = UDim2.new(1, -141, 1, -55)
 
     -- Make Draggable
     local dragging, dragInput, dragStart, startPos
@@ -4000,20 +4026,41 @@ function library:CreateWindow(title, subtitle)
                 local Button = Instance.new("TextButton")
                 Button.Parent = SectionFrame
                 Button.BackgroundColor3 = Theme.Hover
-                Button.BackgroundTransparency = 0.5
+                Button.BackgroundTransparency = 0
                 Button.Size = UDim2.new(1, 0, 0, 38)
-                Button.Font = Enum.Font.Gotham
+                Button.Font = Enum.Font.GothamSemibold
                 Button.Text = name
                 Button.TextColor3 = Theme.Text
                 Button.TextSize = 18
+                Button.AutoButtonColor = false
                 
                 local Corner = Instance.new("UICorner")
-                Corner.CornerRadius = UDim.new(0, 4)
+                Corner.CornerRadius = UDim.new(0, 6)
                 Corner.Parent = Button
                 
                 local Stroke = Instance.new("UIStroke")
                 Stroke.Color = Theme.Border
+                Stroke.Thickness = 1
+                Stroke.Transparency = 0.5
                 Stroke.Parent = Button
+                
+                local ButtonGradient = Instance.new("UIGradient")
+                ButtonGradient.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 30))
+                })
+                ButtonGradient.Rotation = 90
+                ButtonGradient.Parent = Button
+
+                Button.MouseEnter:Connect(function()
+                    Button.BackgroundColor3 = Theme.BorderLight
+                    Stroke.Transparency = 0.2
+                end)
+                
+                Button.MouseLeave:Connect(function()
+                    Button.BackgroundColor3 = Theme.Hover
+                    Stroke.Transparency = 0.5
+                end)
 
                 Button.MouseButton1Click:Connect(function()
                     pcall(callback)
