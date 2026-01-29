@@ -193,22 +193,65 @@ end)
 
 -- ========== AUTO SELECT PIRATE TEAM ==========
 spawn(function()
-    local player = game:GetService("Players").LocalPlayer
-    while wait(2) do
+    -- Wait for game to load
+    repeat wait() until game:IsLoaded()
+    wait(1)
+    
+    local LocalPlayer = game:GetService("Players").LocalPlayer
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    
+    -- Try multiple times in case of delays
+    for i = 1, 15 do
         pcall(function()
-            local data = player:WaitForChild("Data", 10)
-            if data and data:FindFirstChild("Team") and data.Team.Value == "" then
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", "Pirates")
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "ReaperHub",
-                    Text = "Auto-selected Pirate team!",
-                    Duration = 3
-                })
+            -- Check if team selection is needed
+            if not LocalPlayer.Team or LocalPlayer.Team.Name == "Neutral" then
+                -- Method 1: Try RemoteEvent
+                if ReplicatedStorage:FindFirstChild("Remotes") then
+                    local remotes = ReplicatedStorage.Remotes
+                    if remotes:FindFirstChild("CommF_") then
+                        remotes.CommF_:InvokeServer("SetTeam", "Pirates")
+                    end
+                end
+                
+                -- Method 2: Try direct team assignment
+                local teams = game:GetService("Teams")
+                if teams:FindFirstChild("Pirates") then
+                    LocalPlayer.Team = teams.Pirates
+                end
+                
+                -- Method 3: Click the pirate button if GUI exists
+                if LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Main") then
+                    local main = LocalPlayer.PlayerGui.Main
+                    if main:FindFirstChild("ChooseTeam") then
+                        local chooseTeam = main.ChooseTeam
+                        if chooseTeam:FindFirstChild("Container") then
+                            local container = chooseTeam.Container
+                            if container:FindFirstChild("Pirates") then
+                                local piratesButton = container.Pirates
+                                if piratesButton:FindFirstChild("ViewportFrame") then
+                                    -- Simulate button click
+                                    for _, v in pairs(getconnections(piratesButton.MouseButton1Click)) do
+                                        v:Fire()
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end)
-        if player.Team ~= nil and player:FindFirstChild("Data") and player.Data:FindFirstChild("Team") and player.Data.Team.Value ~= "" then 
-            break 
+        
+        -- Check if successful
+        if LocalPlayer.Team and LocalPlayer.Team.Name == "Pirates" then
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "ReaperHub",
+                Text = "Auto-selected Pirate team!",
+                Duration = 3
+            })
+            break
         end
+        
+        wait(1)
     end
 end)
 -- ========== END AUTO PIRATE ==========
@@ -3909,8 +3952,8 @@ UICorner.Parent = ImageButton
 	TabHolder.Parent = Top
 	TabHolder.BackgroundColor3 = Color3.fromRGB(20, 20, 20) --25
 	TabHolder.BackgroundTransparency = 0.7
-	TabHolder.Position = UDim2.new(-0.010309278, 6, 0.023051, 0.2)
-	TabHolder.Size = UDim2.new(0, 410, 0, 40)
+	TabHolder.Position = UDim2.new(0, 5, 0, 50)
+	TabHolder.Size = UDim2.new(0, 140, 0, 320)
 
 	UICorner_2.Parent = TabHolder
 
@@ -3919,13 +3962,13 @@ UICorner.Parent = ImageButton
 	TabContainer.Active = true
 	TabContainer.BackgroundColor3 = Color3.fromRGB(16, 42, 220)
 	TabContainer.BackgroundTransparency = 1.000
-	TabContainer.Size = UDim2.new(0, 405, 0, 45)
-	TabContainer.CanvasSize = UDim2.new(2, 0, 0, 0)
+	TabContainer.Size = UDim2.new(1, -10, 1, -10)
+	TabContainer.CanvasSize = UDim2.new(0, 0, 2, 0)
 	TabContainer.ScrollBarThickness = 6
 	TabContainer.VerticalScrollBarInset = Enum.ScrollBarInset.Always
 
 	UIListLayout.Parent = TabContainer
-	UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+	UIListLayout.FillDirection = Enum.FillDirection.Vertical
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.Padding = UDim.new(0, 5)
 	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
@@ -3942,8 +3985,8 @@ UICorner.Parent = ImageButton
 	Bottom.Parent = Main
 	Bottom.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 	Bottom.BackgroundTransparency = 0.1
-	Bottom.Position = UDim2.new(0.0119760484, 2, 0.0916666687, 25)
-	Bottom.Size = UDim2.new(0, 505, 0, 300)
+	Bottom.Position = UDim2.new(0, 150, 0, 50)
+	Bottom.Size = UDim2.new(0, 360, 0, 320)
     
 	local uitoggled = false
 	UserInputService.InputBegan:Connect(
@@ -4034,7 +4077,7 @@ UICorner.Parent = ImageButton
 		Page.BackgroundColor3 = Color3.fromRGB(98, 37, 209)
 		Page.Position = UDim2.new(0.01, 0, 0.015, 0)
 		Page.BackgroundTransparency = 1.000
-		Page.Size = UDim2.new(0, 495, 0, 295)
+		Page.Size = UDim2.new(1, -10, 1, -10)
 		Page.ScrollBarThickness = 0
 		Page.CanvasSize = UDim2.new(0, 0, 0, 0)
 		Page.Visible = false
@@ -4044,7 +4087,7 @@ UICorner.Parent = ImageButton
 		Left.Active = true
 		Left.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Left.BackgroundTransparency = 1
-		Left.Size = UDim2.new(0, 242, 0, 290)
+		Left.Size = UDim2.new(0, 170, 0, 310)
 		Left.ScrollBarThickness = 3
 		Left.CanvasSize = UDim2.new(2, 0, 0, 0)
 
@@ -4053,7 +4096,7 @@ UICorner.Parent = ImageButton
 		Right.Active = true
 		Right.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Right.BackgroundTransparency = 1
-		Right.Size = UDim2.new(0, 242, 0, 290)
+		Right.Size = UDim2.new(0, 170, 0, 310)
 		Right.ScrollBarThickness = 3
 		Right.CanvasSize = UDim2.new(2, 0, 0, 0)
 
@@ -4176,7 +4219,7 @@ UICorner.Parent = ImageButton
 			Section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 			Section.BackgroundTransparency = 0
 			Section.ClipsDescendants = true
-			Section.Size = UDim2.new(0, 240, 0, 340)
+			Section.Size = UDim2.new(0, 165, 0, 340)
 
 			UICorner_5.CornerRadius = UDim.new(0, 0) --5
 			UICorner_5.Parent = Section
@@ -9166,7 +9209,7 @@ end
 		end
 	end)
  
-  Volcano:Toggle("Auto Tìm đảo Prehistoric", false, function(value)
+  Volcano:Toggle("Auto Find Prehistoric Island", false, function(value)
     _G.AutoFindPrehistoric = value
     _G.Nocliprock = value
   end)
@@ -9274,7 +9317,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-  Volcano:Toggle("Auto Bay vào đảo Prehistoric", false, function(value)
+  Volcano:Toggle("Auto Fly to Prehistoric Island", false, function(value)
    _G.TweenVolcano = value
    end)
    
@@ -9299,7 +9342,7 @@ end)
     end
 end)
 
-  Volcano:Toggle("Auto Lấp lỗ Prehistoric", false, function(value)
+  Volcano:Toggle("Auto Defend Volcano (Fill Holes)", false, function(value)
     _G.DefendVolcano = value
   end)
   
@@ -9399,19 +9442,19 @@ spawn(function()
 	end
 end);
 
-  Volcano:Toggle("Auto Lấp lỗ bằng Melee", false, function(value)
+  Volcano:Toggle("Auto Fill Holes with Melee", false, function(value)
       _G.UseMelee = value
   end)
   
-  Volcano:Toggle("Auto Lấp lỗ Sword", false, function(value)
+  Volcano:Toggle("Auto Fill Holes with Sword", false, function(value)
       _G.UseSword = value
   end)
   
-  Volcano:Toggle("Auto Lấp lỗ bằng Gun", false, function(value)
+  Volcano:Toggle("Auto Fill Holes with Gun", false, function(value)
       _G.UseGun = value
   end)
 
-  Volcano:Toggle("Auto Đánh Golem", false, function(value)
+  Volcano:Toggle("Auto Kill Lava Golem", false, function(value)
       _G.KillGolem = value
      StopTween(_G.KillGolem)
   end)
@@ -9446,7 +9489,7 @@ spawn(function()
         end
     end
 end)
-  Volcano:Toggle("Nhặt Xương", false, function(Value)
+  Volcano:Toggle("Collect Dino Bones", false, function(Value)
       _G.AutoCollectBone = Value    
      StopTween(_G.AutoCollectBone)
  end)
@@ -9462,7 +9505,7 @@ spawn(function()
         end
     end
 end)
-Volcano:Toggle("Nhặt Trứng", false, function(Value)
+Volcano:Toggle("Collect Dragon Eggs", false, function(Value)
     _G.CollectEgg = Value    
     StopTween(_G.CollectEgg)
 end)
