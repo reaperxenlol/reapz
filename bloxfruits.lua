@@ -3697,8 +3697,8 @@ function library:CreateWindow(title, subtitle)
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Theme.Background
     MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
-    MainFrame.Size = UDim2.new(0, 800, 0, 500)
+    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
+    MainFrame.Size = UDim2.new(0, 550, 0, 350)
     MainFrame.ClipsDescendants = true
     
     local MainCorner = Instance.new("UICorner")
@@ -3722,8 +3722,8 @@ function library:CreateWindow(title, subtitle)
     Logo.Name = "Logo"
     Logo.Parent = TopBar
     Logo.BackgroundTransparency = 1
-    Logo.Position = UDim2.new(0, 15, 0, 10)
-    Logo.Size = UDim2.new(0, 40, 0, 40)
+    Logo.Position = UDim2.new(0, 12, 0, 12)
+    Logo.Size = UDim2.new(0, 36, 0, 36)
     Logo.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
     
     local LogoCorner = Instance.new("UICorner")
@@ -3735,12 +3735,12 @@ function library:CreateWindow(title, subtitle)
     TitleLabel.Name = "Title"
     TitleLabel.Parent = TopBar
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Position = UDim2.new(0, 65, 0, 8)
-    TitleLabel.Size = UDim2.new(0, 200, 0, 20)
+    TitleLabel.Position = UDim2.new(0, 60, 0, 12)
+    TitleLabel.Size = UDim2.new(0, 150, 0, 18)
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = title or "[R] REAPER HUB"
     TitleLabel.TextColor3 = Theme.Text
-    TitleLabel.TextSize = 16
+    TitleLabel.TextSize = 14
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     
     -- Subtitle
@@ -3748,12 +3748,12 @@ function library:CreateWindow(title, subtitle)
     SubtitleLabel.Name = "Subtitle"
     SubtitleLabel.Parent = TopBar
     SubtitleLabel.BackgroundTransparency = 1
-    SubtitleLabel.Position = UDim2.new(0, 65, 0, 32)
-    SubtitleLabel.Size = UDim2.new(0, 200, 0, 18)
+    SubtitleLabel.Position = UDim2.new(0, 60, 0, 30)
+    SubtitleLabel.Size = UDim2.new(0, 150, 0, 15)
     SubtitleLabel.Font = Enum.Font.Gotham
     SubtitleLabel.Text = subtitle or "Bladeball | V2"
     SubtitleLabel.TextColor3 = Theme.TextDim
-    SubtitleLabel.TextSize = 12
+    SubtitleLabel.TextSize = 10
     SubtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     
     -- User Info (Right side)
@@ -3761,8 +3761,8 @@ function library:CreateWindow(title, subtitle)
     UserLabel.Name = "User"
     UserLabel.Parent = TopBar
     UserLabel.BackgroundTransparency = 1
-    UserLabel.Position = UDim2.new(1, -250, 0, 8)
-    UserLabel.Size = UDim2.new(0, 150, 0, 20)
+    UserLabel.Position = UDim2.new(1, -180, 0, 8)
+    UserLabel.Size = UDim2.new(0, 140, 0, 20)
     UserLabel.Font = Enum.Font.Gotham
     UserLabel.Text = LocalPlayer.Name
     UserLabel.TextColor3 = Theme.Text
@@ -3774,8 +3774,8 @@ function library:CreateWindow(title, subtitle)
     UserIDLabel.Name = "UserID"
     UserIDLabel.Parent = TopBar
     UserIDLabel.BackgroundTransparency = 1
-    UserIDLabel.Position = UDim2.new(1, -250, 0, 32)
-    UserIDLabel.Size = UDim2.new(0, 150, 0, 18)
+    UserIDLabel.Position = UDim2.new(1, -180, 0, 32)
+    UserIDLabel.Size = UDim2.new(0, 140, 0, 18)
     UserIDLabel.Font = Enum.Font.Gotham
     UserIDLabel.Text = "ID: " .. tostring(LocalPlayer.UserId)
     UserIDLabel.TextColor3 = Theme.TextDim
@@ -3822,7 +3822,7 @@ function library:CreateWindow(title, subtitle)
     Sidebar.BackgroundColor3 = Theme.Sidebar
     Sidebar.BorderSizePixel = 0
     Sidebar.Position = UDim2.new(0, 0, 0, 60)
-    Sidebar.Size = UDim2.new(0, 200, 1, -60)
+    Sidebar.Size = UDim2.new(0, 150, 1, -60)
     
     local SidebarList = Instance.new("UIListLayout")
     SidebarList.Parent = Sidebar
@@ -3832,8 +3832,8 @@ function library:CreateWindow(title, subtitle)
     local SidebarPadding = Instance.new("UIPadding")
     SidebarPadding.Parent = Sidebar
     SidebarPadding.PaddingTop = UDim.new(0, 10)
-    SidebarPadding.PaddingLeft = UDim.new(0, 10)
-    SidebarPadding.PaddingRight = UDim.new(0, 10)
+    SidebarPadding.PaddingLeft = UDim.new(0, 5)
+    SidebarPadding.PaddingRight = UDim.new(0, 5)
     
     -- Content Area
     local ContentArea = Instance.new("Frame")
@@ -3841,8 +3841,8 @@ function library:CreateWindow(title, subtitle)
     ContentArea.Parent = MainFrame
     ContentArea.BackgroundColor3 = Theme.Content
     ContentArea.BorderSizePixel = 0
-    ContentArea.Position = UDim2.new(0, 200, 0, 60)
-    ContentArea.Size = UDim2.new(1, -200, 1, -60)
+    ContentArea.Position = UDim2.new(0, 150, 0, 60)
+    ContentArea.Size = UDim2.new(1, -150, 1, -60)
     
     -- Make draggable
     MakeDraggable(MainFrame, TopBar)
@@ -3859,9 +3859,9 @@ function library:CreateWindow(title, subtitle)
     MinimizeBtn.MouseButton1Click:Connect(function()
         minimized = not minimized
         if minimized then
-            Tween(MainFrame, {Size = UDim2.new(0, 800, 0, 60)}, 0.3)
+            Tween(MainFrame, {Size = UDim2.new(0, 550, 0, 60)}, 0.3)
         else
-            Tween(MainFrame, {Size = UDim2.new(0, 800, 0, 500)}, 0.3)
+            Tween(MainFrame, {Size = UDim2.new(0, 550, 0, 350)}, 0.3)
         end
     end)
     
@@ -3876,12 +3876,13 @@ function library:CreateWindow(title, subtitle)
         TabButton.Parent = Sidebar
         TabButton.BackgroundColor3 = Theme.Sidebar
         TabButton.BorderSizePixel = 0
-        TabButton.Size = UDim2.new(1, -10, 0, 35)
-        TabButton.Font = Enum.Font.Gotham
+        TabButton.Size = UDim2.new(1, 0, 0, 35)
+        TabButton.Font = Enum.Font.GothamBold
         TabButton.Text = "  [" .. (icon or "M") .. "] " .. name
         TabButton.TextColor3 = Theme.TextDim
-        TabButton.TextSize = 13
+        TabButton.TextSize = 12
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
+        TabButton.ClipsDescendants = true
         TabButton.AutoButtonColor = false
         
         local TabCorner = Instance.new("UICorner")
@@ -3897,7 +3898,7 @@ function library:CreateWindow(title, subtitle)
         TabContent.Size = UDim2.new(1, 0, 1, 0)
         TabContent.ScrollBarThickness = 4
         TabContent.ScrollBarImageColor3 = Theme.Accent
-        TabContent.Visible = false
+        TabContent.Visible = (#Window.Tabs == 1)
         TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
         
         local ContentList = Instance.new("UIListLayout")
@@ -3982,10 +3983,10 @@ function library:CreateWindow(title, subtitle)
             
             local SectionPadding = Instance.new("UIPadding")
             SectionPadding.Parent = SectionFrame
-            SectionPadding.PaddingTop = UDim.new(0, 45)
-            SectionPadding.PaddingLeft = UDim.new(0, 15)
-            SectionPadding.PaddingRight = UDim.new(0, 15)
-            SectionPadding.PaddingBottom = UDim.new(0, 15)
+            SectionPadding.PaddingTop = UDim.new(0, 35)
+            SectionPadding.PaddingLeft = UDim.new(0, 10)
+            SectionPadding.PaddingRight = UDim.new(0, 10)
+            SectionPadding.PaddingBottom = UDim.new(0, 10)
             
             -- Toggle
             function Section:CreateToggle(name, default, callback)
@@ -3996,7 +3997,7 @@ function library:CreateWindow(title, subtitle)
                 ToggleFrame.Name = name
                 ToggleFrame.Parent = SectionFrame
                 ToggleFrame.BackgroundTransparency = 1
-                ToggleFrame.Size = UDim2.new(1, -30, 0, 35)
+                ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
                 
                 local ToggleLabel = Instance.new("TextLabel")
                 ToggleLabel.Parent = ToggleFrame
@@ -4057,7 +4058,7 @@ function library:CreateWindow(title, subtitle)
                 ButtonFrame.Parent = SectionFrame
                 ButtonFrame.BackgroundColor3 = Theme.Hover
                 ButtonFrame.BorderSizePixel = 0
-                ButtonFrame.Size = UDim2.new(1, -30, 0, 35)
+                ButtonFrame.Size = UDim2.new(1, 0, 0, 30)
                 ButtonFrame.Font = Enum.Font.Gotham
                 ButtonFrame.Text = name
                 ButtonFrame.TextColor3 = Theme.Text
@@ -4341,10 +4342,13 @@ function library:CreateWindow(title, subtitle)
         
         table.insert(Window.Tabs, Tab)
         
-        -- Auto-select first tab
-        if #Window.Tabs == 1 then
-            TabButton.MouseButton1Click:Fire()
-        end
+        -- Auto-select first tab after a short delay to ensure all tabs are initialized
+        task.spawn(function()
+            if #Window.Tabs == 1 then
+                task.wait(0.5)
+                TabButton.MouseButton1Click:Fire()
+            end
+        end)
         
         return Tab
     end
@@ -4406,16 +4410,16 @@ function Window:Tab(name, icon)
     return WrapTab(tab)
 end
 
-local Main = Window:Tab("General","14477284625")
-local AutoQuest = Window:Tab("Items Quest","11446859498")
-local Events = Window:Tab("Auto Sea Event","10734941354")
-local Racer = Window:Tab("Race V4 & Esp","10747372167")
-local RaidFruit = Window:Tab("Raid & Fruits","10734975692")
-local Playerrss = Window:Tab("Teleport & PVP","10734910680")
-local MiscShop = Window:Tab("Shop & Misc","10723434557")
-local AutoStatus = Window:Tab("Status Server","10709770317")
-local WebhookTab = Window:Tab("Webhook","10723434557")
-local ConfigTab = Window:Tab("Config","10723434557")
+local Main = Window:Tab("Main", "M")
+local AutoQuest = Window:Tab("Play", "P")
+local Events = Window:Tab("ESP", "E")
+local Racer = Window:Tab("Roll", "R")
+local RaidFruit = Window:Tab("Ping | FPS", "F")
+local Playerrss = Window:Tab("Shaders", "S")
+local MiscShop = Window:Tab("Misc", "+")
+local AutoStatus = Window:Tab("Status", "T")
+local WebhookTab = Window:Tab("Webhook", "W")
+local ConfigTab = Window:Tab("Config", "C")
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
