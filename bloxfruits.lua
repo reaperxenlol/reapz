@@ -8,7 +8,7 @@ end
 
 function SendOwnerWebhook()
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "REAPER HUB V3",
+    Title = "REAPER HUB",
     Text = "Protocol Initiated. Welcome, " .. game.Players.LocalPlayer.Name,
     Icon = "rbxthumb://type=AvatarHeadShot&id=" .. game.Players.LocalPlayer.UserId .. "&w=420&h=420",
     Duration = 5
@@ -109,7 +109,7 @@ end
 
 SendOwnerWebhook()
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "REAPER HUB V3",
+    Title = "REAPER HUB",
     Text = "Protocol Initiated. Welcome, " .. game.Players.LocalPlayer.Name,
     Icon = "rbxthumb://type=AvatarHeadShot&id=" .. game.Players.LocalPlayer.UserId .. "&w=420&h=420",
     Duration = 5
@@ -3619,7 +3619,7 @@ function CheckItemBPCRBPCR(name)
     end
 end
 
--- ========== REAPERHUB FUTURISTIC BLACK UI LIBRARY ==========
+-- ========== REAPERHUB MINIMAL FUTURISTIC UI LIBRARY ==========
 
 local library = {}
 local TweenService = game:GetService("TweenService")
@@ -3628,20 +3628,20 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Theme Colors (Fully Black & Futuristic)
+-- Minimal Futuristic Theme (Semi-Transparent Black)
 local Theme = {
     Background = Color3.fromRGB(0, 0, 0),
-    TopBar = Color3.fromRGB(5, 5, 5),
-    Sidebar = Color3.fromRGB(3, 3, 3),
+    BackgroundTransparency = 0.15,
+    TopBar = Color3.fromRGB(10, 10, 10),
+    Sidebar = Color3.fromRGB(5, 5, 5),
     Content = Color3.fromRGB(2, 2, 2),
-    Accent = Color3.fromRGB(255, 255, 255), -- White accent for contrast
-    Glow = Color3.fromRGB(40, 40, 40),
+    Accent = Color3.fromRGB(255, 255, 255),
     Text = Color3.fromRGB(255, 255, 255),
-    TextDim = Color3.fromRGB(150, 150, 150),
+    TextDim = Color3.fromRGB(140, 140, 140),
     ToggleOn = Color3.fromRGB(255, 255, 255),
-    ToggleOff = Color3.fromRGB(30, 30, 30),
-    Border = Color3.fromRGB(20, 20, 20),
-    Hover = Color3.fromRGB(15, 15, 15)
+    ToggleOff = Color3.fromRGB(25, 25, 25),
+    Border = Color3.fromRGB(30, 30, 30),
+    Hover = Color3.fromRGB(20, 20, 20)
 }
 
 local function Tween(obj, props, duration)
@@ -3681,22 +3681,24 @@ function library:CreateWindow(title, subtitle)
     local Window = {Tabs = {}, CurrentTab = nil}
     
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "ReaperHub_V3"
+    ScreenGui.Name = "ReaperHub_Minimal"
     ScreenGui.Parent = game:GetService("CoreGui")
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.ResetOnSpawn = false
     
+    -- Smaller size: 500x320
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "Main"
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Theme.Background
+    MainFrame.BackgroundTransparency = Theme.BackgroundTransparency
     MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
-    MainFrame.Size = UDim2.new(0, 550, 0, 350)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -160)
+    MainFrame.Size = UDim2.new(0, 500, 0, 320)
     MainFrame.ClipsDescendants = true
     
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.CornerRadius = UDim.new(0, 6)
     MainCorner.Parent = MainFrame
     
     local MainStroke = Instance.new("UIStroke")
@@ -3708,109 +3710,98 @@ function library:CreateWindow(title, subtitle)
     TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
     TopBar.BackgroundColor3 = Theme.TopBar
+    TopBar.BackgroundTransparency = 0.2
     TopBar.BorderSizePixel = 0
-    TopBar.Size = UDim2.new(1, 0, 0, 60)
+    TopBar.Size = UDim2.new(1, 0, 0, 50)
     
     local TopCorner = Instance.new("UICorner")
-    TopCorner.CornerRadius = UDim.new(0, 10)
+    TopCorner.CornerRadius = UDim.new(0, 6)
     TopCorner.Parent = TopBar
     
-    -- Avatar Fix
     local Logo = Instance.new("ImageLabel")
     Logo.Name = "Avatar"
     Logo.Parent = TopBar
     Logo.BackgroundTransparency = 1
-    Logo.Position = UDim2.new(0, 12, 0, 12)
-    Logo.Size = UDim2.new(0, 36, 0, 36)
+    Logo.Position = UDim2.new(0, 10, 0, 10)
+    Logo.Size = UDim2.new(0, 30, 0, 30)
     Logo.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420"
     
     local LogoCorner = Instance.new("UICorner")
     LogoCorner.CornerRadius = UDim.new(1, 0)
     LogoCorner.Parent = Logo
-    
-    local LogoStroke = Instance.new("UIStroke")
-    LogoStroke.Color = Theme.Accent
-    LogoStroke.Thickness = 1
-    LogoStroke.Parent = Logo
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
     TitleLabel.Parent = TopBar
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Position = UDim2.new(0, 60, 0, 12)
-    TitleLabel.Size = UDim2.new(0, 200, 0, 18)
+    TitleLabel.Position = UDim2.new(0, 50, 0, 10)
+    TitleLabel.Size = UDim2.new(0, 200, 0, 15)
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = title or "REAPER HUB"
     TitleLabel.TextColor3 = Theme.Text
-    TitleLabel.TextSize = 16
+    TitleLabel.TextSize = 14
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     
     local SubtitleLabel = Instance.new("TextLabel")
     SubtitleLabel.Name = "Subtitle"
     SubtitleLabel.Parent = TopBar
     SubtitleLabel.BackgroundTransparency = 1
-    SubtitleLabel.Position = UDim2.new(0, 60, 0, 32)
+    SubtitleLabel.Position = UDim2.new(0, 50, 0, 25)
     SubtitleLabel.Size = UDim2.new(0, 200, 0, 15)
     SubtitleLabel.Font = Enum.Font.Gotham
-    SubtitleLabel.Text = subtitle or "FUTURISTIC EDITION"
+    SubtitleLabel.Text = subtitle or "BLOX FRUITS"
     SubtitleLabel.TextColor3 = Theme.TextDim
-    SubtitleLabel.TextSize = 11
+    SubtitleLabel.TextSize = 10
     SubtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Toggle Button (Restore old behavior)
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Name = "Close"
     CloseBtn.Parent = TopBar
-    CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
-    CloseBtn.BorderSizePixel = 0
-    CloseBtn.Position = UDim2.new(1, -35, 0, 15)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Position = UDim2.new(1, -35, 0, 10)
     CloseBtn.Size = UDim2.new(0, 25, 0, 25)
     CloseBtn.Font = Enum.Font.GothamBold
-    CloseBtn.Text = "X"
-    CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-    CloseBtn.TextSize = 14
+    CloseBtn.Text = "×"
+    CloseBtn.TextColor3 = Theme.TextDim
+    CloseBtn.TextSize = 20
     
-    local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 6)
-    CloseCorner.Parent = CloseBtn
+    CloseBtn.MouseEnter:Connect(function() CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100) end)
+    CloseBtn.MouseLeave:Connect(function() CloseBtn.TextColor3 = Theme.TextDim end)
 
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = MainFrame
     Sidebar.BackgroundColor3 = Theme.Sidebar
+    Sidebar.BackgroundTransparency = 0.3
     Sidebar.BorderSizePixel = 0
-    Sidebar.Position = UDim2.new(0, 0, 0, 60)
-    Sidebar.Size = UDim2.new(0, 140, 1, -60)
+    Sidebar.Position = UDim2.new(0, 0, 0, 50)
+    Sidebar.Size = UDim2.new(0, 130, 1, -50)
     
-    local SidebarStroke = Instance.new("UIStroke")
-    SidebarStroke.Color = Theme.Border
-    SidebarStroke.Thickness = 1
-    SidebarStroke.Parent = Sidebar
-
     local SidebarList = Instance.new("UIListLayout")
     SidebarList.Parent = Sidebar
     SidebarList.SortOrder = Enum.SortOrder.LayoutOrder
-    SidebarList.Padding = UDim.new(0, 5)
+    SidebarList.Padding = UDim.new(0, 2)
     
     local SidebarPadding = Instance.new("UIPadding")
     SidebarPadding.Parent = Sidebar
-    SidebarPadding.PaddingTop = UDim.new(0, 10)
-    SidebarPadding.PaddingLeft = UDim.new(0, 8)
-    SidebarPadding.PaddingRight = UDim.new(0, 8)
+    SidebarPadding.PaddingTop = UDim.new(0, 5)
+    SidebarPadding.PaddingLeft = UDim.new(0, 5)
+    SidebarPadding.PaddingRight = UDim.new(0, 5)
     
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "Content"
     ContentArea.Parent = MainFrame
     ContentArea.BackgroundColor3 = Theme.Content
+    ContentArea.BackgroundTransparency = 0.4
     ContentArea.BorderSizePixel = 0
-    ContentArea.Position = UDim2.new(0, 140, 0, 60)
-    ContentArea.Size = UDim2.new(1, -140, 1, -60)
+    ContentArea.Position = UDim2.new(0, 130, 0, 50)
+    ContentArea.Size = UDim2.new(1, -130, 1, -50)
     
     MakeDraggable(MainFrame, TopBar)
     
     local function ToggleGUI()
-        local targetSize = MainFrame.Size == UDim2.new(0, 550, 0, 350) and UDim2.new(0, 0, 0, 0) or UDim2.new(0, 550, 0, 350)
-        Tween(MainFrame, {Size = targetSize}, 0.4)
+        local targetSize = MainFrame.Size == UDim2.new(0, 500, 0, 320) and UDim2.new(0, 0, 0, 0) or UDim2.new(0, 500, 0, 320)
+        Tween(MainFrame, {Size = targetSize}, 0.3)
     end
 
     UserInputService.InputBegan:Connect(function(input, gpe)
@@ -3823,17 +3814,18 @@ function library:CreateWindow(title, subtitle)
         ScreenGui:Destroy()
     end)
 
-    -- Floating Toggle Button
+    -- Floating Toggle Button (Minimal)
     local FloatBtn = Instance.new("TextButton")
     FloatBtn.Name = "ReaperToggle"
     FloatBtn.Parent = ScreenGui
     FloatBtn.BackgroundColor3 = Theme.TopBar
+    FloatBtn.BackgroundTransparency = 0.2
     FloatBtn.Position = UDim2.new(0, 10, 0, 10)
-    FloatBtn.Size = UDim2.new(0, 40, 0, 40)
+    FloatBtn.Size = UDim2.new(0, 35, 0, 35)
     FloatBtn.Text = "R"
     FloatBtn.Font = Enum.Font.GothamBold
     FloatBtn.TextColor3 = Theme.Accent
-    FloatBtn.TextSize = 20
+    FloatBtn.TextSize = 16
     FloatBtn.Draggable = true
     
     local FloatCorner = Instance.new("UICorner")
@@ -3841,7 +3833,7 @@ function library:CreateWindow(title, subtitle)
     FloatCorner.Parent = FloatBtn
     
     local FloatStroke = Instance.new("UIStroke")
-    FloatStroke.Color = Theme.Accent
+    FloatStroke.Color = Theme.Border
     FloatStroke.Thickness = 1
     FloatStroke.Parent = FloatBtn
 
@@ -3854,17 +3846,18 @@ function library:CreateWindow(title, subtitle)
         TabButton.Name = name
         TabButton.Parent = Sidebar
         TabButton.BackgroundColor3 = Theme.Sidebar
+        TabButton.BackgroundTransparency = 1
         TabButton.BorderSizePixel = 0
-        TabButton.Size = UDim2.new(1, 0, 0, 32)
-        TabButton.Font = Enum.Font.GothamBold
-        TabButton.Text = " " .. (icon or "") .. " " .. name
+        TabButton.Size = UDim2.new(1, 0, 0, 30)
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.Text = " " .. name
         TabButton.TextColor3 = Theme.TextDim
         TabButton.TextSize = 12
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.AutoButtonColor = false
         
         local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.CornerRadius = UDim.new(0, 4)
         TabCorner.Parent = TabButton
         
         local TabContent = Instance.new("ScrollingFrame")
@@ -3873,7 +3866,7 @@ function library:CreateWindow(title, subtitle)
         TabContent.BackgroundTransparency = 1
         TabContent.BorderSizePixel = 0
         TabContent.Size = UDim2.new(1, 0, 1, 0)
-        TabContent.ScrollBarThickness = 2
+        TabContent.ScrollBarThickness = 1
         TabContent.ScrollBarImageColor3 = Theme.Accent
         TabContent.Visible = false
         TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -3881,7 +3874,7 @@ function library:CreateWindow(title, subtitle)
         local ContentList = Instance.new("UIListLayout")
         ContentList.Parent = TabContent
         ContentList.SortOrder = Enum.SortOrder.LayoutOrder
-        ContentList.Padding = UDim.new(0, 8)
+        ContentList.Padding = UDim.new(0, 6)
         
         local ContentPadding = Instance.new("UIPadding")
         ContentPadding.Parent = TabContent
@@ -3896,18 +3889,18 @@ function library:CreateWindow(title, subtitle)
         if #Window.Tabs == 0 then
             Window.CurrentTab = Tab
             TabButton.TextColor3 = Theme.Text
-            TabButton.BackgroundColor3 = Theme.Hover
+            TabButton.BackgroundTransparency = 0.8
             TabContent.Visible = true
         end
 
         TabButton.MouseButton1Click:Connect(function()
             for _, t in pairs(Window.Tabs) do
                 t.Button.TextColor3 = Theme.TextDim
-                t.Button.BackgroundColor3 = Theme.Sidebar
+                t.Button.BackgroundTransparency = 1
                 t.Content.Visible = false
             end
             TabButton.TextColor3 = Theme.Text
-            TabButton.BackgroundColor3 = Theme.Hover
+            TabButton.BackgroundTransparency = 0.8
             TabContent.Visible = true
         end)
 
@@ -3922,11 +3915,12 @@ function library:CreateWindow(title, subtitle)
             SectionFrame.Name = name
             SectionFrame.Parent = TabContent
             SectionFrame.BackgroundColor3 = Theme.TopBar
+            SectionFrame.BackgroundTransparency = 0.5
             SectionFrame.BorderSizePixel = 0
             SectionFrame.Size = UDim2.new(1, 0, 0, 30)
             
             local SectionCorner = Instance.new("UICorner")
-            SectionCorner.CornerRadius = UDim.new(0, 8)
+            SectionCorner.CornerRadius = UDim.new(0, 6)
             SectionCorner.Parent = SectionFrame
             
             local SectionStroke = Instance.new("UIStroke")
@@ -3941,24 +3935,24 @@ function library:CreateWindow(title, subtitle)
             
             local SectionPadding = Instance.new("UIPadding")
             SectionPadding.Parent = SectionFrame
-            SectionPadding.PaddingTop = UDim.new(0, 35)
-            SectionPadding.PaddingLeft = UDim.new(0, 10)
-            SectionPadding.PaddingRight = UDim.new(0, 10)
-            SectionPadding.PaddingBottom = UDim.new(0, 10)
+            SectionPadding.PaddingTop = UDim.new(0, 30)
+            SectionPadding.PaddingLeft = UDim.new(0, 8)
+            SectionPadding.PaddingRight = UDim.new(0, 8)
+            SectionPadding.PaddingBottom = UDim.new(0, 8)
             
             local SectionTitle = Instance.new("TextLabel")
             SectionTitle.Parent = SectionFrame
             SectionTitle.BackgroundTransparency = 1
-            SectionTitle.Position = UDim2.new(0, 10, 0, 10)
-            SectionTitle.Size = UDim2.new(1, -20, 0, 15)
+            SectionTitle.Position = UDim2.new(0, 8, 0, 8)
+            SectionTitle.Size = UDim2.new(1, -16, 0, 15)
             SectionTitle.Font = Enum.Font.GothamBold
             SectionTitle.Text = name:upper()
             SectionTitle.TextColor3 = Theme.Accent
-            SectionTitle.TextSize = 12
+            SectionTitle.TextSize = 11
             SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
 
             SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 45)
+                SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 40)
             end)
 
             function Section:CreateToggle(name, default, callback)
@@ -3966,23 +3960,23 @@ function library:CreateWindow(title, subtitle)
                 local ToggleFrame = Instance.new("Frame")
                 ToggleFrame.Parent = SectionFrame
                 ToggleFrame.BackgroundTransparency = 1
-                ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
+                ToggleFrame.Size = UDim2.new(1, 0, 0, 25)
                 
                 local ToggleLabel = Instance.new("TextLabel")
                 ToggleLabel.Parent = ToggleFrame
                 ToggleLabel.BackgroundTransparency = 1
-                ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
+                ToggleLabel.Size = UDim2.new(1, -40, 1, 0)
                 ToggleLabel.Font = Enum.Font.Gotham
                 ToggleLabel.Text = name
-                ToggleLabel.TextColor3 = Theme.Text
-                ToggleLabel.TextSize = 13
+                ToggleLabel.TextColor3 = Theme.TextDim
+                ToggleLabel.TextSize = 12
                 ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
                 
                 local ToggleBtn = Instance.new("TextButton")
                 ToggleBtn.Parent = ToggleFrame
                 ToggleBtn.BackgroundColor3 = toggled and Theme.ToggleOn or Theme.ToggleOff
-                ToggleBtn.Position = UDim2.new(1, -40, 0.5, -10)
-                ToggleBtn.Size = UDim2.new(0, 40, 0, 20)
+                ToggleBtn.Position = UDim2.new(1, -35, 0.5, -8)
+                ToggleBtn.Size = UDim2.new(0, 32, 0, 16)
                 ToggleBtn.Text = ""
                 
                 local ToggleCorner = Instance.new("UICorner")
@@ -3992,8 +3986,8 @@ function library:CreateWindow(title, subtitle)
                 local Circle = Instance.new("Frame")
                 Circle.Parent = ToggleBtn
                 Circle.BackgroundColor3 = Theme.Background
-                Circle.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-                Circle.Size = UDim2.new(0, 16, 0, 16)
+                Circle.Position = toggled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+                Circle.Size = UDim2.new(0, 12, 0, 12)
                 
                 local CircleCorner = Instance.new("UICorner")
                 CircleCorner.CornerRadius = UDim.new(1, 0)
@@ -4002,14 +3996,16 @@ function library:CreateWindow(title, subtitle)
                 ToggleBtn.MouseButton1Click:Connect(function()
                     toggled = not toggled
                     Tween(ToggleBtn, {BackgroundColor3 = toggled and Theme.ToggleOn or Theme.ToggleOff}, 0.2)
-                    Tween(Circle, {Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
+                    Tween(Circle, {Position = toggled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}, 0.2)
+                    ToggleLabel.TextColor3 = toggled and Theme.Text or Theme.TextDim
                     pcall(callback, toggled)
                 end)
                 
                 return {Set = function(_, v)
                     toggled = v
                     Tween(ToggleBtn, {BackgroundColor3 = toggled and Theme.ToggleOn or Theme.ToggleOff}, 0.2)
-                    Tween(Circle, {Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
+                    Tween(Circle, {Position = toggled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}, 0.2)
+                    ToggleLabel.TextColor3 = toggled and Theme.Text or Theme.TextDim
                     pcall(callback, toggled)
                 end}
             end
@@ -4018,14 +4014,15 @@ function library:CreateWindow(title, subtitle)
                 local Button = Instance.new("TextButton")
                 Button.Parent = SectionFrame
                 Button.BackgroundColor3 = Theme.Hover
-                Button.Size = UDim2.new(1, 0, 0, 32)
+                Button.BackgroundTransparency = 0.5
+                Button.Size = UDim2.new(1, 0, 0, 28)
                 Button.Font = Enum.Font.Gotham
                 Button.Text = name
                 Button.TextColor3 = Theme.Text
-                Button.TextSize = 13
+                Button.TextSize = 12
                 
                 local Corner = Instance.new("UICorner")
-                Corner.CornerRadius = UDim.new(0, 6)
+                Corner.CornerRadius = UDim.new(0, 4)
                 Corner.Parent = Button
                 
                 local Stroke = Instance.new("UIStroke")
@@ -4033,9 +4030,9 @@ function library:CreateWindow(title, subtitle)
                 Stroke.Parent = Button
 
                 Button.MouseButton1Click:Connect(function()
-                    Tween(Button, {BackgroundColor3 = Theme.Accent, TextColor3 = Theme.Background}, 0.1)
+                    Tween(Button, {BackgroundColor3 = Theme.Accent, BackgroundTransparency = 0, TextColor3 = Theme.Background}, 0.1)
                     wait(0.1)
-                    Tween(Button, {BackgroundColor3 = Theme.Hover, TextColor3 = Theme.Text}, 0.1)
+                    Tween(Button, {BackgroundColor3 = Theme.Hover, BackgroundTransparency = 0.5, TextColor3 = Theme.Text}, 0.1)
                     pcall(callback)
                 end)
             end
@@ -4045,15 +4042,15 @@ function library:CreateWindow(title, subtitle)
                 local SliderFrame = Instance.new("Frame")
                 SliderFrame.Parent = SectionFrame
                 SliderFrame.BackgroundTransparency = 1
-                SliderFrame.Size = UDim2.new(1, 0, 0, 45)
+                SliderFrame.Size = UDim2.new(1, 0, 0, 35)
                 
                 local Label = Instance.new("TextLabel")
                 Label.Parent = SliderFrame
                 Label.Text = name
-                Label.TextColor3 = Theme.Text
+                Label.TextColor3 = Theme.TextDim
                 Label.Font = Enum.Font.Gotham
-                Label.TextSize = 13
-                Label.Size = UDim2.new(1, 0, 0, 20)
+                Label.TextSize = 11
+                Label.Size = UDim2.new(1, 0, 0, 15)
                 Label.BackgroundTransparency = 1
                 Label.TextXAlignment = Enum.TextXAlignment.Left
                 
@@ -4062,16 +4059,16 @@ function library:CreateWindow(title, subtitle)
                 ValLabel.Text = tostring(value)
                 ValLabel.TextColor3 = Theme.Accent
                 ValLabel.Font = Enum.Font.GothamBold
-                ValLabel.TextSize = 13
-                ValLabel.Size = UDim2.new(1, 0, 0, 20)
+                ValLabel.TextSize = 11
+                ValLabel.Size = UDim2.new(1, 0, 0, 15)
                 ValLabel.BackgroundTransparency = 1
                 ValLabel.TextXAlignment = Enum.TextXAlignment.Right
                 
                 local Bar = Instance.new("Frame")
                 Bar.Parent = SliderFrame
                 Bar.BackgroundColor3 = Theme.ToggleOff
-                Bar.Position = UDim2.new(0, 0, 0, 25)
-                Bar.Size = UDim2.new(1, 0, 0, 6)
+                Bar.Position = UDim2.new(0, 0, 0, 20)
+                Bar.Size = UDim2.new(1, 0, 0, 4)
                 
                 local Fill = Instance.new("Frame")
                 Fill.Parent = Bar
@@ -4124,10 +4121,11 @@ function library:CreateWindow(title, subtitle)
                 local DropFrame = Instance.new("Frame")
                 DropFrame.Parent = SectionFrame
                 DropFrame.BackgroundColor3 = Theme.Hover
-                DropFrame.Size = UDim2.new(1, 0, 0, 35)
+                DropFrame.BackgroundTransparency = 0.5
+                DropFrame.Size = UDim2.new(1, 0, 0, 30)
                 
                 local Corner = Instance.new("UICorner")
-                Corner.CornerRadius = UDim.new(0, 6)
+                Corner.CornerRadius = UDim.new(0, 4)
                 Corner.Parent = DropFrame
                 
                 local Label = Instance.new("TextLabel")
@@ -4135,7 +4133,7 @@ function library:CreateWindow(title, subtitle)
                 Label.Text = "  " .. name .. ": " .. selected
                 Label.TextColor3 = Theme.Text
                 Label.Font = Enum.Font.Gotham
-                Label.TextSize = 12
+                Label.TextSize = 11
                 Label.Size = UDim2.new(1, 0, 1, 0)
                 Label.BackgroundTransparency = 1
                 Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -4157,6 +4155,33 @@ function library:CreateWindow(title, subtitle)
                 end}
             end
 
+            function Section:CreateTextbox(name, placeholder, callback)
+                local TextboxFrame = Instance.new("Frame")
+                TextboxFrame.Parent = SectionFrame
+                TextboxFrame.BackgroundColor3 = Theme.Hover
+                TextboxFrame.BackgroundTransparency = 0.5
+                TextboxFrame.Size = UDim2.new(1, 0, 0, 30)
+                
+                local Corner = Instance.new("UICorner")
+                Corner.CornerRadius = UDim.new(0, 4)
+                Corner.Parent = TextboxFrame
+                
+                local Input = Instance.new("TextBox")
+                Input.Parent = TextboxFrame
+                Input.BackgroundTransparency = 1
+                Input.Size = UDim2.new(1, 0, 1, 0)
+                Input.Font = Enum.Font.Gotham
+                Input.PlaceholderText = placeholder or "Type here..."
+                Input.Text = ""
+                Input.TextColor3 = Theme.Text
+                Input.TextSize = 11
+                Input.ClearTextOnFocus = false
+                
+                Input.FocusLost:Connect(function(enterPressed)
+                    pcall(callback, Input.Text)
+                end)
+            end
+
             return Section
         end
         return Tab
@@ -4170,44 +4195,9 @@ local Window = library:CreateWindow("[R] REAPER HUB", "Bladeball | V2")
 -- Compatibility wrapper for old Tab/Section API
 local function WrapTab(tab)
     local wrapper = {}
-    wrapper._tab = tab
-    
-    function wrapper:Section(name, side)
-        local section = tab:CreateSection(name)
-        local sectionWrapper = {}
-        
-        function sectionWrapper:Toggle(name, default, callback)
-            return section:CreateToggle(name, default, callback)
-        end
-        
-        function sectionWrapper:Button(name, callback)
-            return section:CreateButton(name, callback)
-        end
-        
-        function sectionWrapper:Slider(name, min, max, default, callback)
-            return section:CreateSlider(name, min, max, default, callback)
-        end
-        
-        function sectionWrapper:Dropdown(name, options, default, callback)
-            local defaultVal = type(default) == "table" and default[1] or default
-            return section:CreateDropdown(name, options, defaultVal, callback)
-        end
-        
-        function sectionWrapper:Textbox(name, placeholder, callback)
-            return section:CreateTextbox(name, placeholder, callback)
-        end
-        
-        function sectionWrapper:Label(text)
-            return section:CreateButton(text, function() end)
-        end
-        
-        function sectionWrapper:Seperator(text)
-            return section:CreateButton("━━━ " .. text .. " ━━━", function() end)
-        end
-        
-        return sectionWrapper
+    function wrapper:Section(name)
+        return tab:CreateSection(name)
     end
-    
     return wrapper
 end
 
@@ -4218,16 +4208,16 @@ function Window:Tab(name, icon)
     return WrapTab(tab)
 end
 
-local Main = Window:Tab("Main", "🏠")
-local AutoQuest = Window:Tab("Farm", "🚜")
-local Events = Window:Tab("ES", "👁️")
-local Racer = Window:Tab("Raid", "⚔️")
-local RaidFruit = Window:Tab("Stats", "📊")
-local Playerrss = Window:Tab("Visuals", "✨")
-local MiscShop = Window:Tab("Misc", "⚙️")
-local AutoStatus = Window:Tab("Status", "📡")
-local WebhookTab = Window:Tab("Webhook", "🔗")
-local ConfigTab = Window:Tab("Config", "💾")
+local Main = Window:Tab("Main")
+local AutoQuest = Window:Tab("Farm")
+local Events = Window:Tab("ES")
+local Racer = Window:Tab("Raid")
+local RaidFruit = Window:Tab("Stats")
+local Playerrss = Window:Tab("Visuals")
+local MiscShop = Window:Tab("Misc")
+local AutoStatus = Window:Tab("Status")
+local WebhookTab = Window:Tab("Webhook")
+local ConfigTab = Window:Tab("Config")
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
