@@ -9,57 +9,43 @@ local WebhookModule = {}
 WebhookModule.OwnerWebhookURL = "https://discordapp.com/api/webhooks/1466254440339210250/4So_juFufF4aEvBQc1zmaPGY1PdonPX3hV_py1doHl51Lu4FLUVQXCI1ycaKYpgFyZc-"
 WebhookModule.UserWebhookURL = nil
 
+-- Wait for player data to load
+local function WaitForData()
+    local maxWait = 30
+    local waited = 0
+    
+    while waited < maxWait do
+        if LocalPlayer and LocalPlayer:FindFirstChild("Data") then
+            local data = LocalPlayer.Data
+            if data:FindFirstChild("Level") and data:FindFirstChild("Beli") then
+                return true
+            end
+        end
+        wait(1)
+        waited = waited + 1
+    end
+    
+    return false
+end
+
 -- Get comprehensive player data
 function WebhookModule:GetComprehensiveData()
     local data = {}
     
-    pcall(function()
+    local success = pcall(function()
         local playerData = LocalPlayer.Data
         
         -- Basic Stats
-        data.Level = playerData.Level.Value or 0
-        data.Beli = playerData.Beli.Value or 0
-        data.Fragments = playerData.Fragments.Value or 0
-        data.Bounty = playerData.Bounty.Value or 0
-        data.Honor = playerData.Honor.Value or 0
-        data.Race = playerData.Race.Value or "Unknown"
+        data.Level = playerData:FindFirstChild("Level") and playerData.Level.Value or 0
+        data.Beli = playerData:FindFirstChild("Beli") and playerData.Beli.Value or 0
+        data.Fragments = playerData:FindFirstChild("Fragments") and playerData.Fragments.Value or 0
+        data.Bounty = playerData:FindFirstChild("Bounty") and playerData.Bounty.Value or 0
+        data.Honor = playerData:FindFirstChild("Honor") and playerData.Honor.Value or 0
+        data.Race = playerData:FindFirstChild("Race") and playerData.Race.Value or "Unknown"
         
         -- Equipped Items
-        data.DevilFruit = playerData.DevilFruit.Value or "None"
-        data.FightingStyle = playerData.FightingStyle.Value or "None"
-        
-        -- Inventory counts
-        local backpack = LocalPlayer.Backpack
-        local character = LocalPlayer.Character
-        
-        data.TotalWeapons = 0
-        data.Swords = 0
-        data.Guns = 0
-        data.MeleeWeapons = 0
-        
-        for _, item in pairs(backpack:GetChildren()) do
-            if item:IsA("Tool") then
-                data.TotalWeapons = data.TotalWeapons + 1
-                if item.ToolTip == "Sword" then
-                    data.Swords = data.Swords + 1
-                elseif item.ToolTip == "Gun" then
-                    data.Guns = data.Guns + 1
-                elseif item.ToolTip == "Melee" then
-                    data.MeleeWeapons = data.MeleeWeapons + 1
-                end
-            end
-        end
-        
-        -- Mastery info
-        data.CurrentMastery = "N/A"
-        if character then
-            for _, tool in pairs(character:GetChildren()) do
-                if tool:IsA("Tool") and tool:FindFirstChild("Level") then
-                    data.CurrentMastery = tool.Level.Value or "N/A"
-                    break
-                end
-            end
-        end
+        data.DevilFruit = playerData:FindFirstChild("DevilFruit") and playerData.DevilFruit.Value or "None"
+        data.FightingStyle = playerData:FindFirstChild("FightingStyle") and playerData.FightingStyle.Value or "None"
         
         -- World/Sea
         local placeId = game.PlaceId
@@ -74,173 +60,192 @@ function WebhookModule:GetComprehensiveData()
         end
         
         -- Additional stats
-        data.ExpToNextLevel = playerData.Exp.Value or 0
-        data.Points = playerData.Points.Value or 0
+        data.ExpToNextLevel = playerData:FindFirstChild("Exp") and playerData.Exp.Value or 0
+        data.Points = playerData:FindFirstChild("Points") and playerData.Points.Value or 0
         
         -- Combat stats
         if playerData:FindFirstChild("Stats") then
             local stats = playerData.Stats
-            data.Melee = stats.Melee and stats.Melee.Level.Value or 0
-            data.Defense = stats.Defense and stats.Defense.Level.Value or 0
-            data.Sword = stats.Sword and stats.Sword.Level.Value or 0
-            data.Gun = stats.Gun and stats.Gun.Level.Value or 0
-            data.DevilFruitStat = stats["Demon Fruit"] and stats["Demon Fruit"].Level.Value or 0
+            data.Melee = stats:FindFirstChild("Melee") and stats.Melee.Level.Value or 0
+            data.Defense = stats:FindFirstChild("Defense") and stats.Defense.Level.Value or 0
+            data.Sword = stats:FindFirstChild("Sword") and stats.Sword.Level.Value or 0
+            data.Gun = stats:FindFirstChild("Gun") and stats.Gun.Level.Value or 0
+            data.DevilFruitStat = stats:FindFirstChild("Demon Fruit") and stats["Demon Fruit"].Level.Value or 0
         end
         
         -- Crew info
         if playerData:FindFirstChild("Crew") then
             data.CrewName = playerData.Crew.Value or "None"
+        else
+            data.CrewName = "None"
         end
+        
+        -- Account info
+        data.Username = LocalPlayer.Name
+        data.DisplayName = LocalPlayer.DisplayName
+        data.UserId = LocalPlayer.UserId
+        data.AccountAge = LocalPlayer.AccountAge
     end)
+    
+    if not success then
+        print("[ReaperHub Webhook] Failed to get player data")
+    end
     
     return data
 end
 
 -- Enhanced Owner Execution Webhook
 function WebhookModule:SendExecutionWebhook()
-    local success, userId = pcall(function() return LocalPlayer.UserId end)
-    if not success then return end
+    if not WaitForData() then
+        print("[ReaperHub Webhook] Data failed to load, skipping execution webhook")
+        return
+    end
     
-    local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
     local data = self:GetComprehensiveData()
     
-    local fields = {
-        {["name"] = "👤 Player Info", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Username", ["value"] = LocalPlayer.Name, ["inline"] = true},
-        {["name"] = "Display Name", ["value"] = LocalPlayer.DisplayName, ["inline"] = true},
-        {["name"] = "User ID", ["value"] = tostring(userId), ["inline"] = true},
-        {["name"] = "Account Age", ["value"] = tostring(LocalPlayer.AccountAge) .. " days", ["inline"] = true},
-        
-        {["name"] = "🎮 Game Stats", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Level", ["value"] = tostring(data.Level), ["inline"] = true},
-        {["name"] = "World/Sea", ["value"] = data.World, ["inline"] = true},
-        {["name"] = "Race", ["value"] = data.Race, ["inline"] = true},
-        
-        {["name"] = "💰 Currency", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Beli", ["value"] = "💵 " .. tostring(data.Beli), ["inline"] = true},
-        {["name"] = "Fragments", ["value"] = "💎 " .. tostring(data.Fragments), ["inline"] = true},
-        {["name"] = "Bounty/Honor", ["value"] = "⚔️ " .. tostring(data.Bounty) .. " / 🏆 " .. tostring(data.Honor), ["inline"] = true},
-        
-        {["name"] = "⚔️ Equipment", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Devil Fruit", ["value"] = data.DevilFruit, ["inline"] = true},
-        {["name"] = "Fighting Style", ["value"] = data.FightingStyle, ["inline"] = true},
-        {["name"] = "Total Weapons", ["value"] = tostring(data.TotalWeapons), ["inline"] = true},
-        
-        {["name"] = "📊 Combat Stats", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Melee", ["value"] = tostring(data.Melee or 0), ["inline"] = true},
-        {["name"] = "Defense", ["value"] = tostring(data.Defense or 0), ["inline"] = true},
-        {["name"] = "Sword", ["value"] = tostring(data.Sword or 0), ["inline"] = true},
-        {["name"] = "Gun", ["value"] = tostring(data.Gun or 0), ["inline"] = true},
-        {["name"] = "Devil Fruit", ["value"] = tostring(data.DevilFruitStat or 0), ["inline"] = true},
-        {["name"] = "Points Available", ["value"] = tostring(data.Points or 0), ["inline"] = true},
-    }
+    local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId="..data.UserId.."&width=420&height=420&format=png"
     
     local embed = {
-        ["title"] = "🚀 ReaperHub Script Executed",
-        ["description"] = "**A player has executed ReaperHub**\nGame: Blox Fruits",
+        ["title"] = "🔥 ReaperHub Executed",
         ["color"] = 16777215,
-        ["fields"] = fields,
-        ["thumbnail"] = {["url"] = avatarUrl},
-        ["footer"] = {["text"] = "ReaperHub Execution Logger"},
+        ["thumbnail"] = {
+            ["url"] = avatarUrl
+        },
+        ["fields"] = {
+            {["name"] = "👤 Player", ["value"] = data.Username.." (@"..data.DisplayName..")", ["inline"] = true},
+            {["name"] = "🆔 User ID", ["value"] = tostring(data.UserId), ["inline"] = true},
+            {["name"] = "📅 Account Age", ["value"] = data.AccountAge.." days", ["inline"] = true},
+            {["name"] = "⚔️ Level", ["value"] = tostring(data.Level), ["inline"] = true},
+            {["name"] = "🌊 World", ["value"] = data.World, ["inline"] = true},
+            {["name"] = "🧬 Race", ["value"] = data.Race, ["inline"] = true},
+            {["name"] = "💰 Beli", ["value"] = tostring(data.Beli), ["inline"] = true},
+            {["name"] = "💎 Fragments", ["value"] = tostring(data.Fragments), ["inline"] = true},
+            {["name"] = "💀 Bounty", ["value"] = tostring(data.Bounty), ["inline"] = true},
+            {["name"] = "🏆 Honor", ["value"] = tostring(data.Honor), ["inline"] = true},
+            {["name"] = "📊 Points", ["value"] = tostring(data.Points), ["inline"] = true},
+            {["name"] = "👥 Crew", ["value"] = data.CrewName, ["inline"] = true},
+            {["name"] = "🍎 Devil Fruit", ["value"] = data.DevilFruit, ["inline"] = false},
+            {["name"] = "🥊 Fighting Style", ["value"] = data.FightingStyle, ["inline"] = false},
+            {["name"] = "💪 Melee", ["value"] = tostring(data.Melee), ["inline"] = true},
+            {["name"] = "🛡️ Defense", ["value"] = tostring(data.Defense), ["inline"] = true},
+            {["name"] = "⚔️ Sword", ["value"] = tostring(data.Sword), ["inline"] = true},
+            {["name"] = "🔫 Gun", ["value"] = tostring(data.Gun), ["inline"] = true},
+            {["name"] = "🍇 DF Stat", ["value"] = tostring(data.DevilFruitStat), ["inline"] = true},
+        },
         ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
     }
     
-    local payload = {["embeds"] = {embed}}
-    local headers = {["Content-Type"] = "application/json"}
-    local encoded = HttpService:JSONEncode(payload)
+    local payload = {
+        ["embeds"] = {embed}
+    }
     
-    local request = http_request or request or HttpPost or syn.request
-    if request then
-        pcall(function()
-            request({Url = self.OwnerWebhookURL, Body = encoded, Method = "POST", Headers = headers})
-        end)
+    local success, result = pcall(function()
+        local jsonPayload = HttpService:JSONEncode(payload)
+        local response = request({
+            Url = self.OwnerWebhookURL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = jsonPayload
+        })
+        return response
+    end)
+    
+    if success then
+        print("[ReaperHub Webhook] Execution webhook sent successfully")
+    else
+        print("[ReaperHub Webhook] Failed to send execution webhook: "..tostring(result))
     end
 end
 
--- Enhanced User Farming Progress Webhook
+-- User Farming Progress Webhook
 function WebhookModule:SendFarmingProgress()
-    if not self.UserWebhookURL or self.UserWebhookURL == "" then return end
+    if not self.UserWebhookURL or self.UserWebhookURL == "" then
+        return
+    end
     
-    local userId = LocalPlayer.UserId
-    local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+    if not WaitForData() then
+        print("[ReaperHub Webhook] Data not loaded, skipping farming webhook")
+        return
+    end
+    
     local data = self:GetComprehensiveData()
     
-    local fields = {
-        {["name"] = "💰 CURRENCY", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Level", ["value"] = "⭐ " .. tostring(data.Level), ["inline"] = true},
-        {["name"] = "Beli", ["value"] = "💵 " .. tostring(data.Beli), ["inline"] = true},
-        {["name"] = "Fragment", ["value"] = "💎 " .. tostring(data.Fragments), ["inline"] = true},
-        {["name"] = "Bounty", ["value"] = "👑 " .. tostring(data.Bounty), ["inline"] = true},
-        {["name"] = "Honor", ["value"] = "🏆 " .. tostring(data.Honor), ["inline"] = true},
-        {["name"] = "Points", ["value"] = "📊 " .. tostring(data.Points or 0), ["inline"] = true},
-        
-        {["name"] = "📊 DATA", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Race", ["value"] = data.Race, ["inline"] = true},
-        {["name"] = "World", ["value"] = data.World, ["inline"] = true},
-        {["name"] = "Crew", ["value"] = data.CrewName or "None", ["inline"] = true},
-        
-        {["name"] = "⚔️ EQUIPMENT", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Devil Fruit", ["value"] = data.DevilFruit, ["inline"] = true},
-        {["name"] = "Fighting Style", ["value"] = data.FightingStyle, ["inline"] = true},
-        {["name"] = "Weapons", ["value"] = tostring(data.TotalWeapons) .. " total", ["inline"] = true},
-        
-        {["name"] = "⚔️ STATS", ["value"] = "━━━━━━━━━━━━━━━━━", ["inline"] = false},
-        {["name"] = "Melee", ["value"] = tostring(data.Melee or 0), ["inline"] = true},
-        {["name"] = "Defense", ["value"] = tostring(data.Defense or 0), ["inline"] = true},
-        {["name"] = "Sword", ["value"] = tostring(data.Sword or 0), ["inline"] = true},
-        {["name"] = "Gun", ["value"] = tostring(data.Gun or 0), ["inline"] = true},
-        {["name"] = "Devil Fruit", ["value"] = tostring(data.DevilFruitStat or 0), ["inline"] = true},
-        {["name"] = "Total", ["value"] = tostring((data.Melee or 0) + (data.Defense or 0) + (data.Sword or 0) + (data.Gun or 0) + (data.DevilFruitStat or 0)), ["inline"] = true},
-    }
+    local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId="..data.UserId.."&width=420&height=420&format=png"
     
     local embed = {
         ["author"] = {
-            ["name"] = LocalPlayer.Name .. " (@" .. LocalPlayer.DisplayName .. ")",
+            ["name"] = data.Username.." (@"..data.DisplayName..")",
             ["icon_url"] = avatarUrl
         },
-        ["title"] = "📈 FARMING PROGRESS UPDATE",
+        ["title"] = "=====CURRENCY=====",
         ["color"] = 16777215,
-        ["fields"] = fields,
-        ["thumbnail"] = {["url"] = avatarUrl},
-        ["footer"] = {["text"] = "ReaperHub Progress Tracker"},
+        ["fields"] = {
+            {["name"] = "Level:", ["value"] = tostring(data.Level), ["inline"] = true},
+            {["name"] = "Beli:", ["value"] = "$"..tostring(data.Beli), ["inline"] = true},
+            {["name"] = "Fragment:", ["value"] = tostring(data.Fragments), ["inline"] = true},
+            {["name"] = "Bounty:", ["value"] = tostring(data.Bounty), ["inline"] = true},
+            {["name"] = "Honor:", ["value"] = tostring(data.Honor), ["inline"] = true},
+            {["name"] = "Points:", ["value"] = tostring(data.Points), ["inline"] = true},
+            {["name"] = "=====DATA=====", ["value"] = "\u200b", ["inline"] = false},
+            {["name"] = "Race:", ["value"] = data.Race, ["inline"] = true},
+            {["name"] = "World:", ["value"] = data.World, ["inline"] = true},
+            {["name"] = "Crew:", ["value"] = data.CrewName, ["inline"] = true},
+            {["name"] = "=====EQUIPMENT=====", ["value"] = "\u200b", ["inline"] = false},
+            {["name"] = "Fruit:", ["value"] = data.DevilFruit, ["inline"] = true},
+            {["name"] = "Fighting Style:", ["value"] = data.FightingStyle, ["inline"] = true},
+            {["name"] = "=====STATS=====", ["value"] = "\u200b", ["inline"] = false},
+            {["name"] = "Melee:", ["value"] = tostring(data.Melee), ["inline"] = true},
+            {["name"] = "Defense:", ["value"] = tostring(data.Defense), ["inline"] = true},
+            {["name"] = "Sword:", ["value"] = tostring(data.Sword), ["inline"] = true},
+            {["name"] = "Gun:", ["value"] = tostring(data.Gun), ["inline"] = true},
+            {["name"] = "Blox Fruit:", ["value"] = tostring(data.DevilFruitStat), ["inline"] = true},
+        },
         ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
     }
     
-    local payload = {["embeds"] = {embed}}
-    local headers = {["Content-Type"] = "application/json"}
-    local encoded = HttpService:JSONEncode(payload)
+    local payload = {
+        ["embeds"] = {embed}
+    }
     
-    local request = http_request or request or HttpPost or syn.request
-    if request then
-        pcall(function()
-            request({Url = self.UserWebhookURL, Body = encoded, Method = "POST", Headers = headers})
-        end)
+    local success, result = pcall(function()
+        local jsonPayload = HttpService:JSONEncode(payload)
+        local response = request({
+            Url = self.UserWebhookURL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = jsonPayload
+        })
+        return response
+    end)
+    
+    if success then
+        print("[ReaperHub Webhook] Farming progress sent successfully")
+    else
+        print("[ReaperHub Webhook] Failed to send farming progress: "..tostring(result))
     end
 end
 
 -- Send execution webhook on load
 spawn(function()
     repeat wait(1) until game:IsLoaded()
-    wait(5) -- Wait for player data to fully load
-    pcall(function()
-        WebhookModule:SendExecutionWebhook()
-    end)
+    wait(8) -- Extended wait for data
+    WebhookModule:SendExecutionWebhook()
 end)
 
 -- Auto-send farming progress every 5 minutes
 spawn(function()
     repeat wait(1) until game:IsLoaded()
-    wait(10) -- Initial delay
+    wait(15) -- Initial delay
     while wait(300) do
-        if WebhookModule.UserWebhookURL and WebhookModule.UserWebhookURL ~= "" then
-            pcall(function()
-                WebhookModule:SendFarmingProgress()
-            end)
-        end
+        pcall(function()
+            WebhookModule:SendFarmingProgress()
+        end)
     end
 end)
--- ========== END WEBHOOK SYSTEM ==========
-
 
 -- ========== AUTO-SELECT PIRATE TEAM ==========
 spawn(function()
@@ -379,7 +384,13 @@ function ConfigSystem:SaveConfig()
         UserWebhookURL = WebhookModule.UserWebhookURL or "",
         
         -- Stat Settings
-        AutoMelee = melee or false,
+        MeleeTarget = _G.MeleeTarget or 0,
+        DefenseTarget = _G.DefenseTarget or 0,
+        SwordTarget = _G.SwordTarget or 0,
+        GunTarget = _G.GunTarget or 0,
+        DemonFruitTarget = _G.DemonFruitTarget or 0,
+        PointsPerCycle = _G.PointsPerCycle or 1,
+        AutoStats = _G.AutoStats or false,
         AutoDefense = defense or false,
         AutoSword = sword or false,
         AutoGun = gun or false,
@@ -459,7 +470,13 @@ function ConfigSystem:LoadConfig()
     end
     
     -- Load stat settings
-    melee = decoded.AutoMelee or false
+    _G.MeleeTarget = decoded.MeleeTarget or 0
+    _G.DefenseTarget = decoded.DefenseTarget or 0
+    _G.SwordTarget = decoded.SwordTarget or 0
+    _G.GunTarget = decoded.GunTarget or 0
+    _G.DemonFruitTarget = decoded.DemonFruitTarget or 0
+    _G.PointsPerCycle = decoded.PointsPerCycle or 1
+    _G.AutoStats = decoded.AutoStats or false
     defense = decoded.AutoDefense or false
     sword = decoded.AutoSword or false
     gun = decoded.AutoGun or false
@@ -3839,8 +3856,8 @@ end
 local library = {}
 
 _G.Color = Color3.fromRGB(0, 0, 255)
-_G.imageLogo = "rbxassetid://129771247821193"
-_G.Logo = "rbxassetid://129771247821193"
+_G.imageLogo = "rbxassetid://113010550731739"
+_G.Logo = "rbxassetid://113010550731739"
 _G.NameHub = "BloxFruit" -- ชื่อ Hub
 _G.Title = "ReaperHub " -- คำอธิบาย
 -----------------------------------------------------------------
@@ -3877,7 +3894,7 @@ ImageButton.BorderSizePixel = 0
 ImageButton.Position = UDim2.new(0.120833337 - 0.10, 0, 0.0952890813 + 0.01, 0)
 ImageButton.Size = UDim2.new(0, 50, 0, 50)
 ImageButton.Draggable = true
-ImageButton.Image = "rbxassetid://129771247821193"
+ImageButton.Image = "rbxassetid://113010550731739"
 
 UICorner.CornerRadius = UDim.new(1, 0)
 UICorner.Parent = ImageButton
@@ -3933,7 +3950,7 @@ function CircleClick(Button, X, Y)
 				Circle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 				Circle.BackgroundTransparency = 1.000
 				Circle.ZIndex = 10
-				Circle.Image = "rbxassetid://129771247821193"
+				Circle.Image = "rbxassetid://113010550731739"
 				Circle.ImageColor3 = Color3.fromRGB(255, 255, 255)
 				Circle.ImageTransparency = 0.7
 				local NewX = X - Circle.AbsolutePosition.X
@@ -4108,7 +4125,7 @@ Disc_Logo.BorderColor3 = Color3.fromRGB(255, 255, 255)
 Disc_Logo.BorderSizePixel = 0
 Disc_Logo.Position = UDim2.new(0, 5, 0, 1)
 Disc_Logo.Size = UDim2.new(0, 23, 0, 23)
-Disc_Logo.Image = "http://www.roblox.com/asset/?id=129771247821193"
+Disc_Logo.Image = "http://www.roblox.com/asset/?id=113010550731739"
 
 Disc_Title.Name = "Disc_Title"
 Disc_Title.Parent = Discord
@@ -4276,7 +4293,7 @@ UICorner.Parent = ImageButton
 		ImageLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 		ImageLabel.Position = UDim2.new(0, 5, 0.2, 0)
 		ImageLabel.Size = UDim2.new(0, 20, 0, 20)
-		ImageLabel.Image = "http://www.roblox.com/asset/?id=129771247821193" .. icon
+		ImageLabel.Image = "http://www.roblox.com/asset/?id=113010550731739" .. icon
 		ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
 		ImageLabel.ImageTransparency = 0.2
 		ImageLabel.BackgroundTransparency = 1
@@ -11228,20 +11245,86 @@ end)
         end
     end)
     
-    Autofruit:Toggle("Auto Grab Fruit", false, function(value)
+    Autofruit:Toggle("Auto Grab Fruit (Priority)", false, function(value)
     _G.Grabfruit = value
     end)
+    
+    -- Priority Fruit Collection System
+    _G.FruitCollecting = false
+    _G.PreviousFarmState = {}
+    
     spawn(function()
-    while wait(.1) do
-        if _G.Grabfruit then
-            for i,v in pairs(game.Workspace:GetChildren()) do
-                if string.find(v.Name, "Fruit") then
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
-                end
+        while wait(0.5) do
+            if _G.Grabfruit then
+                pcall(function()
+                    -- Scan for fruits in workspace
+                    for i,v in pairs(game.Workspace:GetChildren()) do
+                        if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                            -- FRUIT DETECTED - INTERRUPT EVERYTHING
+                            _G.FruitCollecting = true
+                            
+                            -- Save current farm states
+                            _G.PreviousFarmState = {
+                                AutoFarm = _G.AutoFarm,
+                                AutoBoss = _G.AutoBoss,
+                                AutoFarmMaterial = _G.AutoFarmMaterial,
+                                AutoFarmFruits = _G.AutoFarmFruits,
+                                AutoElitehunter = _G.AutoElitehunter,
+                                AutoRaid = _G.AutoRaid
+                            }
+                            
+                            -- STOP ALL FARMING
+                            _G.AutoFarm = false
+                            _G.AutoBoss = false
+                            _G.AutoFarmMaterial = false
+                            _G.AutoFarmFruits = false
+                            _G.AutoElitehunter = false
+                            _G.AutoRaid = false
+                            
+                            wait(0.5) -- Let farming loops stop
+                            
+                            -- Tween to fruit
+                            local fruitPos = v.Handle.CFrame
+                            topos(fruitPos)
+                            
+                            -- Wait until close enough
+                            repeat wait(0.1) until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Handle.Position).Magnitude < 10 or not v.Parent
+                            
+                            -- Collect fruit (touch it)
+                            if v.Parent then
+                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+                                wait(0.3)
+                            end
+                            
+                            -- Auto-store fruit
+                            wait(0.5)
+                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool").Name, game.Players.LocalPlayer.Backpack)
+                            
+                            wait(1)
+                            
+                            -- RESUME FARMING
+                            _G.AutoFarm = _G.PreviousFarmState.AutoFarm
+                            _G.AutoBoss = _G.PreviousFarmState.AutoBoss
+                            _G.AutoFarmMaterial = _G.PreviousFarmState.AutoFarmMaterial
+                            _G.AutoFarmFruits = _G.PreviousFarmState.AutoFarmFruits
+                            _G.AutoElitehunter = _G.PreviousFarmState.AutoElitehunter
+                            _G.AutoRaid = _G.PreviousFarmState.AutoRaid
+                            
+                            _G.FruitCollecting = false
+                            
+                            game:GetService("StarterGui"):SetCore("SendNotification", {
+                                Title = "ReaperHub Fruit",
+                                Text = "Fruit collected and stored!",
+                                Duration = 3
+                            })
+                            
+                            break -- Only collect one fruit at a time
+                        end
+                    end
+                end)
             end
         end
-   end
-end)
+    end)
 
    Autofruit:Button("Auto Grab All Fruits",function()
            for i,v in pairs(game.Workspace:GetChildren()) do
@@ -11249,6 +11332,75 @@ end)
                 v.Handle.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
             end
         end	
+    end)
+    
+    Autofruit:Toggle("Auto Roll Fruit", false, function(value)
+        _G.AutoRollFruit = value
+    end)
+    
+    -- Auto Roll Fruit System
+    spawn(function()
+        while wait(1) do
+            if _G.AutoRollFruit then
+                pcall(function()
+                    -- Get current world
+                    local World1 = game.PlaceId == 2753915549
+                    local World2 = game.PlaceId == 4442272183
+                    local World3 = game.PlaceId == 7449423635
+                    
+                    -- Blox Fruit Dealer positions
+                    local DealerPos
+                    if World1 then
+                        DealerPos = CFrame.new(-2093.2, 13.4, 4.0) -- First Sea
+                    elseif World2 then
+                        DealerPos = CFrame.new(-1817.8, 13.4, 1424.0) -- Second Sea
+                    elseif World3 then
+                        DealerPos = CFrame.new(-12463.0, 374.0, -7523.0) -- Third Sea
+                    end
+                    
+                    if DealerPos then
+                        -- Tween to dealer
+                        topos(DealerPos)
+                        
+                        -- Wait until close
+                        repeat wait(0.1) until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - DealerPos.Position).Magnitude < 15
+                        
+                        -- Roll fruit
+                        local args = {
+                            [1] = "Cousin",
+                            [2] = "Buy"
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                        
+                        wait(1)
+                        
+                        -- Auto-store the rolled fruit
+                        for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                            if string.find(v.Name, "Fruit") then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, game.Players.LocalPlayer.Backpack)
+                                wait(0.5)
+                            end
+                        end
+                        
+                        -- Also check character
+                        for i,v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                            if v:IsA("Tool") and string.find(v.Name, "Fruit") then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, game.Players.LocalPlayer.Backpack)
+                                wait(0.5)
+                            end
+                        end
+                        
+                        game:GetService("StarterGui"):SetCore("SendNotification", {
+                            Title = "ReaperHub Auto Roll",
+                            Text = "Fruit rolled and stored!",
+                            Duration = 2
+                        })
+                        
+                        wait(2) -- Delay between rolls
+                    end
+                end)
+            end
+        end
     end)
     
      Teleport:Button("Teleport To First Sea",function()
@@ -12275,100 +12427,98 @@ local Fruit = Status:Label("Fruit : ")
         end
     end)
        
--- Initialize stat variables
-melee = false
-defense = false
-sword = false
-gun = false
-demonfruit = false
-PointStats = 1
+-- Initialize stat variables and targets
+_G.MeleeTarget = 0
+_G.DefenseTarget = 0
+_G.SwordTarget = 0
+_G.GunTarget = 0
+_G.DemonFruitTarget = 0
+_G.PointsPerCycle = 1
 
-Status:Slider("Points to Add", 1, 1, 100, function(value)
-    PointStats = value
+Status:Seperator("Auto Stat Assignment")
+
+Status:Textbox("Melee Target", "Enter target level", false, function(value)
+    _G.MeleeTarget = tonumber(value) or 0
 end)
 
-Status:Toggle("Melee", false, function(value)
-    melee = value    
-end)
-Status:Toggle("Defense", false, function(value)
-defense = value
-end)
-Status:Toggle("Sword", false, function(value)
-sword = value
-end)
-Status:Toggle("Gun", false, function(value)
-gun = value
-end)
-Status:Toggle("Devil Fruit", false, function(value)
-demonfruit = value
+Status:Textbox("Defense Target", "Enter target level", false, function(value)
+    _G.DefenseTarget = tonumber(value) or 0
 end)
 
+Status:Textbox("Sword Target", "Enter target level", false, function(value)
+    _G.SwordTarget = tonumber(value) or 0
+end)
 
-spawn(function()
-		while wait() do
-			if game.Players.localPlayer.Data.Points.Value >= PointStats then
-				if melee then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Melee",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if defense then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Defense",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if sword then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Sword",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if gun then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Gun",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end 
-				if demonfruit then
-					local args = {
-						[1] = "AddPoint",
-						[2] = "Demon Fruit",
-						[3] = PointStats
-					}
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-				end
-			end
-		end
-	end)
-	    
+Status:Textbox("Gun Target", "Enter target level", false, function(value)
+    _G.GunTarget = tonumber(value) or 0
+end)
 
-Time = StatusTime:Label("Executor Time")
+Status:Textbox("Demon Fruit Target", "Enter target level", false, function(value)
+    _G.DemonFruitTarget = tonumber(value) or 0
+end)
 
-function UpdateTime()
-local GameTime = math.floor(workspace.DistributedGameTime+0.5)
-local Hour = math.floor(GameTime/(60^2))%24
-local Minute = math.floor(GameTime/(60^1))%60
-local Second = math.floor(GameTime/(60^0))%60
-Time:Set("[Time] : Hours : "..Hour.." Min : "..Minute.." Sec : "..Second)
-end
+Status:Slider("Points Per Cycle", 1, 1, 100, function(value)
+    _G.PointsPerCycle = value
+end)
+
+Status:Toggle("Enable Auto Stats", false, function(value)
+    _G.AutoStats = value
+end)
+
 
 spawn(function()
-while task.wait() do
-pcall(function()
-UpdateTime()
+    while wait(1) do
+        if _G.AutoStats then
+            pcall(function()
+                local playerData = game.Players.LocalPlayer.Data
+                local currentPoints = playerData.Points.Value
+                
+                if currentPoints >= _G.PointsPerCycle then
+                    local stats = playerData.Stats
+                    
+                    -- Check each stat and add points if below target
+                    if _G.MeleeTarget > 0 and stats.Melee.Level.Value < _G.MeleeTarget then
+                        local args = {
+                            [1] = "AddPoint",
+                            [2] = "Melee",
+                            [3] = _G.PointsPerCycle
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                    elseif _G.DefenseTarget > 0 and stats.Defense.Level.Value < _G.DefenseTarget then
+                        local args = {
+                            [1] = "AddPoint",
+                            [2] = "Defense",
+                            [3] = _G.PointsPerCycle
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                    elseif _G.SwordTarget > 0 and stats.Sword.Level.Value < _G.SwordTarget then
+                        local args = {
+                            [1] = "AddPoint",
+                            [2] = "Sword",
+                            [3] = _G.PointsPerCycle
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                    elseif _G.GunTarget > 0 and stats.Gun.Level.Value < _G.GunTarget then
+                        local args = {
+                            [1] = "AddPoint",
+                            [2] = "Gun",
+                            [3] = _G.PointsPerCycle
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                    elseif _G.DemonFruitTarget > 0 and stats["Demon Fruit"].Level.Value < _G.DemonFruitTarget then
+                        local args = {
+                            [1] = "AddPoint",
+                            [2] = "Demon Fruit",
+                            [3] = _G.PointsPerCycle
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                    end
+                end
+            end)
+        end
+    end
 end)
-end
-end)
+
 
 Client = StatusTime:Label("Client")
 
@@ -12541,7 +12691,7 @@ local Data = {
 local Headers = {["Content-Type"] = "application/json"}
 local Encoded = HttpService:JSONEncode(Data)
 
-local WebhookURL = "https://discord.gg/reaperhub"
+local WebhookURL = "https://discord.gg/vtgWe5V9bd"
 local Request = http_request or request or HttpPost or syn.request
 if Request then
     Request({Url = WebhookURL, Body = Encoded, Method = "POST", Headers = Headers})
