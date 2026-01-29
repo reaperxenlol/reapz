@@ -11245,20 +11245,93 @@ end)
         end
     end)
     
-    Autofruit:Toggle("Auto Grab Fruit", false, function(value)
+    Autofruit:Toggle("Auto Grab Fruit (Priority)", false, function(value)
     _G.Grabfruit = value
     end)
+    
+    -- Priority Fruit Collection System
+    _G.FruitCollecting = false
+    _G.PreviousFarmState = {}
+    
     spawn(function()
-    while wait(.1) do
-        if _G.Grabfruit then
-            for i,v in pairs(game.Workspace:GetChildren()) do
-                if string.find(v.Name, "Fruit") then
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
-                end
+        while wait(0.5) do
+            if _G.Grabfruit then
+                pcall(function()
+                    -- Scan for fruits in workspace
+                    for i,v in pairs(game.Workspace:GetChildren()) do
+                        if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                            -- FRUIT DETECTED - INTERRUPT EVERYTHING
+                            _G.FruitCollecting = true
+                            
+                            -- Save current farm states
+                            _G.PreviousFarmState = {
+                                AutoFarm = _G.AutoFarm or false,
+                                AutoBoss = _G.AutoBoss or false,
+                                AutoFarmMaterial = _G.AutoFarmMaterial or false,
+                                AutoFarmFruits = _G.AutoFarmFruits or false,
+                                AutoElitehunter = _G.AutoElitehunter or false,
+                                AutoRaid = _G.AutoRaid or false
+                            }
+                            
+                            -- STOP ALL FARMING
+                            _G.AutoFarm = false
+                            _G.AutoBoss = false
+                            _G.AutoFarmMaterial = false
+                            _G.AutoFarmFruits = false
+                            _G.AutoElitehunter = false
+                            _G.AutoRaid = false
+                            
+                            wait(0.5) -- Let farming loops stop
+                            
+                            -- Tween to fruit
+                            local fruitPos = v.Handle.CFrame
+                            topos(fruitPos)
+                            
+                            -- Wait until close enough
+                            repeat wait(0.1) until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Handle.Position).Magnitude < 10 or not v.Parent
+                            
+                            -- Collect fruit (touch it)
+                            if v.Parent then
+                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+                                wait(0.3)
+                            end
+                            
+                            -- Auto-store fruit
+                            wait(0.5)
+                            pcall(function()
+                                local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                                if tool and string.find(tool.Name, "Fruit") then
+                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", tool.Name, game.Players.LocalPlayer.Backpack)
+                                end
+                            end)
+                            
+                            wait(1)
+                            
+                            -- RESUME FARMING
+                            _G.AutoFarm = _G.PreviousFarmState.AutoFarm
+                            _G.AutoBoss = _G.PreviousFarmState.AutoBoss
+                            _G.AutoFarmMaterial = _G.PreviousFarmState.AutoFarmMaterial
+                            _G.AutoFarmFruits = _G.PreviousFarmState.AutoFarmFruits
+                            _G.AutoElitehunter = _G.PreviousFarmState.AutoElitehunter
+                            _G.AutoRaid = _G.PreviousFarmState.AutoRaid
+                            
+                            _G.FruitCollecting = false
+                            
+                            pcall(function()
+                                game:GetService("StarterGui"):SetCore("SendNotification", {
+                                    Title = "ReaperHub Fruit",
+                                    Text = "Fruit collected and stored!",
+                                    Duration = 3
+                                })
+                            end)
+                            
+                            break -- Only collect one fruit at a time
+                        end
+                    end
+                end)
             end
         end
-   end
-end)
+    end)
 
    Autofruit:Button("Auto Grab All Fruits",function()
            for i,v in pairs(game.Workspace:GetChildren()) do
@@ -11267,6 +11340,80 @@ end)
             end
         end	
     end)
+    
+    Autofruit:Toggle("Auto Roll Fruit", false, function(value)
+        _G.AutoRollFruit = value
+    end)
+    
+    -- Auto Roll Fruit System
+    spawn(function()
+        while wait(1) do
+            if _G.AutoRollFruit then
+                pcall(function()
+                    -- Get current world
+                    local World1 = game.PlaceId == 2753915549
+                    local World2 = game.PlaceId == 4442272183
+                    local World3 = game.PlaceId == 7449423635
+                    
+                    -- Blox Fruit Dealer positions
+                    local DealerPos
+                    if World1 then
+                        DealerPos = CFrame.new(-2093.2, 13.4, 4.0) -- First Sea
+                    elseif World2 then
+                        DealerPos = CFrame.new(-1817.8, 13.4, 1424.0) -- Second Sea
+                    elseif World3 then
+                        DealerPos = CFrame.new(-12463.0, 374.0, -7523.0) -- Third Sea
+                    end
+                    
+                    if DealerPos then
+                        -- Tween to dealer
+                        topos(DealerPos)
+                        
+                        -- Wait until close
+                        repeat wait(0.1) until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - DealerPos.Position).Magnitude < 15
+                        
+                        -- Roll fruit
+                        local args = {
+                            [1] = "Cousin",
+                            [2] = "Buy"
+                        }
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                        
+                        wait(1)
+                        
+                        -- Auto-store the rolled fruit
+                        pcall(function()
+                            for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                                if string.find(v.Name, "Fruit") then
+                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, game.Players.LocalPlayer.Backpack)
+                                    wait(0.5)
+                                end
+                            end
+                            
+                            -- Also check character
+                            for i,v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                                if v:IsA("Tool") and string.find(v.Name, "Fruit") then
+                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, game.Players.LocalPlayer.Backpack)
+                                    wait(0.5)
+                                end
+                            end
+                        end)
+                        
+                        pcall(function()
+                            game:GetService("StarterGui"):SetCore("SendNotification", {
+                                Title = "ReaperHub Auto Roll",
+                                Text = "Fruit rolled and stored!",
+                                Duration = 2
+                            })
+                        end)
+                        
+                        wait(2) -- Delay between rolls
+                    end
+                end)
+            end
+        end
+    end)
+
     
      Teleport:Button("Teleport To First Sea",function()
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
