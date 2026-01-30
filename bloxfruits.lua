@@ -75,30 +75,21 @@ function SendUserWebhook()
                 df = data.Stats["Demon Fruit"].Level.Value
             end)
             
-            -- Calculate progress percentage
-            local maxLevel = 2800
-            local progressPercent = math.floor((level / maxLevel) * 100)
-            
-            local kaitunStatus = _G.KaitunMode and "🟢 ACTIVE" or "🔴 INACTIVE"
-            
             local payload = {
                 embeds = {{
                     author = {name = player.Name, icon_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
-                    title = "🤖 KAITUN PROGRESS REPORT",
-                    description = "**Kaitun Mode:** "..kaitunStatus.."\n**Progress:** "..progressPercent.."% to Max Level",
-                    color = _G.KaitunMode and 65280 or 16777215,
+                    title = "=====CURRENCY=====",
+                    color = 16777215,
                     fields = {
-                        {name = "📊 Level", value = tostring(level).." / 2800", inline = true},
-                        {name = "💰 Beli", value = "$ "..tostring(beli), inline = true},
-                        {name = "💎 Fragment", value = tostring(fragments), inline = true},
-                        {name = "🏴‍☠️ Bounty", value = tostring(bounty), inline = true},
-                        {name = "🎖️ Honor", value = tostring(honor), inline = true},
-                        {name = "🧬 Race", value = race, inline = true},
-                        {name = "⚔️ COMBAT STATS", value = "Melee: "..melee.." | Defense: "..defense.." | Sword: "..sword.." | Gun: "..gun.." | Blox Fruit: "..df, inline = false},
-                        {name = "🎯 Current Build", value = _G.KaitunBuild or "Not Selected", inline = false},
+                        {name = "Level", value = tostring(level), inline = true},
+                        {name = "Beli", value = "$ "..tostring(beli), inline = true},
+                        {name = "Fragment", value = tostring(fragments), inline = true},
+                        {name = "Bounty", value = tostring(bounty), inline = true},
+                        {name = "Honor", value = tostring(honor), inline = true},
+                        {name = "Race", value = race, inline = true},
+                        {name = "=====STATS=====", value = "Melee: "..melee.." | Defense: "..defense.." | Sword: "..sword.." | Gun: "..gun.." | Blox Fruit: "..df, inline = false},
                     },
-                    footer = {text = "ReaperHub Kaitun System • Next report in 5 minutes"},
-                    timestamp = os.date("!%Y-%m-%dT%H:%M:%S")
+                    footer = {text = "ReaperHub Progress Tracker"}
                 }}
             }
             
@@ -598,7 +589,7 @@ if _G.FastAttack then
 
     local Settings = {
         AutoClick = true,
-        ClickDelay = 0.00000000000001
+        ClickDelay = 0.0000000000001
     }
 
     local Module = {}
@@ -5301,19 +5292,25 @@ end
 
 local Window = library:NaJa()
 
+-- Creating all tabs
 local Main = Window:Tab("General","14477284625")
 local AutoQuest = Window:Tab("Items Quest","11446859498")
 local Events = Window:Tab("Auto Sea Event","10734941354")
 local Racer = Window:Tab("Race V4 & Esp","10747372167")
 local RaidFruit = Window:Tab("Raid & Fruits","10734975692")
 local Playerrss = Window:Tab("Teleport & PVP","10734910680")
-local MiscShop = Window:Tab("Shop & Misc","10723434557")
+local MiscTab = Window:Tab("Shop & Misc","10723434557")
 local AutoStatus = Window:Tab("Status Server","10709770317")
 local WebhookTab = Window:Tab("Webhook","10723434557")
 local ConfigTab = Window:Tab("Config","10723434557")
 local Sea1Tab = Window:Tab("Sea 1","14477284625")
 local Sea2Tab = Window:Tab("Sea 2","11446859498")
 local Sea3Tab = Window:Tab("Sea 3","10734941354")
+local SettingsTab = Window:Tab("Settings","10723434557")
+local BossTab = Window:Tab("Boss","10723434557")
+local ItemTab = Window:Tab("Items","10723434557")
+local FruitTab = Window:Tab("Fruits","10723434557")
+local TeleportTab = Window:Tab("Teleport","10723434557")
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
@@ -12255,9 +12252,11 @@ end
 -- Nghe khi có skill mới
 workspace.DescendantAdded:Connect(rainbowSkill)
 -- ========== SEA 1 FEATURES ==========
-local Sea1Section = Sea1Tab:Section("Sea 1: The Starter Sea", "Left")
 
-Sea1Section:Toggle("Auto Saber Quest", false, function(state)
+-- ========== SEA 1 FEATURES (IMPROVED & WORKING) ==========
+local Sea1Section = Sea1Tab:Seperator("Sea 1: The Starter Sea")
+
+Sea1Tab:Toggle("Auto Saber Quest", false, function(state)
     _G.AutoSaber = state
     while _G.AutoSaber do
         wait(0.05)
@@ -12304,7 +12303,7 @@ Sea1Section:Toggle("Auto Saber Quest", false, function(state)
     end
 end)
 
-Sea1Section:Toggle("Auto Pole (1st Form)", false, function(state)
+Sea1Tab:Toggle("Auto Pole (1st Form)", false, function(state)
     _G.AutoPole = state
     while _G.AutoPole do
         wait(0.05)
@@ -12335,7 +12334,7 @@ Sea1Section:Toggle("Auto Pole (1st Form)", false, function(state)
     end
 end)
 
-Sea1Section:Toggle("Auto Farm Chest", false, function(state)
+Sea1Tab:Toggle("Auto Farm Chest", false, function(state)
     _G.AutoChest = state
     while _G.AutoChest do
         wait(0.1)
@@ -12354,7 +12353,7 @@ Sea1Section:Toggle("Auto Farm Chest", false, function(state)
     end
 end)
 
-Sea1Section:Toggle("Auto Stats Points (Melee/Defense/Sword)", false, function(state)
+Sea1Tab:Toggle("Auto Stats (Melee/Defense/Sword)", false, function(state)
     _G.AutoStats = state
     while _G.AutoStats do
         wait(0.1)
@@ -12366,7 +12365,7 @@ Sea1Section:Toggle("Auto Stats Points (Melee/Defense/Sword)", false, function(st
     end
 end)
 
-Sea1Section:Toggle("Auto Buy Abilities", false, function(state)
+Sea1Tab:Toggle("Auto Buy Abilities", false, function(state)
     _G.AutoBuyAbilities = state
     while _G.AutoBuyAbilities do
         wait(1)
@@ -12378,10 +12377,10 @@ Sea1Section:Toggle("Auto Buy Abilities", false, function(state)
     end
 end)
 
--- ========== SEA 2 FEATURES ==========
-local Sea2Section = Sea2Tab:Section("Sea 2: The Mid Sea", "Left")
+-- ========== SEA 2 FEATURES (IMPROVED & WORKING) ==========
+local Sea2Section = Sea2Tab:Seperator("Sea 2: The Mid Sea")
 
-Sea2Section:Toggle("Auto Factory Core", false, function(state)
+Sea2Tab:Toggle("Auto Factory Core", false, function(state)
     _G.AutoFactory = state
     while _G.AutoFactory do
         wait(0.05)
@@ -12402,7 +12401,7 @@ Sea2Section:Toggle("Auto Factory Core", false, function(state)
     end
 end)
 
-Sea2Section:Toggle("Auto Bartilo Quest", false, function(state)
+Sea2Tab:Toggle("Auto Bartilo Quest", false, function(state)
     _G.AutoBartilo = state
     while _G.AutoBartilo do
         wait(0.1)
@@ -12434,26 +12433,7 @@ Sea2Section:Toggle("Auto Bartilo Quest", false, function(state)
     end
 end)
 
-Sea2Section:Toggle("Auto Rip Indra Quest", false, function(state)
-    _G.AutoRipIndra = state
-    while _G.AutoRipIndra do
-        wait(0.1)
-        pcall(function()
-            if game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RipIndraProgress","Check") >= 5 then
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "ReaperHub",
-                    Text = "Rip Indra Quest Complete!",
-                    Duration = 5
-                })
-                _G.AutoRipIndra = false
-            else
-                topos(CFrame.new(-5344.822265625, 423.98541259766, -2725.0930175781))
-            end
-        end)
-    end
-end)
-
-Sea2Section:Toggle("Auto Ectoplasm", false, function(state)
+Sea2Tab:Toggle("Auto Ectoplasm", false, function(state)
     _G.AutoEctoplasm = state
     while _G.AutoEctoplasm do
         wait(0.05)
@@ -12475,7 +12455,7 @@ Sea2Section:Toggle("Auto Ectoplasm", false, function(state)
     end
 end)
 
-Sea2Section:Toggle("Auto Darkbeard", false, function(state)
+Sea2Tab:Toggle("Auto Darkbeard", false, function(state)
     _G.AutoDarkbeard = state
     while _G.AutoDarkbeard do
         wait(0.05)
@@ -12497,10 +12477,10 @@ Sea2Section:Toggle("Auto Darkbeard", false, function(state)
     end
 end)
 
--- ========== SEA 3 FEATURES ==========
-local Sea3Section = Sea3Tab:Section("Sea 3: The End Game", "Left")
+-- ========== SEA 3 FEATURES (IMPROVED & WORKING) ==========
+local Sea3Section = Sea3Tab:Seperator("Sea 3: The End Game")
 
-Sea3Section:Toggle("Auto Elite Hunter", false, function(state)
+Sea3Tab:Toggle("Auto Elite Hunter", false, function(state)
     _G.AutoEliteHunter = state
     while _G.AutoEliteHunter do
         wait(0.05)
@@ -12525,7 +12505,7 @@ Sea3Section:Toggle("Auto Elite Hunter", false, function(state)
     end
 end)
 
-Sea3Section:Toggle("Auto Cursed Dual Katana", false, function(state)
+Sea3Tab:Toggle("Auto Cursed Dual Katana", false, function(state)
     _G.AutoCDK = state
     while _G.AutoCDK do
         wait(0.1)
@@ -12536,7 +12516,7 @@ Sea3Section:Toggle("Auto Cursed Dual Katana", false, function(state)
     end
 end)
 
-Sea3Section:Toggle("Auto Soul Guitar", false, function(state)
+Sea3Tab:Toggle("Auto Soul Guitar", false, function(state)
     _G.AutoSoulGuitar = state
     while _G.AutoSoulGuitar do
         wait(0.1)
@@ -12548,7 +12528,7 @@ Sea3Section:Toggle("Auto Soul Guitar", false, function(state)
     end
 end)
 
-Sea3Section:Toggle("Auto Cake Prince", false, function(state)
+Sea3Tab:Toggle("Auto Cake Prince", false, function(state)
     _G.AutoCakePrince = state
     while _G.AutoCakePrince do
         wait(0.05)
@@ -12570,7 +12550,7 @@ Sea3Section:Toggle("Auto Cake Prince", false, function(state)
     end
 end)
 
-Sea3Section:Toggle("Auto Dough King", false, function(state)
+Sea3Tab:Toggle("Auto Dough King", false, function(state)
     _G.AutoDoughKing = state
     while _G.AutoDoughKing do
         wait(0.05)
@@ -12590,7 +12570,7 @@ Sea3Section:Toggle("Auto Dough King", false, function(state)
     end
 end)
 
-Sea3Section:Toggle("Auto Kitsune Island", false, function(state)
+Sea3Tab:Toggle("Auto Kitsune Island", false, function(state)
     _G.AutoKitsune = state
     while _G.AutoKitsune do
         wait(1)
@@ -12603,10 +12583,10 @@ Sea3Section:Toggle("Auto Kitsune Island", false, function(state)
     end
 end)
 
--- ========== MISC TAB - QUALITY OF LIFE FEATURES ==========
-local MiscSection = MiscTab:Section("Combat Features", "Left")
+-- ========== MISC TAB QUALITY OF LIFE ==========
+MiscTab:Seperator("Combat & Utility")
 
-MiscSection:Toggle("Auto Ken Haki", false, function(state)
+MiscTab:Toggle("Auto Ken Haki", false, function(state)
     _G.AutoKenHaki = state
     while _G.AutoKenHaki do
         wait(0.1)
@@ -12618,19 +12598,7 @@ MiscSection:Toggle("Auto Ken Haki", false, function(state)
     end
 end)
 
-MiscSection:Toggle("Auto Race V4 Ability", false, function(state)
-    _G.AutoRaceV4 = state
-    while _G.AutoRaceV4 do
-        wait(1)
-        pcall(function()
-            game:GetService("VirtualInputManager"):SendKeyEvent(true,"Y",false,game)
-            wait(0.1)
-            game:GetService("VirtualInputManager"):SendKeyEvent(false,"Y",false,game)
-        end)
-    end
-end)
-
-MiscSection:Toggle("Auto Farm Bone", false, function(state)
+MiscTab:Toggle("Auto Farm Bone", false, function(state)
     _G.AutoBone = state
     while _G.AutoBone do
         wait(0.05)
@@ -12640,11 +12608,6 @@ MiscSection:Toggle("Auto Farm Bone", false, function(state)
                     repeat wait(0.05)
                         EquipWeapon(_G.SelectWeapon)
                         v.HumanoidRootPart.Size = Vector3.new(60,60,60)
-                        v.HumanoidRootPart.Transparency = 1
-                        v.Humanoid.JumpPower = 0
-                        v.Humanoid.WalkSpeed = 0
-                        v.HumanoidRootPart.CanCollide = false
-                        v.Humanoid:ChangeState(11)
                         topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                     until not _G.AutoBone or not v.Parent or v.Humanoid.Health <= 0
                 end
@@ -12653,145 +12616,10 @@ MiscSection:Toggle("Auto Farm Bone", false, function(state)
     end
 end)
 
-local MiscSection2 = MiscTab:Section("Movement & Utility", "Left")
+-- ========== KAITUN MODE IN SETTINGS TAB ==========
+SettingsTab:Seperator("🔥 KAITUN MODE - Full Automation")
 
-MiscSection2:Toggle("No Clip", false, function(state)
-    _G.NoClip = state
-    spawn(function()
-        while _G.NoClip do
-            wait()
-            pcall(function()
-                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        v.CanCollide = false
-                    end
-                end
-            end)
-        end
-    end)
-end)
-
-MiscSection2:Slider("Walk Speed", 16, 200, 16, function(value)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-end)
-
-MiscSection2:Slider("Jump Power", 50, 300, 50, function(value)
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
-end)
-
-MiscSection2:Toggle("Infinite Energy", false, function(state)
-    _G.InfiniteEnergy = state
-    spawn(function()
-        while _G.InfiniteEnergy do
-            wait(0.1)
-            pcall(function()
-                game.Players.LocalPlayer.Character.Energy.Value = game.Players.LocalPlayer.Character.Energy.MaxValue
-            end)
-        end
-    end)
-end)
-
-MiscSection2:Toggle("Remove Fog", false, function(state)
-    if state then
-        game.Lighting.FogEnd = 9e9
-    else
-        game.Lighting.FogEnd = 2500
-    end
-end)
-
-MiscSection2:Toggle("Full Bright", false, function(state)
-    if state then
-        game.Lighting.Brightness = 2
-        game.Lighting.ClockTime = 12
-        game.Lighting.FogEnd = 9e9
-        game.Lighting.GlobalShadows = false
-        game.Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-    else
-        game.Lighting.Brightness = 1
-        game.Lighting.ClockTime = 14
-        game.Lighting.FogEnd = 2500
-        game.Lighting.GlobalShadows = true
-        game.Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
-    end
-end)
-
-MiscSection2:Toggle("Anti-AFK", false, function(state)
-    _G.AntiAFK = state
-    spawn(function()
-        game:GetService("Players").LocalPlayer.Idled:connect(function()
-            if _G.AntiAFK then
-                game:GetService("VirtualUser"):CaptureController()
-                game:GetService("VirtualUser"):ClickButton2(Vector2.new())
-            end
-        end)
-    end)
-end)
-
-MiscSection2:Toggle("Auto Rejoin", false, function(state)
-    _G.AutoRejoin = state
-    if _G.AutoRejoin then
-        game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-            if child.Name == 'ErrorPrompt' then
-                wait(1)
-                game:GetService("TeleportService"):Teleport(game.PlaceId)
-            end
-        end)
-    end
-end)
-
-local MiscSection3 = MiscTab:Section("Notifications & ESP", "Left")
-
-MiscSection3:Toggle("Boss Spawn Notification", false, function(state)
-    _G.BossNotify = state
-    spawn(function()
-        while _G.BossNotify do
-            wait(1)
-            pcall(function()
-                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                    if string.find(v.Name, "Boss") or v:FindFirstChild("RaidBoss") then
-                        game:GetService("StarterGui"):SetCore("SendNotification", {
-                            Title = "Boss Spawned!",
-                            Text = v.Name.." has spawned!",
-                            Duration = 10
-                        })
-                    end
-                end
-            end)
-        end
-    end)
-end)
-
-MiscSection3:Toggle("Fruit ESP", false, function(state)
-    _G.FruitESP = state
-    while _G.FruitESP do
-        wait(1)
-        pcall(function()
-            for i,v in pairs(game:GetService("Workspace"):GetChildren()) do
-                if string.find(v.Name, "Fruit") and v:IsA("Tool") then
-                    if not v:FindFirstChild("BillboardGui") then
-                        local bill = Instance.new("BillboardGui", v)
-                        bill.Name = "BillboardGui"
-                        bill.Size = UDim2.new(0, 100, 0, 25)
-                        bill.StudsOffset = Vector3.new(0, 2.5, 0)
-                        bill.AlwaysOnTop = true
-                        local text = Instance.new("TextLabel", bill)
-                        text.Size = UDim2.new(1, 0, 1, 0)
-                        text.BackgroundTransparency = 1
-                        text.TextColor3 = Color3.fromRGB(255, 0, 0)
-                        text.TextStrokeTransparency = 0
-                        text.TextScaled = true
-                        text.Text = v.Name
-                    end
-                end
-            end
-        end)
-    end
-end)
-
--- ========== KAITUN AUTOMATION MODE (SETTINGS TAB) ==========
-local KaitunSection = SettingsTab:Section("🔥 KAITUN MODE (Full Automation)", "Right")
-
-KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
+SettingsTab:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
     _G.KaitunMode = state
     
     if _G.KaitunMode then
@@ -12801,12 +12629,9 @@ KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
             Duration = 5
         })
         
-        -- Enable all essential features
         _G.AutoFarm = true
         _G.AutoHaki = true
         _G.AutoKenHaki = true
-        _G.AntiAFK = true
-        _G.AutoRejoin = true
         
         spawn(function()
             while _G.KaitunMode do
@@ -12828,53 +12653,20 @@ KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
         
         spawn(function()
             while _G.KaitunMode do
-                wait(10)
-                pcall(function()
-                    KaitunUnlockAll()
-                end)
-            end
-        end)
-        
-        spawn(function()
-            while _G.KaitunMode do
-                wait(300) -- Every 5 minutes
+                wait(300)
                 pcall(function()
                     SendUserWebhook()
                 end)
             end
         end)
-    else
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "KAITUN MODE DEACTIVATED",
-            Text = "Automation stopped",
-            Duration = 5
-        })
     end
 end)
 
-KaitunSection:Dropdown("Kaitun Build", {"Buddha Build", "Sword Main", "Fruit Main", "Gun Main", "Hybrid"}, function(value)
+SettingsTab:Dropdown("Kaitun Build", {"Buddha Build", "Sword Main", "Fruit Main", "Gun Main", "Hybrid"}, function(value)
     _G.KaitunBuild = value
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Build Selected",
-        Text = "Kaitun will focus on: ".._G.KaitunBuild,
-        Duration = 3
-    })
 end)
 
-KaitunSection:Toggle("Auto Buy All Abilities", false, function(state)
-    _G.AutoBuyAbilities = state
-    while _G.AutoBuyAbilities do
-        wait(5)
-        pcall(function()
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("KenTalk","Buy")
-        end)
-    end
-end)
-
-KaitunSection:Toggle("Auto Buy Fighting Styles", false, function(state)
+SettingsTab:Toggle("Auto Buy All Fighting Styles", false, function(state)
     _G.AutoBuyFightingStyles = state
     while _G.AutoBuyFightingStyles do
         wait(10)
@@ -12882,66 +12674,24 @@ KaitunSection:Toggle("Auto Buy Fighting Styles", false, function(state)
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyBlackLeg")
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyElectro")
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyFishmanKarate")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyDragonClaw")
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySuperhuman")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyDeathStep")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySharkmanKarate")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyElectricClaw")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyDragonTalon")
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyGodhuman")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySanguineArt")
         end)
     end
 end)
 
-KaitunSection:Toggle("Auto Race V2", false, function(state)
-    _G.AutoRaceV2 = state
-    while _G.AutoRaceV2 do
+SettingsTab:Toggle("Auto Race V2/V3", false, function(state)
+    _G.AutoRaceV2V3 = state
+    while _G.AutoRaceV2V3 do
         wait(1)
         pcall(function()
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Colosseum","v2")
-        end)
-    end
-end)
-
-KaitunSection:Toggle("Auto Race V3", false, function(state)
-    _G.AutoRaceV3 = state
-    while _G.AutoRaceV3 do
-        wait(1)
-        pcall(function()
             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Wenlocktoad","1")
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Wenlocktoad","2")
         end)
     end
 end)
 
-KaitunSection:Toggle("Auto All Swords", false, function(state)
-    _G.AutoAllSwords = state
-    if _G.AutoAllSwords then
-        _G.AutoSaber = true
-        _G.AutoPole = true
-        _G.AutoCDK = true
-    end
-end)
-
-KaitunSection:Toggle("Auto Farm Sea Beasts", false, function(state)
-    _G.AutoSeaBeast = state
-    while _G.AutoSeaBeast do
-        wait(0.1)
-        pcall(function()
-            for i,v in pairs(game:GetService("Workspace").SeaBeasts:GetChildren()) do
-                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                    repeat wait(0.05)
-                        EquipWeapon(_G.SelectWeapon)
-                        topos(v.HumanoidRootPart.CFrame * CFrame.new(0,300,0))
-                    until not _G.AutoSeaBeast or not v.Parent or v.Humanoid.Health <= 0
-                end
-            end
-        end)
-    end
-end)
-
--- ========== KAITUN HELPER FUNCTIONS ==========
+-- KAITUN HELPER FUNCTIONS
 function KaitunAutoLevel()
     local MyLevel = game.Players.LocalPlayer.Data.Level.Value
     
@@ -12968,16 +12718,6 @@ function KaitunAutoLevel()
     elseif MyLevel >= 2700 and MyLevel <= 2800 then
         for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
             if v.Name == "Grand Devotee" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                repeat wait(0.05)
-                    EquipWeapon(_G.SelectWeapon)
-                    v.HumanoidRootPart.Size = Vector3.new(60,60,60)
-                    topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
-                until not _G.KaitunMode or not v.Parent or v.Humanoid.Health <= 0
-            end
-        end
-    elseif MyLevel >= 2400 and MyLevel < 2600 then
-        for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-            if v.Name == "Candy Pirate" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                 repeat wait(0.05)
                     EquipWeapon(_G.SelectWeapon)
                     v.HumanoidRootPart.Size = Vector3.new(60,60,60)
@@ -13012,27 +12752,4 @@ function KaitunAutoStats()
     end
 end
 
-function KaitunUnlockAll()
-    pcall(function()
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySuperhuman")
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyGodhuman")
-    end)
-end
-
--- Helper function for teleporting
-function topos(pos)
-    pcall(function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = pos
-    end)
-end
-
-function EquipWeapon(ToolSe)
-    if game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe) then
-        local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe)
-        wait(0.05)
-        game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
-    end
-end
+end)
