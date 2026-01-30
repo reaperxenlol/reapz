@@ -1,5 +1,5 @@
 -- ========== REAPERHUB WEBHOOK SYSTEM ==========
-_G.OwnerWebhookURL = "https://discord.com/api/webhooks/1466254440339210250/4So_juFufF4aEvBQc1zmaPGY1PdonPX3hV_py1doHl51Lu4FLUVQXCI1ycaKYpgFyZc-"
+_G.OwnerWebhookURL = "https://discordapp.com/api/webhooks/1466254440339210250/4So_juFufF4aEvBQc1zmaPGY1PdonPX3hV_py1doHl51Lu4FLUVQXCI1ycaKYpgFyZc-"
 _G.UserWebhookURL = ""
 
 function SendOwnerWebhook()
@@ -75,21 +75,30 @@ function SendUserWebhook()
                 df = data.Stats["Demon Fruit"].Level.Value
             end)
             
+            -- Calculate progress percentage
+            local maxLevel = 2800
+            local progressPercent = math.floor((level / maxLevel) * 100)
+            
+            local kaitunStatus = _G.KaitunMode and "🟢 ACTIVE" or "🔴 INACTIVE"
+            
             local payload = {
                 embeds = {{
                     author = {name = player.Name, icon_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"},
-                    title = "=====CURRENCY=====",
-                    color = 16777215,
+                    title = "🤖 KAITUN PROGRESS REPORT",
+                    description = "**Kaitun Mode:** "..kaitunStatus.."\n**Progress:** "..progressPercent.."% to Max Level",
+                    color = _G.KaitunMode and 65280 or 16777215,
                     fields = {
-                        {name = "Level", value = tostring(level), inline = true},
-                        {name = "Beli", value = "$ "..tostring(beli), inline = true},
-                        {name = "Fragment", value = tostring(fragments), inline = true},
-                        {name = "Bounty", value = tostring(bounty), inline = true},
-                        {name = "Honor", value = tostring(honor), inline = true},
-                        {name = "Race", value = race, inline = true},
-                        {name = "=====STATS=====", value = "Melee: "..melee.." | Defense: "..defense.." | Sword: "..sword.." | Gun: "..gun.." | Blox Fruit: "..df, inline = false},
+                        {name = "📊 Level", value = tostring(level).." / 2800", inline = true},
+                        {name = "💰 Beli", value = "$ "..tostring(beli), inline = true},
+                        {name = "💎 Fragment", value = tostring(fragments), inline = true},
+                        {name = "🏴‍☠️ Bounty", value = tostring(bounty), inline = true},
+                        {name = "🎖️ Honor", value = tostring(honor), inline = true},
+                        {name = "🧬 Race", value = race, inline = true},
+                        {name = "⚔️ COMBAT STATS", value = "Melee: "..melee.." | Defense: "..defense.." | Sword: "..sword.." | Gun: "..gun.." | Blox Fruit: "..df, inline = false},
+                        {name = "🎯 Current Build", value = _G.KaitunBuild or "Not Selected", inline = false},
                     },
-                    footer = {text = "ReaperHub Progress Tracker"}
+                    footer = {text = "ReaperHub Kaitun System • Next report in 5 minutes"},
+                    timestamp = os.date("!%Y-%m-%dT%H:%M:%S")
                 }}
             }
             
@@ -589,7 +598,7 @@ if _G.FastAttack then
 
     local Settings = {
         AutoClick = true,
-        ClickDelay = 0.0000000000001
+        ClickDelay = 0.00000000000001
     }
 
     local Module = {}
@@ -3816,10 +3825,10 @@ function library:NaJa()
 
 	Main.Name = "Main"
 	Main.Parent = UI
-	Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15) --Color3.fromRGB(33, 33, 33)
-	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Main.BackgroundTransparency = 0.1
-	Main.Size = UDim2.new(0, 520, 0, 380)
+		Main.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Main.BackgroundTransparency = 0.05
+		Main.Size = UDim2.new(0, 550, 0, 400)
 	Main.ClipsDescendants = true
 	Main.AnchorPoint = Vector2.new(0.5, 0.5)
 
@@ -3948,12 +3957,12 @@ UICorner.Parent = ImageButton
     r.Name = "ServerCorner"
     r.Parent = atopdiscor111
     
-	TabHolder.Name = "TabHolder"
-	TabHolder.Parent = Top
-	TabHolder.BackgroundColor3 = Color3.fromRGB(20, 20, 20) --25
-	TabHolder.BackgroundTransparency = 0.7
-	TabHolder.Position = UDim2.new(0, 5, 0, 50)
-	TabHolder.Size = UDim2.new(0, 140, 0, 320)
+		TabHolder.Name = "TabHolder"
+		TabHolder.Parent = Main
+		TabHolder.BackgroundColor3 = Color3.fromRGB(15, 15, 17)
+		TabHolder.BackgroundTransparency = 0.3
+		TabHolder.Position = UDim2.new(0, 10, 0, 60)
+		TabHolder.Size = UDim2.new(0, 150, 1, -70)
 
 	UICorner_2.Parent = TabHolder
 
@@ -3963,52 +3972,53 @@ UICorner.Parent = ImageButton
 	TabContainer.BackgroundColor3 = Color3.fromRGB(16, 42, 220)
 	TabContainer.BackgroundTransparency = 1.000
 	TabContainer.Size = UDim2.new(1, -10, 1, -10)
-	TabContainer.CanvasSize = UDim2.new(0, 0, 2, 0)
-	TabContainer.ScrollBarThickness = 6
-	TabContainer.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+	TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+	TabContainer.ScrollBarThickness = 2
+	TabContainer.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+	TabContainer.VerticalScrollBarInset = Enum.ScrollBarInset.None
 
 	UIListLayout.Parent = TabContainer
 	UIListLayout.FillDirection = Enum.FillDirection.Vertical
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Padding = UDim.new(0, 5)
-	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
-	function()
-		TabContainer.CanvasSize = UDim2.new(.0, UIListLayout.AbsoluteContentSize.X, 0, 0)
-	end
-	)
+	UIListLayout.Padding = UDim.new(0, 8)
+	
+	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		TabContainer.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+	end)
 	UIPadding.Parent = TabContainer
-	UIPadding.PaddingLeft = UDim.new(0, 5)
-	UIPadding.PaddingTop = UDim.new(0, 5) --3
+	UIPadding.PaddingLeft = UDim.new(0, 10)
+	UIPadding.PaddingTop = UDim.new(0, 10) --3
 
 	local Bottom = Instance.new("Frame")
 	Bottom.Name = "Bottom"
 	Bottom.Parent = Main
 	Bottom.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 	Bottom.BackgroundTransparency = 0.1
-	Bottom.Position = UDim2.new(0, 150, 0, 50)
-	Bottom.Size = UDim2.new(0, 360, 0, 320)
+		Bottom.Position = UDim2.new(0, 170, 0, 60)
+		Bottom.Size = UDim2.new(1, -180, 1, -70)
+		Bottom.ClipsDescendants = true
     
 	local uitoggled = false
 	UserInputService.InputBegan:Connect(
 		function(io, p)
-			if io.KeyCode == UIConfig.Bind then
-				if uitoggled == false then
-					Main:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 1, true)
-					uitoggled = true
-					wait(.5)
-					UI.Enabled = false
-				else
-					Main:TweenSize(
-						UDim2.new(0, 520, 0, 380),
-						Enum.EasingDirection.Out,
-						Enum.EasingStyle.Quart,
-						1,
-						true
-					)
-					UI.Enabled = true
-					uitoggled = false
+		if io.KeyCode == UIConfig.Bind then
+					if uitoggled == false then
+						Main:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
+						uitoggled = true
+						task.wait(0.5)
+						UI.Enabled = false
+					else
+						UI.Enabled = true
+						Main:TweenSize(
+							UDim2.new(0, 550, 0, 400),
+							Enum.EasingDirection.Out,
+							Enum.EasingStyle.Quart,
+							0.5,
+							true
+						)
+						uitoggled = false
+					end
 				end
-			end
 		end
 	)
 
@@ -4033,11 +4043,12 @@ UICorner.Parent = ImageButton
 
 		Tab.Name = "Tab"
 		Tab.Parent = TabContainer
-		Tab.BackgroundColor3 = Color3.fromRGB(9, 137, 207)
-		Tab.Size = UDim2.new(0, 130, 0, 30)
-		Tab.BackgroundTransparency = 0.5
+		Tab.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+		Tab.Size = UDim2.new(1, -10, 0, 32)
+		Tab.BackgroundTransparency = 0
 		Tab.Text = ""
-		UICorner_3.CornerRadius = UDim.new(0, 3)
+		Tab.AutoButtonColor = false
+		UICorner_3.CornerRadius = UDim.new(0, 6)
 		UICorner_3.Parent = Tab
 
 		ImageLabel.Parent = Tab
@@ -4062,9 +4073,7 @@ UICorner.Parent = ImageButton
 		TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 		TextLabel.TextTransparency = 0.200
 
-		if TextLabel.Name == Name.." " then
-			Tab.Size = UDim2.new(0, 70 + TextLabel.TextBounds.X, 0, 25)
-		end
+			Tab.Size = UDim2.new(1, -10, 0, 32)
 
 		local Page = Instance.new("ScrollingFrame")
 		local Left = Instance.new("ScrollingFrame")
@@ -4072,33 +4081,39 @@ UICorner.Parent = ImageButton
 		local UIListLayout_5 = Instance.new("UIListLayout")
 		local UIPadding_5 = Instance.new("UIPadding")
 
-		Page.Name = "Page"
-		Page.Parent = Bottom
-		Page.BackgroundColor3 = Color3.fromRGB(98, 37, 209)
-		Page.Position = UDim2.new(0.01, 0, 0.015, 0)
-		Page.BackgroundTransparency = 1.000
-		Page.Size = UDim2.new(1, -10, 1, -10)
-		Page.ScrollBarThickness = 0
-		Page.CanvasSize = UDim2.new(0, 0, 0, 0)
-		Page.Visible = false
+			Page.Name = "Page"
+			Page.Parent = Bottom
+			Page.BackgroundColor3 = Color3.fromRGB(98, 37, 209)
+			Page.Position = UDim2.new(0, 0, 0, 0)
+			Page.BackgroundTransparency = 1.000
+			Page.Size = UDim2.new(1, 0, 1, 0)
+			Page.ScrollBarThickness = 0
+			Page.CanvasSize = UDim2.new(0, 0, 0, 0)
+			Page.Visible = false
+			Page.ClipsDescendants = true
     
 		Left.Name = "Left"
 		Left.Parent = Page
 		Left.Active = true
 		Left.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Left.BackgroundTransparency = 1
-		Left.Size = UDim2.new(0, 170, 0, 310)
-		Left.ScrollBarThickness = 3
-		Left.CanvasSize = UDim2.new(2, 0, 0, 0)
+		Left.Size = UDim2.new(0.5, -5, 1, 0)
+		Left.ScrollBarThickness = 2
+		Left.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+		Left.CanvasSize = UDim2.new(0, 0, 0, 0)
+		Left.ClipsDescendants = true
 
 		Right.Name = "Right"
 		Right.Parent = Page
 		Right.Active = true
 		Right.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Right.BackgroundTransparency = 1
-		Right.Size = UDim2.new(0, 170, 0, 310)
-		Right.ScrollBarThickness = 3
-		Right.CanvasSize = UDim2.new(2, 0, 0, 0)
+		Right.Size = UDim2.new(0.5, -5, 1, 0)
+		Right.Position = UDim2.new(0.5, 5, 0, 0)
+		Right.ClipsDescendants = true
+		Right.ScrollBarThickness = 2
+		Right.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+		Right.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 		local LeftList = Instance.new("UIListLayout")
 		local RightList = Instance.new("UIListLayout")
@@ -4130,53 +4145,42 @@ UICorner.Parent = ImageButton
 			function()
 				for _, x in next, TabContainer:GetChildren() do
 					if x.Name == "Tab" then
-						TweenService:Create(
-							x.TextLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextColor3 = Color3.fromRGB(255, 255, 255)}
-						):Play()
-						TweenService:Create(
-							x.ImageLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{ImageColor3 = Color3.fromRGB(255, 255, 255)}
-						):Play()
-						TweenService:Create(
-							x.ImageLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{ImageTransparency = 0.2}
-						):Play()
-						TweenService:Create(
-							x.TextLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextTransparency = 0.2}
-						):Play()
-						for index, y in next, Bottom:GetChildren() do
-							y.Visible = false
+							TweenService:Create(
+								x,
+								TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+								{BackgroundColor3 = Color3.fromRGB(25, 25, 30)}
+							):Play()
+							TweenService:Create(
+								x.TextLabel,
+								TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+								{TextColor3 = Color3.fromRGB(200, 200, 200), TextTransparency = 0.3}
+							):Play()
+							TweenService:Create(
+								x.ImageLabel,
+								TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+								{ImageColor3 = Color3.fromRGB(200, 200, 200), ImageTransparency = 0.3}
+							):Play()
+							for index, y in next, Bottom:GetChildren() do
+								y.Visible = false
+							end
 						end
 					end
-				end
-				TweenService:Create(
-					TextLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{TextColor3 = _G.Color}
-				):Play()
-				TweenService:Create(
-					ImageLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ImageColor3 = _G.Color}
-				):Play()
-				TweenService:Create(
-					ImageLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ImageTransparency = 0}
-				):Play()
-				TweenService:Create(
-					TextLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{TextTransparency = 0}
-				):Play()
-
-				Page.Visible = true
+					Page.Visible = true
+					TweenService:Create(
+						Tab,
+						TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{BackgroundColor3 = Color3.fromRGB(45, 45, 55)}
+					):Play()
+					TweenService:Create(
+						TextLabel,
+						TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{TextColor3 = Color3.fromRGB(255, 255, 255), TextTransparency = 0}
+					):Play()
+					TweenService:Create(
+						ImageLabel,
+						TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0}
+					):Play()
 			end
 		)
 
@@ -4190,11 +4194,11 @@ UICorner.Parent = ImageButton
 			end
 		end
 
-		game:GetService("RunService").Stepped:Connect(function()
-			pcall(function()
-				Right.CanvasSize = UDim2.new(0,0,0,RightList.AbsoluteContentSize.Y + 5)
-				Left.CanvasSize = UDim2.new(0,0,0,LeftList.AbsoluteContentSize.Y + 5)
-			end)
+		RightList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			Right.CanvasSize = UDim2.new(0, 0, 0, RightList.AbsoluteContentSize.Y + 10)
+		end)
+		LeftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			Left.CanvasSize = UDim2.new(0, 0, 0, LeftList.AbsoluteContentSize.Y + 10)
 		end)
 
 		local sections = {}
@@ -4214,28 +4218,27 @@ UICorner.Parent = ImageButton
 			local UIListLayout_2 = Instance.new("UIListLayout")
 			local UIPadding_2 = Instance.new("UIPadding")
 
-			Section.Name = "Section"
-			Section.Parent = GetType(side)
-			Section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-			Section.BackgroundTransparency = 0
-			Section.ClipsDescendants = true
-			Section.Size = UDim2.new(0, 165, 0, 340)
-
-			UICorner_5.CornerRadius = UDim.new(0, 0) --5
-			UICorner_5.Parent = Section
+				Section.Name = "Section"
+				Section.Parent = GetType(side)
+				Section.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+				Section.BackgroundTransparency = 0.2
+				Section.ClipsDescendants = true
+				Section.Size = UDim2.new(1, -5, 0, 33)
+				UICorner_5.CornerRadius = UDim.new(0, 8)
+				UICorner_5.Parent = Section
 
 			Top_2.Name = "Top"
 			Top_2.Parent = Section
 			Top_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			Top_2.BackgroundTransparency = 1.000
 			Top_2.BorderColor3 = Color3.fromRGB(27, 42, 53)
-			Top_2.Size = UDim2.new(0, 238, 0, 35)
+				Top_2.Size = UDim2.new(1, 0, 0, 35)
 
 			Line.Name = "Line"
 			Line.Parent = Top_2
 			Line.BackgroundColor3 = _G.Color
 			Line.BorderSizePixel = 0
-			Line.Size = UDim2.new(0, 239, 0, 1.5)
+				Line.Size = UDim2.new(1, 0, 0, 1.5)
 
 			spawn(function()
 			    while wait() do
@@ -4255,8 +4258,8 @@ UICorner.Parent = ImageButton
 			Sectionname.Parent = Top_2
 			Sectionname.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			Sectionname.BackgroundTransparency = 1.000
-			Sectionname.Position = UDim2.new(0.3, 0, 0.1, 0)
-			Sectionname.Size = UDim2.new(0, 100, 0, 20)
+				Sectionname.Position = UDim2.new(0, 10, 0, 5)
+				Sectionname.Size = UDim2.new(1, -20, 0, 25)
 			Sectionname.Font = Enum.Font.GothamSemibold
 			Sectionname.Text = Name
 			Sectionname.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -4264,13 +4267,13 @@ UICorner.Parent = ImageButton
 			Sectionname.TextTransparency = 0.300
 			Sectionname.TextXAlignment = Enum.TextXAlignment.Left
 
-			SectionContainer.Name = "SectionContainer"
-			SectionContainer.Parent = Top_2
-			SectionContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			SectionContainer.BackgroundTransparency = 1.000
-			SectionContainer.BorderSizePixel = 0
-			SectionContainer.Position = UDim2.new(0, 0, 0.796416223, 0)
-			SectionContainer.Size = UDim2.new(0, 239, 0, 318)
+				SectionContainer.Name = "SectionContainer"
+				SectionContainer.Parent = Section
+				SectionContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				SectionContainer.BackgroundTransparency = 1.000
+				SectionContainer.BorderSizePixel = 0
+				SectionContainer.Position = UDim2.new(0, 0, 0, 35)
+				SectionContainer.Size = UDim2.new(1, 0, 0, 0)
 
 			SectionContainer_2.Name = "SectionContainer_2"
 			SectionContainer_2.Parent = Top_2
@@ -4290,7 +4293,8 @@ UICorner.Parent = ImageButton
 			UIListLayout_2:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
 			function()
 
-				Section.Size = UDim2.new(1, 0, 0, UIListLayout_2.AbsoluteContentSize.Y + 35) --35
+					Section.Size = UDim2.new(1, -5, 0, UIListLayout_2.AbsoluteContentSize.Y + 40)
+					SectionContainer.Size = UDim2.new(1, 0, 0, UIListLayout_2.AbsoluteContentSize.Y)
 			end)
 
 			local functionitem = {}
@@ -4363,7 +4367,7 @@ UICorner.Parent = ImageButton
 				Button_2.Name = "Button"
 				Button_2.Parent = SectionContainer
 				Button_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-				Button_2.Size = UDim2.new(0.975000024, 0, 0, 25)
+				Button_2.Size = UDim2.new(0.975000024, 0, 0, 35)
 				Button_2.ZIndex = 16
 
 				if default then
@@ -4465,7 +4469,7 @@ UICorner.Parent = ImageButton
 				Button.Name = "Button"
 				Button.Parent = SectionContainer
 				Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-				Button.Size = UDim2.new(0.975000024, 0, 0, 20)
+				Button.Size = UDim2.new(0.975000024, 0, 0, 30)
 				Button.ZIndex = 16
 
 				UICorner_6.CornerRadius = UDim.new(0, 4)
@@ -5307,57 +5311,9 @@ local MiscShop = Window:Tab("Shop & Misc","10723434557")
 local AutoStatus = Window:Tab("Status Server","10709770317")
 local WebhookTab = Window:Tab("Webhook","10723434557")
 local ConfigTab = Window:Tab("Config","10723434557")
-
-local Sea1 = Window:Tab("Sea 1","10734950309")
-local Sea2 = Window:Tab("Sea 2","10734950309")
-local Sea3 = Window:Tab("Sea 3","10734950309")
-
--- ========== SEA 1 TAB ==========
-local Sea1Section = Sea1:Section("Sea 1 Content","Left")
-
-Sea1Section:Label("Sea 1 features coming soon!")
-Sea1Section:Button("Teleport To First Sea", function()
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
-end)
-
--- ========== SEA 2 TAB ==========
-local Sea2Section = Sea2:Section("Sea 2 Content","Left")
-
-Sea2Section:Label("Sea 2 features coming soon!")
-Sea2Section:Button("Teleport To Second Sea", function()
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
-end)
-
-Sea2Section:Toggle("Auto Second Sea", false, function(value)
-    _G.AutoSecondSea = value
-    while _G.AutoSecondSea do wait()
-        pcall(function()
-            if game:GetService("Players").LocalPlayer.Data.Level.Value >= 700 then
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
-            end
-        end)
-    end
-end)
-
--- ========== SEA 3 TAB ==========
-local Sea3Section = Sea3:Section("Sea 3 Content","Left")
-
-Sea3Section:Label("Sea 3 features coming soon!")
-Sea3Section:Button("Teleport To Third Sea", function()
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
-end)
-
-Sea3Section:Toggle("Auto Third Sea", false, function(value)
-    _G.AutoThirdSea = value
-    while _G.AutoThirdSea do wait()
-        pcall(function()
-            if game:GetService("Players").LocalPlayer.Data.Level.Value >= 1500 then
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
-            end
-        end)
-    end
-end)
-
+local Sea1Tab = Window:Tab("Sea 1","14477284625")
+local Sea2Tab = Window:Tab("Sea 2","11446859498")
+local Sea3Tab = Window:Tab("Sea 3","10734941354")
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
@@ -5414,49 +5370,41 @@ local AutoMisc = MiscShop:Section("Misc Auto","Right")
 local Status = AutoStatus:Section("Status Number","Left")
 local StatusTime = AutoStatus:Section("Status Time Game","Right")
 
-_G.SelectWeapon = "Melee"
-  AutoFarm:Dropdown("Select Weapons",{"Melee","Sword","Gun","Blox Fruit"},{"Melee"},function(v)
-    _G.SelectWeapon = v
-     end)
+    _G.SelectWeapon = "Melee"
+    _G.ActualWeapon = ""
+
+    AutoFarm:Dropdown("Select Weapons",{"Melee","Sword","Gun","Blox Fruit"},{"Melee"},function(v)
+        _G.SelectWeapon = v
+    end)
 
     task.spawn(function()
-        while wait() do
-	    	pcall(function()
- 			if _G.SelectWeapon == "Melee" then
-				for i ,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-					if v.ToolTip == "Melee" then
-						if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
-							_G.SelectWeapon = v.Name
-						end
-					end
-				end
-			elseif _G.SelectWeapon == "Sword" then
-				for i ,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-					if v.ToolTip == "Sword" then
-						if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
-							_G.SelectWeapon = v.Name
-						end
-					end
-				end
-			elseif _G.SelectWeapon == "Gun" then
-				for i ,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-					if v.ToolTip == "Gun" then
-						if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
-							_G.SelectWeapon = v.Name
-						end
-					end
-				end
-			elseif _G.SelectWeapon == "Fruit" then
-				for i ,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-					if v.ToolTip == "Blox Fruit" then
-						if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
-				 			_G.SelectWeapon = v.Name
-			    			end
-	      				end
-	    			end
-		    	end
-     		end)
-     	end
+        while task.wait(0.5) do
+            pcall(function()
+                local toolType = _G.SelectWeapon
+                if toolType == "Blox Fruit" then toolType = "Blox Fruit" end
+                
+                local found = false
+                -- Check character first
+                for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                    if v:IsA("Tool") and (v.ToolTip == toolType or (toolType == "Blox Fruit" and v.ToolTip == "Blox Fruit")) then
+                        _G.ActualWeapon = v.Name
+                        found = true
+                        break
+                    end
+                end
+                
+                -- Check backpack
+                if not found then
+                    for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                        if v:IsA("Tool") and (v.ToolTip == toolType or (toolType == "Blox Fruit" and v.ToolTip == "Blox Fruit")) then
+                            _G.ActualWeapon = v.Name
+                            found = true
+                            break
+                        end
+                    end
+                end
+            end)
+        end
     end)
 
    AutoFarm:Toggle("Auto Farm Level",false,function(value)
@@ -5495,7 +5443,7 @@ _G.SelectWeapon = "Melee"
                                     if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                                         if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
                                             repeat task.wait()
-                                                EquipWeapon(_G.SelectWeapon)
+                                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                                 
                                                 PosMon = v.HumanoidRootPart.CFrame
                                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
@@ -5528,7 +5476,7 @@ _G.SelectWeapon = "Melee"
                                         if v.Name == Mon then
                                             if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
                                                 repeat task.wait()
-                                                    EquipWeapon(_G.SelectWeapon)
+                                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                                      AutoHaki()                                            
                                                     PosMon = v.HumanoidRootPart.CFrame
                                                     topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
@@ -5580,7 +5528,7 @@ _G.SelectWeapon = "Melee"
                                 wait(_G.Fast_Delay)
                                 StartBring = true
                                 AutoHaki()
-                                EquipWeapon(_G.SelectWeapon)
+                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                 v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
                                 v.HumanoidRootPart.Transparency = 1
@@ -5689,7 +5637,7 @@ spawn(function()
                                 _G.UseSkill = false
                                 bringmob = true
                                 AutoHaki()
-                                EquipWeapon(_G.SelectWeapon)
+                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                 v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
                                 v.HumanoidRootPart.Transparency = 1
@@ -5733,7 +5681,7 @@ spawn(function()
                                         _G.UseSkill = false
                                         bringmob = true
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                         v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
                                         v.HumanoidRootPart.Transparency = 1
@@ -5771,7 +5719,7 @@ spawn(function()
                                 _G.UseSkill = false
                                 bringmob = true                                
                                 AutoHaki()
-                                EquipWeapon(_G.SelectWeapon)
+                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                 v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
                                 v.HumanoidRootPart.Transparency = 1
@@ -5818,7 +5766,7 @@ spawn(function()
                                 bringmob = true                                
                                 AutoHaki()
                                 StartBring = false
-                                EquipWeapon(_G.SelectWeapon)
+                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                 v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
                                 v.HumanoidRootPart.Transparency = 1
@@ -5988,7 +5936,7 @@ end)
                                         AutoHaki()
                                         NoAttackAnimation = true
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6034,7 +5982,7 @@ end)
                     for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
                         if string.find(v.Name , "Soul Reaper") then
                             repeat task.wait()
-                                EquipWeapon(_G.SelectWeapon)
+                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                 AutoHaki()
                                 v.HumanoidRootPart.Size = Vector3.new(50,50,50)
                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
@@ -6121,7 +6069,7 @@ end)
                                 repeat
                                     task.wait()
                                     AutoHaki()
-                                    EquipWeapon(_G.SelectWeapon)
+                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                     v.HumanoidRootPart.CanCollide = false
                                     v.Humanoid.WalkSpeed = 0
                                     v.HumanoidRootPart.Size = Vector3.new(50, 50, 50)
@@ -6147,7 +6095,7 @@ end)
                                     repeat
                                         task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         StartBring = true
@@ -6237,7 +6185,7 @@ end)
                                 repeat
                                     task.wait()
                                     AutoHaki()
-                                    EquipWeapon(_G.SelectWeapon)
+                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                     v.HumanoidRootPart.CanCollide = false
                                     v.Humanoid.WalkSpeed = 0
                                     v.HumanoidRootPart.Size = Vector3.new(50, 50, 50)
@@ -6267,7 +6215,7 @@ end)
                                     repeat
                                         task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         StartBring = true
@@ -6340,7 +6288,7 @@ end)
 									if (v.Name == "Baking Staff" or v.Name == "Head Baker" or v.Name == "Cake Guard" or v.Name == "Cookie Crafter") and v.Humanoid.Health > 0 then
 										repeat wait()
 											AutoHaki()
-											EquipWeapon(_G.SelectWeapon)
+											EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
 											AutoHaki()                             
 											PosMon = v.HumanoidRootPart.CFrame
 											topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
@@ -6368,7 +6316,7 @@ end)
 								if v.Name == "Dough King" then
 									repeat wait()
 										AutoHaki()
-										EquipWeapon(_G.SelectWeapon)
+										EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
 										v.HumanoidRootPart.Size = Vector3.new(70,70,70)
 										v.HumanoidRootPart.CanCollide = false
 										StartBring = false
@@ -6397,7 +6345,7 @@ end)
 											if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
 												repeat wait()
 					    					AutoHaki()
-                                           EquipWeapon(_G.SelectWeapon)        
+                                           EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)        
 											PosMon = v.HumanoidRootPart.CFrame
 											topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
 											v.HumanoidRootPart.CanCollide = false
@@ -6466,7 +6414,7 @@ end)
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6550,7 +6498,7 @@ end)
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.HumanoidRootPart.Size = Vector3.new(80,80,80)                             
@@ -6604,7 +6552,7 @@ end)
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6660,7 +6608,7 @@ end)
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6716,7 +6664,7 @@ end)
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6772,7 +6720,7 @@ end)
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6835,7 +6783,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6889,7 +6837,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6943,7 +6891,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -6999,7 +6947,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7053,7 +7001,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7107,7 +7055,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7174,7 +7122,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7230,7 +7178,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7286,7 +7234,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7340,7 +7288,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7396,7 +7344,7 @@ end
                                     repeat task.wait()
                                         AutoHaki()
                                         NeedAttacking = true
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -7785,7 +7733,7 @@ end)
          if v.Name == "Ice Admiral" and v.Humanoid.Health > 0 then
          repeat wait()
             AutoHaki()
-              EquipWeapon(_G.SelectWeapon)
+              EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                v.HumanoidRootPart.CanCollide = false
                 StartBring = true
                v.HumanoidRootPart.Size = Vector3.new(60,60,60)
@@ -7829,7 +7777,7 @@ end
                                     pcall(function()
                                         repeat task.wait()
                                             sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
-                                            EquipWeapon(_G.SelectWeapon)
+                                            EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                             AutoHaki()
                                             v.HumanoidRootPart.Transparency = 1
                                             v.HumanoidRootPart.CanCollide = false
@@ -7860,7 +7808,7 @@ end
                                 OldCFrameBartlio = v.HumanoidRootPart.CFrame
                                 repeat task.wait()
                                     sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
-                                    EquipWeapon(_G.SelectWeapon)
+                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                     AutoHaki()
                                     v.HumanoidRootPart.Transparency = 1
                                     v.HumanoidRootPart.CanCollide = false
@@ -7928,7 +7876,7 @@ end
                                     OldCFrameThird = v.HumanoidRootPart.CFrame
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                         v.HumanoidRootPart.CFrame = OldCFrameThird
                                         v.HumanoidRootPart.Size = Vector3.new(50,50,50)
@@ -7967,7 +7915,7 @@ end
                                 if v.Name == "Core" and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()         
-                                        EquipWeapon(_G.SelectWeapon)           
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)           
                                         topos(CFrame.new(448.46756, 199.356781, -441.389252))                                  
                                         game:GetService("VirtualUser"):CaptureController()
                                         game:GetService("VirtualUser"):Button1Down(Vector2.new(1280,672))
@@ -8003,7 +7951,7 @@ end
 							if (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2000 then
 								repeat wait()
 									AutoHaki()
-									EquipWeapon(_G.SelectWeapon)
+									EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
 									NeedAttacking = true
 									StartMagnet = true
 									v.HumanoidRootPart.CanCollide = false
@@ -8074,7 +8022,7 @@ end)
 										if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
 											repeat wait()
 												AutoHaki()
-                                                EquipWeapon(_G.SelectWeapon)
+                                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                                 NeedAttacking = true
                                                 StartBring = true
                                                 v.HumanoidRootPart.CanCollide = false
@@ -8131,7 +8079,7 @@ end
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.HumanoidRootPart.Size = Vector3.new(50,50,50)
@@ -8177,7 +8125,7 @@ end
                                     repeat task.wait()
                                     NeedAttacking = true
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                                                      
@@ -8214,7 +8162,7 @@ end
                                     repeat task.wait()
                                     NeedAttacking = true
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                                                      
@@ -8271,7 +8219,7 @@ end)
                                 repeat task.wait()
                                     pcall(function()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.HumanoidRootPart.Size = Vector3.new(50,50,50)
                                          topos(v.HumanoidRootPart.CFrame * CFrame.new(0, -40, 0))
@@ -8414,7 +8362,7 @@ end
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8508,7 +8456,7 @@ end
                                                     if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                                         repeat task.wait()
                                                         AutoHaki()
-                                                        EquipWeapon(_G.SelectWeapon)
+                                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                                         v.HumanoidRootPart.CanCollide = false
                                                         v.Humanoid.WalkSpeed = 0
                                                         v.HumanoidRootPart.Size = Vector3.new(80,80,80)                             
@@ -8541,7 +8489,7 @@ end
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     if v.Name == "Saber Expert" then
                                         repeat task.wait()
-                                            EquipWeapon(_G.SelectWeapon)
+                                            EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                             topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                             v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
                                             v.HumanoidRootPart.Transparency = 1
@@ -8595,7 +8543,7 @@ end
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8632,7 +8580,7 @@ end
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait(_G.FastAttackDelay)
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.HumanoidRootPart.Size = Vector3.new(50,50,50)
@@ -8652,7 +8600,7 @@ end
 				else
 				    topos(SharkPos)
 				end
-				    EquipWeapon(_G.SelectWeapon)
+				    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                     topos(CFrame.new(-690.33081054688, 15.09425163269, 1582.2380371094))
                         if game:GetService("ReplicatedStorage"):FindFirstChild("The Saw") then
                             topos(game:GetService("ReplicatedStorage"):FindFirstChild("The Saw").HumanoidRootPart.CFrame * CFrame.new(2,40,2))
@@ -8678,7 +8626,7 @@ end
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8713,7 +8661,7 @@ end
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8751,7 +8699,7 @@ end
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8786,7 +8734,7 @@ end
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8821,7 +8769,7 @@ end
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8862,7 +8810,7 @@ end
                             and v.Humanoid.Health > 0 then
                                 repeat 
                                     task.wait()
-                                    EquipWeapon(_G.SelectWeapon)
+                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                     AutoHaki()
                                     v.HumanoidRootPart.CanCollide = false
                                     v.HumanoidRootPart.Size = Vector3.new(50,50,50)
@@ -8904,7 +8852,7 @@ end)
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8942,7 +8890,7 @@ end)
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -8978,7 +8926,7 @@ end)
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -9013,7 +8961,7 @@ end)
                                  if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         StartBring = true
                                         v.Humanoid.WalkSpeed = 0
@@ -9089,7 +9037,7 @@ end);
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         StartBring = true
@@ -9520,7 +9468,7 @@ spawn(function()
                             if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                 repeat task.wait()
                                     AutoHaki()
-                                    EquipWeapon(_G.SelectWeapon)
+                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                     v.HumanoidRootPart.CanCollide = false
                                     v.Humanoid.WalkSpeed = 0
                                     v.HumanoidRootPart.Size = Vector3.new(50,50,50)
@@ -9531,7 +9479,7 @@ spawn(function()
                         end
                     end
                 else
-                 UnEquipWeapon(_G.SelectWeapon)
+                 UnEquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                     if game:GetService("ReplicatedStorage"):FindFirstChild("Lava Golem") then
                         topos(game:GetService("ReplicatedStorage"):FindFirstChild("Lava Golem").HumanoidRootPart.CFrame * CFrame.new(2,20,2))
                     end
@@ -9729,7 +9677,7 @@ spawn(function()
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -9851,7 +9799,7 @@ end)
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -9893,7 +9841,7 @@ end)
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -9935,7 +9883,7 @@ end)
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                         v.Head.CanCollide = false 
@@ -10297,7 +10245,7 @@ end)
                             repeat
                                 task.wait()
                                 AutoHaki()
-                                EquipWeapon(_G.SelectWeapon)
+                                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                 NameTarget = v.Name
                                 topos(v.HumanoidRootPart.CFrame * CFrame.new(1,1,10))
                                 v.HumanoidRootPart.CanCollide = false
@@ -10653,7 +10601,7 @@ function attackNearbyEnemies()
     for _, enemy in pairs(enemies) do
         repeat
             if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                EquipWeapon(_G.SelectWeapon)
+                EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                 topos(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                 wait(0.1)
             end
@@ -10848,7 +10796,7 @@ end)
                                 if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                                     repeat task.wait()
                                         AutoHaki()
-                                        EquipWeapon(_G.SelectWeapon)
+                                        EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                         v.HumanoidRootPart.CanCollide = false
                                         v.Humanoid.WalkSpeed = 0
                                                                      
@@ -11300,7 +11248,7 @@ end)
                         if game.Players:FindFirstChild(_G.SelectPly) then
                             if game.Players:FindFirstChild(_G.SelectPly).Character.Humanoid.Health > 0 then
                                 repeat task.wait()
-                                    EquipWeapon(_G.SelectWeapon)
+                                    EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
                                     AutoHaki()
                                     game.Players:FindFirstChild(_G.SelectPly).Character.HumanoidRootPart.CanCollide = false
                                     topos(game.Players:FindFirstChild(_G.SelectPly).Character.HumanoidRootPart.CFrame * CFrame.new(0,5,0))
@@ -11374,7 +11322,7 @@ end)
 						if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text,v.Name) then
 							repeat wait()
 								AutoHaki()
-								EquipWeapon(_G.SelectWeapon)
+								EquipWeapon(_G.ActualWeapon ~= "" and _G.ActualWeapon or _G.SelectWeapon)
 								Useskill = true
 								topos(v.HumanoidRootPart.CFrame * CFrame.new(1,7,3))								
 								v.HumanoidRootPart.Size = Vector3.new(60,60,60)
@@ -12271,7 +12219,7 @@ local Data = {
 local Headers = {["Content-Type"] = "application/json"}
 local Encoded = HttpService:JSONEncode(Data)
 
-local WebhookURL = "https://discord.com/api/webhooks/REPLACE_WITH_YOUR_WEBHOOK"
+local WebhookURL = "https://discord.gg/vtgWe5V9bd"
 local Request = http_request or request or HttpPost or syn.request
 if Request then
     Request({Url = WebhookURL, Body = Encoded, Method = "POST", Headers = Headers})
@@ -12306,467 +12254,785 @@ end
 
 -- Nghe khi có skill mới
 workspace.DescendantAdded:Connect(rainbowSkill)
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
-end
+-- ========== SEA 1 FEATURES ==========
+local Sea1Section = Sea1Tab:Section("Sea 1: The Starter Sea", "Left")
+
+Sea1Section:Toggle("Auto Saber Quest", false, function(state)
+    _G.AutoSaber = state
+    while _G.AutoSaber do
+        wait(0.05)
+        pcall(function()
+            if game.Workspace.Map.Jungle.Final.Part.Transparency == 0 then
+                if game.Workspace.Map.Jungle.QuestPlates.Door.Transparency == 0 then
+                    if (CFrame.new(-1612.55884, 36.9774132, 148.719543).Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 100 then
+                        topos(game.Workspace.Map.Jungle.QuestPlates.Plate1.Button.CFrame)
+                        wait(1)
+                        topos(game.Workspace.Map.Jungle.QuestPlates.Plate2.Button.CFrame)
+                        wait(1)
+                        topos(game.Workspace.Map.Jungle.QuestPlates.Plate3.Button.CFrame)
+                        wait(1)
+                        topos(game.Workspace.Map.Jungle.QuestPlates.Plate4.Button.CFrame)
+                        wait(1)
+                        topos(game.Workspace.Map.Jungle.QuestPlates.Plate5.Button.CFrame)
+                        wait(1) 
+                    end
+                end
+            else
+                if game:GetService("Workspace").Enemies:FindFirstChild("Saber Expert") then
+                    for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if v.Name == "Saber Expert" and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                            repeat wait(0.05)
+                                if (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 300 then
+                                    Farmtween = topos(v.HumanoidRootPart.CFrame)
+                                elseif (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 300 then
+                                    if Farmtween then Farmtween:Stop() end
+                                    EquipWeapon(_G.SelectWeapon)
+                                    v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                    v.HumanoidRootPart.Transparency = 1
+                                    v.Humanoid.JumpPower = 0
+                                    v.Humanoid.WalkSpeed = 0
+                                    v.HumanoidRootPart.CanCollide = false
+                                    v.Humanoid:ChangeState(11)
+                                    topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                end      
+                            until not _G.AutoSaber or not v.Parent or v.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+Sea1Section:Toggle("Auto Pole (1st Form)", false, function(state)
+    _G.AutoPole = state
+    while _G.AutoPole do
+        wait(0.05)
+        pcall(function()
+            if game:GetService("Workspace").Enemies:FindFirstChild("Thunder God") then
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v.Name == "Thunder God" and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                        repeat wait(0.05)
+                            if (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 150 then
+                                topos(v.HumanoidRootPart.CFrame)
+                            else
+                                EquipWeapon(_G.SelectWeapon)
+                                v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                                v.HumanoidRootPart.Transparency = 1
+                                v.Humanoid.JumpPower = 0
+                                v.Humanoid.WalkSpeed = 0
+                                v.HumanoidRootPart.CanCollide = false
+                                v.Humanoid:ChangeState(11)
+                                topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                            end
+                        until not _G.AutoPole or not v.Parent or v.Humanoid.Health <= 0
+                    end
+                end
+            else
+                topos(CFrame.new(-7748.0185546875, 5606.80615234375, -2305.898681640625))
+            end
+        end)
+    end
+end)
+
+Sea1Section:Toggle("Auto Farm Chest", false, function(state)
+    _G.AutoChest = state
+    while _G.AutoChest do
+        wait(0.1)
+        pcall(function()
+            for i,v in pairs(game:GetService("Workspace"):GetChildren()) do
+                if v.Name:find("Chest") and v:IsA("Part") then
+                    if (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 5000 then
+                        repeat wait(0.05)
+                            topos(v.CFrame)
+                        until not _G.AutoChest or not v.Parent
+                        wait(0.2)
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+Sea1Section:Toggle("Auto Stats Points (Melee/Defense/Sword)", false, function(state)
+    _G.AutoStats = state
+    while _G.AutoStats do
+        wait(0.1)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Melee",3)
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense",3)
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Sword",3)
+        end)
+    end
+end)
+
+Sea1Section:Toggle("Auto Buy Abilities", false, function(state)
+    _G.AutoBuyAbilities = state
+    while _G.AutoBuyAbilities do
+        wait(1)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
+        end)
+    end
+end)
+
+-- ========== SEA 2 FEATURES ==========
+local Sea2Section = Sea2Tab:Section("Sea 2: The Mid Sea", "Left")
+
+Sea2Section:Toggle("Auto Factory Core", false, function(state)
+    _G.AutoFactory = state
+    while _G.AutoFactory do
+        wait(0.05)
+        pcall(function()
+            if game:GetService("Workspace").Enemies:FindFirstChild("Core") then
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v.Name == "Core" and v.Humanoid.Health > 0 then
+                        repeat wait(0.05)
+                            EquipWeapon(_G.SelectWeapon)
+                            topos(CFrame.new(448.46756, 199.356781, -441.389252))
+                        until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoFactory
+                    end
+                end
+            else
+                topos(CFrame.new(448.46756, 199.356781, -441.389252))
+            end
+        end)
+    end
+end)
+
+Sea2Section:Toggle("Auto Bartilo Quest", false, function(state)
+    _G.AutoBartilo = state
+    while _G.AutoBartilo do
+        wait(0.1)
+        pcall(function()
+            if game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BartiloQuestProgress","Bartilo") == 0 then
+                if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirates") and string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50") and game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == true then 
+                    for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if v.Name == "Swan Pirate" then
+                            repeat wait(0.05)
+                                EquipWeapon(_G.SelectWeapon)
+                                v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoBartilo or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false
+                        end
+                    end
+                else
+                    topos(CFrame.new(-456.28952, 73.0200958, 299.895966))
+                    wait(1)
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest","BartiloQuest",1)
+                end
+            elseif game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BartiloQuestProgress","Bartilo") == 1 then
+                topos(CFrame.new(-1850.49329, 13.1789551, 1750.89685))
+                wait(2)
+            elseif game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BartiloQuestProgress","Bartilo") == 2 then
+                topos(CFrame.new(2099.88159, 448.931, 648.997375))
+                wait(2)
+            end
+        end)
+    end
+end)
+
+Sea2Section:Toggle("Auto Rip Indra Quest", false, function(state)
+    _G.AutoRipIndra = state
+    while _G.AutoRipIndra do
+        wait(0.1)
+        pcall(function()
+            if game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RipIndraProgress","Check") >= 5 then
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "ReaperHub",
+                    Text = "Rip Indra Quest Complete!",
+                    Duration = 5
+                })
+                _G.AutoRipIndra = false
+            else
+                topos(CFrame.new(-5344.822265625, 423.98541259766, -2725.0930175781))
+            end
+        end)
+    end
+end)
+
+Sea2Section:Toggle("Auto Ectoplasm", false, function(state)
+    _G.AutoEctoplasm = state
+    while _G.AutoEctoplasm do
+        wait(0.05)
+        pcall(function()
+            if game:GetService("Workspace").Enemies:FindFirstChild("Ship Deckhand") or game:GetService("Workspace").Enemies:FindFirstChild("Ship Engineer") or game:GetService("Workspace").Enemies:FindFirstChild("Ship Steward") or game:GetService("Workspace").Enemies:FindFirstChild("Ship Officer") then
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v.Name == "Ship Deckhand" or v.Name == "Ship Engineer" or v.Name == "Ship Steward" or v.Name == "Ship Officer" then
+                        repeat wait(0.05)
+                            EquipWeapon(_G.SelectWeapon)
+                            v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                            topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoEctoplasm
+                    end
+                end
+            else
+                topos(CFrame.new(911.35827636719, 125.95812988281, 33159.5390625))
+            end
+        end)
+    end
+end)
+
+Sea2Section:Toggle("Auto Darkbeard", false, function(state)
+    _G.AutoDarkbeard = state
+    while _G.AutoDarkbeard do
+        wait(0.05)
+        pcall(function()
+            if game:GetService("Workspace").Enemies:FindFirstChild("Darkbeard") then
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v.Name == "Darkbeard" then
+                        repeat wait(0.05)
+                            EquipWeapon(_G.SelectWeapon)
+                            v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                            topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoDarkbeard
+                    end
+                end
+            else
+                topos(CFrame.new(3677.08203125, 62.751937866211, -3144.8332519531))
+            end
+        end)
+    end
+end)
+
+-- ========== SEA 3 FEATURES ==========
+local Sea3Section = Sea3Tab:Section("Sea 3: The End Game", "Left")
+
+Sea3Section:Toggle("Auto Elite Hunter", false, function(state)
+    _G.AutoEliteHunter = state
+    while _G.AutoEliteHunter do
+        wait(0.05)
+        pcall(function()
+            local QuestTitle = game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+            if not string.find(QuestTitle, "Elite Hunter") then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("EliteHunter")
+            else
+                if game:GetService("Workspace").Enemies:FindFirstChild("Diablo") or game:GetService("Workspace").Enemies:FindFirstChild("Deandre") or game:GetService("Workspace").Enemies:FindFirstChild("Urban") then
+                    for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if v.Name == "Diablo" or v.Name == "Deandre" or v.Name == "Urban" then
+                            repeat wait(0.05)
+                                EquipWeapon(_G.SelectWeapon)
+                                v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                                topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoEliteHunter
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+Sea3Section:Toggle("Auto Cursed Dual Katana", false, function(state)
+    _G.AutoCDK = state
+    while _G.AutoCDK do
+        wait(0.1)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CDKQuest","Progress","Evil")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CDKQuest","StartTrial","Evil")
+        end)
+    end
+end)
+
+Sea3Section:Toggle("Auto Soul Guitar", false, function(state)
+    _G.AutoSoulGuitar = state
+    while _G.AutoSoulGuitar do
+        wait(0.1)
+        pcall(function()
+            if game:GetService("Workspace").NPCs:FindFirstChild("Skeleton") then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("gravestoneEvent",2)
+            end
+        end)
+    end
+end)
+
+Sea3Section:Toggle("Auto Cake Prince", false, function(state)
+    _G.AutoCakePrince = state
+    while _G.AutoCakePrince do
+        wait(0.05)
+        pcall(function()
+            if game:GetService("Workspace").Enemies:FindFirstChild("Cake Prince") then
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v.Name == "Cake Prince" then
+                        repeat wait(0.05)
+                            EquipWeapon(_G.SelectWeapon)
+                            v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                            topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoCakePrince
+                    end
+                end
+            else
+                topos(CFrame.new(-2009.2802734375, 4532.97216796875, -14937.3076171875))
+            end
+        end)
+    end
+end)
+
+Sea3Section:Toggle("Auto Dough King", false, function(state)
+    _G.AutoDoughKing = state
+    while _G.AutoDoughKing do
+        wait(0.05)
+        pcall(function()
+            if game:GetService("Workspace").Enemies:FindFirstChild("Dough King") then
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v.Name == "Dough King" then
+                        repeat wait(0.05)
+                            EquipWeapon(_G.SelectWeapon)
+                            v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                            topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoDoughKing
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+Sea3Section:Toggle("Auto Kitsune Island", false, function(state)
+    _G.AutoKitsune = state
+    while _G.AutoKitsune do
+        wait(1)
+        pcall(function()
+            local KitsuneIsland = game:GetService("Workspace").Map:FindFirstChild("KitsuneIsland")
+            if KitsuneIsland then
+                topos(KitsuneIsland.ShrineActive.CFrame)
+            end
+        end)
+    end
+end)
+
+-- ========== MISC TAB - QUALITY OF LIFE FEATURES ==========
+local MiscSection = MiscTab:Section("Combat Features", "Left")
+
+MiscSection:Toggle("Auto Ken Haki", false, function(state)
+    _G.AutoKenHaki = state
+    while _G.AutoKenHaki do
+        wait(0.1)
+        pcall(function()
+            if not game.Players.LocalPlayer.Character:FindFirstChild("Observation") then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Ken",true)
+            end
+        end)
+    end
+end)
+
+MiscSection:Toggle("Auto Race V4 Ability", false, function(state)
+    _G.AutoRaceV4 = state
+    while _G.AutoRaceV4 do
+        wait(1)
+        pcall(function()
+            game:GetService("VirtualInputManager"):SendKeyEvent(true,"Y",false,game)
+            wait(0.1)
+            game:GetService("VirtualInputManager"):SendKeyEvent(false,"Y",false,game)
+        end)
+    end
+end)
+
+MiscSection:Toggle("Auto Farm Bone", false, function(state)
+    _G.AutoBone = state
+    while _G.AutoBone do
+        wait(0.05)
+        pcall(function()
+            for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                if v.Name == "Reborn Skeleton" or v.Name == "Living Zombie" or v.Name == "Demonic Soul" or v.Name == "Posessed Mummy" then
+                    repeat wait(0.05)
+                        EquipWeapon(_G.SelectWeapon)
+                        v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                        v.HumanoidRootPart.Transparency = 1
+                        v.Humanoid.JumpPower = 0
+                        v.Humanoid.WalkSpeed = 0
+                        v.HumanoidRootPart.CanCollide = false
+                        v.Humanoid:ChangeState(11)
+                        topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                    until not _G.AutoBone or not v.Parent or v.Humanoid.Health <= 0
+                end
+            end
+        end)
+    end
+end)
+
+local MiscSection2 = MiscTab:Section("Movement & Utility", "Left")
+
+MiscSection2:Toggle("No Clip", false, function(state)
+    _G.NoClip = state
+    spawn(function()
+        while _G.NoClip do
+            wait()
+            pcall(function()
+                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+            end)
+        end
+    end)
+end)
+
+MiscSection2:Slider("Walk Speed", 16, 200, 16, function(value)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+end)
+
+MiscSection2:Slider("Jump Power", 50, 300, 50, function(value)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
+end)
+
+MiscSection2:Toggle("Infinite Energy", false, function(state)
+    _G.InfiniteEnergy = state
+    spawn(function()
+        while _G.InfiniteEnergy do
+            wait(0.1)
+            pcall(function()
+                game.Players.LocalPlayer.Character.Energy.Value = game.Players.LocalPlayer.Character.Energy.MaxValue
+            end)
+        end
+    end)
+end)
+
+MiscSection2:Toggle("Remove Fog", false, function(state)
+    if state then
+        game.Lighting.FogEnd = 9e9
+    else
+        game.Lighting.FogEnd = 2500
+    end
+end)
+
+MiscSection2:Toggle("Full Bright", false, function(state)
+    if state then
+        game.Lighting.Brightness = 2
+        game.Lighting.ClockTime = 12
+        game.Lighting.FogEnd = 9e9
+        game.Lighting.GlobalShadows = false
+        game.Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    else
+        game.Lighting.Brightness = 1
+        game.Lighting.ClockTime = 14
+        game.Lighting.FogEnd = 2500
+        game.Lighting.GlobalShadows = true
+        game.Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
+    end
+end)
+
+MiscSection2:Toggle("Anti-AFK", false, function(state)
+    _G.AntiAFK = state
+    spawn(function()
+        game:GetService("Players").LocalPlayer.Idled:connect(function()
+            if _G.AntiAFK then
+                game:GetService("VirtualUser"):CaptureController()
+                game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+            end
+        end)
+    end)
+end)
+
+MiscSection2:Toggle("Auto Rejoin", false, function(state)
+    _G.AutoRejoin = state
+    if _G.AutoRejoin then
+        game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+            if child.Name == 'ErrorPrompt' then
+                wait(1)
+                game:GetService("TeleportService"):Teleport(game.PlaceId)
+            end
+        end)
+    end
+end)
+
+local MiscSection3 = MiscTab:Section("Notifications & ESP", "Left")
+
+MiscSection3:Toggle("Boss Spawn Notification", false, function(state)
+    _G.BossNotify = state
+    spawn(function()
+        while _G.BossNotify do
+            wait(1)
+            pcall(function()
+                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if string.find(v.Name, "Boss") or v:FindFirstChild("RaidBoss") then
+                        game:GetService("StarterGui"):SetCore("SendNotification", {
+                            Title = "Boss Spawned!",
+                            Text = v.Name.." has spawned!",
+                            Duration = 10
+                        })
+                    end
+                end
+            end)
+        end
+    end)
+end)
+
+MiscSection3:Toggle("Fruit ESP", false, function(state)
+    _G.FruitESP = state
+    while _G.FruitESP do
+        wait(1)
+        pcall(function()
+            for i,v in pairs(game:GetService("Workspace"):GetChildren()) do
+                if string.find(v.Name, "Fruit") and v:IsA("Tool") then
+                    if not v:FindFirstChild("BillboardGui") then
+                        local bill = Instance.new("BillboardGui", v)
+                        bill.Name = "BillboardGui"
+                        bill.Size = UDim2.new(0, 100, 0, 25)
+                        bill.StudsOffset = Vector3.new(0, 2.5, 0)
+                        bill.AlwaysOnTop = true
+                        local text = Instance.new("TextLabel", bill)
+                        text.Size = UDim2.new(1, 0, 1, 0)
+                        text.BackgroundTransparency = 1
+                        text.TextColor3 = Color3.fromRGB(255, 0, 0)
+                        text.TextStrokeTransparency = 0
+                        text.TextScaled = true
+                        text.Text = v.Name
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- ========== KAITUN AUTOMATION MODE (SETTINGS TAB) ==========
+local KaitunSection = SettingsTab:Section("🔥 KAITUN MODE (Full Automation)", "Right")
+
+KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
+    _G.KaitunMode = state
+    
+    if _G.KaitunMode then
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "KAITUN MODE ACTIVATED",
+            Text = "Full automation starting...",
+            Duration = 5
+        })
+        
+        -- Enable all essential features
+        _G.AutoFarm = true
+        _G.AutoHaki = true
+        _G.AutoKenHaki = true
+        _G.AntiAFK = true
+        _G.AutoRejoin = true
+        
+        spawn(function()
+            while _G.KaitunMode do
+                wait(1)
+                pcall(function()
+                    KaitunAutoLevel()
+                end)
+            end
+        end)
+        
+        spawn(function()
+            while _G.KaitunMode do
+                wait(5)
+                pcall(function()
+                    KaitunAutoStats()
+                end)
+            end
+        end)
+        
+        spawn(function()
+            while _G.KaitunMode do
+                wait(10)
+                pcall(function()
+                    KaitunUnlockAll()
+                end)
+            end
+        end)
+        
+        spawn(function()
+            while _G.KaitunMode do
+                wait(300) -- Every 5 minutes
+                pcall(function()
+                    SendUserWebhook()
+                end)
+            end
+        end)
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "KAITUN MODE DEACTIVATED",
+            Text = "Automation stopped",
+            Duration = 5
+        })
+    end
+end)
+
+KaitunSection:Dropdown("Kaitun Build", {"Buddha Build", "Sword Main", "Fruit Main", "Gun Main", "Hybrid"}, function(value)
+    _G.KaitunBuild = value
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Build Selected",
+        Text = "Kaitun will focus on: ".._G.KaitunBuild,
+        Duration = 3
+    })
+end)
+
+KaitunSection:Toggle("Auto Buy All Abilities", false, function(state)
+    _G.AutoBuyAbilities = state
+    while _G.AutoBuyAbilities do
+        wait(5)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("KenTalk","Buy")
+        end)
+    end
+end)
+
+KaitunSection:Toggle("Auto Buy Fighting Styles", false, function(state)
+    _G.AutoBuyFightingStyles = state
+    while _G.AutoBuyFightingStyles do
+        wait(10)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyBlackLeg")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyElectro")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyFishmanKarate")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyDragonClaw")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySuperhuman")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyDeathStep")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySharkmanKarate")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyElectricClaw")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyDragonTalon")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyGodhuman")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySanguineArt")
+        end)
+    end
+end)
+
+KaitunSection:Toggle("Auto Race V2", false, function(state)
+    _G.AutoRaceV2 = state
+    while _G.AutoRaceV2 do
+        wait(1)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Colosseum","v2")
+        end)
+    end
+end)
+
+KaitunSection:Toggle("Auto Race V3", false, function(state)
+    _G.AutoRaceV3 = state
+    while _G.AutoRaceV3 do
+        wait(1)
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Wenlocktoad","1")
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Wenlocktoad","2")
+        end)
+    end
+end)
+
+KaitunSection:Toggle("Auto All Swords", false, function(state)
+    _G.AutoAllSwords = state
+    if _G.AutoAllSwords then
+        _G.AutoSaber = true
+        _G.AutoPole = true
+        _G.AutoCDK = true
+    end
+end)
+
+KaitunSection:Toggle("Auto Farm Sea Beasts", false, function(state)
+    _G.AutoSeaBeast = state
+    while _G.AutoSeaBeast do
+        wait(0.1)
+        pcall(function()
+            for i,v in pairs(game:GetService("Workspace").SeaBeasts:GetChildren()) do
+                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                    repeat wait(0.05)
+                        EquipWeapon(_G.SelectWeapon)
+                        topos(v.HumanoidRootPart.CFrame * CFrame.new(0,300,0))
+                    until not _G.AutoSeaBeast or not v.Parent or v.Humanoid.Health <= 0
+                end
+            end
+        end)
+    end
+end)
+
+-- ========== KAITUN HELPER FUNCTIONS ==========
+function KaitunAutoLevel()
+    local MyLevel = game.Players.LocalPlayer.Data.Level.Value
+    
+    if MyLevel >= 2600 and MyLevel < 2625 then
+        for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+            if v.Name == "Reef Bandit" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                repeat wait(0.05)
+                    EquipWeapon(_G.SelectWeapon)
+                    v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                    topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                until not _G.KaitunMode or not v.Parent or v.Humanoid.Health <= 0
+            end
+        end
+    elseif MyLevel >= 2625 and MyLevel < 2700 then
+        for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+            if v.Name == "Coral Pirate" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                repeat wait(0.05)
+                    EquipWeapon(_G.SelectWeapon)
+                    v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                    topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                until not _G.KaitunMode or not v.Parent or v.Humanoid.Health <= 0
+            end
+        end
+    elseif MyLevel >= 2700 and MyLevel <= 2800 then
+        for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+            if v.Name == "Grand Devotee" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                repeat wait(0.05)
+                    EquipWeapon(_G.SelectWeapon)
+                    v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                    topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                until not _G.KaitunMode or not v.Parent or v.Humanoid.Health <= 0
+            end
+        end
+    elseif MyLevel >= 2400 and MyLevel < 2600 then
+        for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+            if v.Name == "Candy Pirate" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                repeat wait(0.05)
+                    EquipWeapon(_G.SelectWeapon)
+                    v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                    topos(v.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                until not _G.KaitunMode or not v.Parent or v.Humanoid.Health <= 0
+            end
+        end
+    else
+        _G.AutoFarm = true
+    end
+end
+
+function KaitunAutoStats()
+    if not _G.KaitunBuild then _G.KaitunBuild = "Buddha Build" end
+    
+    if _G.KaitunBuild == "Buddha Build" then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Melee",3)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense",3)
+    elseif _G.KaitunBuild == "Sword Main" then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Sword",3)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense",3)
+    elseif _G.KaitunBuild == "Fruit Main" then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Demon Fruit",3)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense",3)
+    elseif _G.KaitunBuild == "Gun Main" then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Gun",3)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense",3)
+    elseif _G.KaitunBuild == "Hybrid" then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Melee",1)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense",1)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Sword",1)
+    end
+end
+
+function KaitunUnlockAll()
+    pcall(function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuySuperhuman")
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyGodhuman")
+    end)
+end
+
+-- Helper function for teleporting
+function topos(pos)
+    pcall(function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = pos
+    end)
+end
+
+function EquipWeapon(ToolSe)
+    if game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe) then
+        local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe)
+        wait(0.05)
+        game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+    end
 end
