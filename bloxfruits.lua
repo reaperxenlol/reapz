@@ -3816,10 +3816,10 @@ function library:NaJa()
 
 	Main.Name = "Main"
 	Main.Parent = UI
-	Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15) --Color3.fromRGB(33, 33, 33)
-	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Main.BackgroundTransparency = 0.1
-	Main.Size = UDim2.new(0, 520, 0, 380)
+		Main.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Main.BackgroundTransparency = 0.05
+		Main.Size = UDim2.new(0, 550, 0, 400)
 	Main.ClipsDescendants = true
 	Main.AnchorPoint = Vector2.new(0.5, 0.5)
 
@@ -3950,10 +3950,10 @@ UICorner.Parent = ImageButton
     
 	TabHolder.Name = "TabHolder"
 	TabHolder.Parent = Top
-	TabHolder.BackgroundColor3 = Color3.fromRGB(20, 20, 20) --25
-	TabHolder.BackgroundTransparency = 0.7
-	TabHolder.Position = UDim2.new(0, 5, 0, 50)
-	TabHolder.Size = UDim2.new(0, 140, 0, 320)
+	TabHolder.BackgroundColor3 = Color3.fromRGB(15, 15, 17)
+	TabHolder.BackgroundTransparency = 0.3
+	TabHolder.Position = UDim2.new(0, 10, 0, 60)
+	TabHolder.Size = UDim2.new(0, 150, 0, 330)
 
 	UICorner_2.Parent = TabHolder
 
@@ -3963,19 +3963,19 @@ UICorner.Parent = ImageButton
 	TabContainer.BackgroundColor3 = Color3.fromRGB(16, 42, 220)
 	TabContainer.BackgroundTransparency = 1.000
 	TabContainer.Size = UDim2.new(1, -10, 1, -10)
-	TabContainer.CanvasSize = UDim2.new(0, 0, 2, 0)
-	TabContainer.ScrollBarThickness = 6
-	TabContainer.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+	TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+	TabContainer.ScrollBarThickness = 2
+	TabContainer.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+	TabContainer.VerticalScrollBarInset = Enum.ScrollBarInset.None
 
 	UIListLayout.Parent = TabContainer
 	UIListLayout.FillDirection = Enum.FillDirection.Vertical
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Padding = UDim.new(0, 10)
-	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
-	function()
-		TabContainer.CanvasSize = UDim2.new(.0, UIListLayout.AbsoluteContentSize.X, 0, 0)
-	end
-	)
+	UIListLayout.Padding = UDim.new(0, 8)
+	
+	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		TabContainer.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+	end)
 	UIPadding.Parent = TabContainer
 	UIPadding.PaddingLeft = UDim.new(0, 10)
 	UIPadding.PaddingTop = UDim.new(0, 10) --3
@@ -4033,11 +4033,12 @@ UICorner.Parent = ImageButton
 
 		Tab.Name = "Tab"
 		Tab.Parent = TabContainer
-		Tab.BackgroundColor3 = Color3.fromRGB(9, 137, 207)
-		Tab.Size = UDim2.new(0, 130, 0, 30)
-		Tab.BackgroundTransparency = 0.5
+		Tab.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+		Tab.Size = UDim2.new(1, -10, 0, 32)
+		Tab.BackgroundTransparency = 0
 		Tab.Text = ""
-		UICorner_3.CornerRadius = UDim.new(0, 3)
+		Tab.AutoButtonColor = false
+		UICorner_3.CornerRadius = UDim.new(0, 6)
 		UICorner_3.Parent = Tab
 
 		ImageLabel.Parent = Tab
@@ -4087,18 +4088,21 @@ UICorner.Parent = ImageButton
 		Left.Active = true
 		Left.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Left.BackgroundTransparency = 1
-		Left.Size = UDim2.new(0, 170, 0, 310)
-		Left.ScrollBarThickness = 3
-		Left.CanvasSize = UDim2.new(2, 0, 0, 0)
+		Left.Size = UDim2.new(0, 175, 1, 0)
+		Left.ScrollBarThickness = 2
+		Left.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+		Left.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 		Right.Name = "Right"
 		Right.Parent = Page
 		Right.Active = true
 		Right.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 		Right.BackgroundTransparency = 1
-		Right.Size = UDim2.new(0, 170, 0, 310)
-		Right.ScrollBarThickness = 3
-		Right.CanvasSize = UDim2.new(2, 0, 0, 0)
+		Right.Size = UDim2.new(0, 175, 1, 0)
+		Right.Position = UDim2.new(0, 185, 0, 0)
+		Right.ScrollBarThickness = 2
+		Right.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+		Right.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 		local LeftList = Instance.new("UIListLayout")
 		local RightList = Instance.new("UIListLayout")
@@ -4130,53 +4134,42 @@ UICorner.Parent = ImageButton
 			function()
 				for _, x in next, TabContainer:GetChildren() do
 					if x.Name == "Tab" then
-						TweenService:Create(
-							x.TextLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextColor3 = Color3.fromRGB(255, 255, 255)}
-						):Play()
-						TweenService:Create(
-							x.ImageLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{ImageColor3 = Color3.fromRGB(255, 255, 255)}
-						):Play()
-						TweenService:Create(
-							x.ImageLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{ImageTransparency = 0.2}
-						):Play()
-						TweenService:Create(
-							x.TextLabel,
-							TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-							{TextTransparency = 0.2}
-						):Play()
-						for index, y in next, Bottom:GetChildren() do
-							y.Visible = false
+							TweenService:Create(
+								x,
+								TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+								{BackgroundColor3 = Color3.fromRGB(25, 25, 30)}
+							):Play()
+							TweenService:Create(
+								x.TextLabel,
+								TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+								{TextColor3 = Color3.fromRGB(200, 200, 200), TextTransparency = 0.3}
+							):Play()
+							TweenService:Create(
+								x.ImageLabel,
+								TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+								{ImageColor3 = Color3.fromRGB(200, 200, 200), ImageTransparency = 0.3}
+							):Play()
+							for index, y in next, Bottom:GetChildren() do
+								y.Visible = false
+							end
 						end
 					end
-				end
-				TweenService:Create(
-					TextLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{TextColor3 = _G.Color}
-				):Play()
-				TweenService:Create(
-					ImageLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ImageColor3 = _G.Color}
-				):Play()
-				TweenService:Create(
-					ImageLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ImageTransparency = 0}
-				):Play()
-				TweenService:Create(
-					TextLabel,
-					TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{TextTransparency = 0}
-				):Play()
-
-				Page.Visible = true
+					Page.Visible = true
+					TweenService:Create(
+						Tab,
+						TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{BackgroundColor3 = Color3.fromRGB(45, 45, 55)}
+					):Play()
+					TweenService:Create(
+						TextLabel,
+						TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{TextColor3 = Color3.fromRGB(255, 255, 255), TextTransparency = 0}
+					):Play()
+					TweenService:Create(
+						ImageLabel,
+						TweenInfo.new(.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0}
+					):Play()
 			end
 		)
 
@@ -4190,11 +4183,11 @@ UICorner.Parent = ImageButton
 			end
 		end
 
-		game:GetService("RunService").Stepped:Connect(function()
-			pcall(function()
-				Right.CanvasSize = UDim2.new(0,0,0,RightList.AbsoluteContentSize.Y + 5)
-				Left.CanvasSize = UDim2.new(0,0,0,LeftList.AbsoluteContentSize.Y + 5)
-			end)
+		RightList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			Right.CanvasSize = UDim2.new(0, 0, 0, RightList.AbsoluteContentSize.Y + 10)
+		end)
+		LeftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			Left.CanvasSize = UDim2.new(0, 0, 0, LeftList.AbsoluteContentSize.Y + 10)
 		end)
 
 		local sections = {}
@@ -4214,15 +4207,14 @@ UICorner.Parent = ImageButton
 			local UIListLayout_2 = Instance.new("UIListLayout")
 			local UIPadding_2 = Instance.new("UIPadding")
 
-			Section.Name = "Section"
-			Section.Parent = GetType(side)
-			Section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-			Section.BackgroundTransparency = 0
-			Section.ClipsDescendants = true
-			Section.Size = UDim2.new(0, 165, 0, 340)
-
-			UICorner_5.CornerRadius = UDim.new(0, 0) --5
-			UICorner_5.Parent = Section
+				Section.Name = "Section"
+				Section.Parent = GetType(side)
+				Section.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+				Section.BackgroundTransparency = 0.2
+				Section.ClipsDescendants = true
+				Section.Size = UDim2.new(1, -5, 0, 33)
+				UICorner_5.CornerRadius = UDim.new(0, 8)
+				UICorner_5.Parent = Section
 
 			Top_2.Name = "Top"
 			Top_2.Parent = Section
