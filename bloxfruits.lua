@@ -5300,6 +5300,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 local Window = library:NaJa()
+    Window:SetSize(Vector2.new(650, 450)) -- Make the UI wider like Xeter Hub
 
 local Main = Window:Tab("General","14477284625")
 local AutoQuest = Window:Tab("Items Quest","11446859498")
@@ -5316,7 +5317,7 @@ local Sea2Tab = Window:Tab("Sea 2","11446859498")
 local Sea3Tab = Window:Tab("Sea 3","10734941354")
 
 -- ========== SEA 1 FEATURES ==========
-local Sea1Section = Sea1Tab:Section("Sea 1: The Starter Sea", "Right")
+local Sea1Section = Sea1Tab:Section("Sea 1: The Starter Sea", "Left")
 
 Sea1Section:Toggle("Auto Saber Quest", false, function(state)
     _G.AutoSaber = state
@@ -5440,7 +5441,7 @@ Sea1Section:Toggle("Auto Buy Abilities", false, function(state)
 end)
 
 -- ========== SEA 2 FEATURES ==========
-local Sea2Section = Sea2Tab:Section("Sea 2: The Mid Sea", "Right")
+local Sea2Section = Sea2Tab:Section("Sea 2: The Mid Sea", "Left")
 
 Sea2Section:Toggle("Auto Factory Core", false, function(state)
     _G.AutoFactory = state
@@ -5559,7 +5560,7 @@ Sea2Section:Toggle("Auto Darkbeard", false, function(state)
 end)
 
 -- ========== SEA 3 FEATURES ==========
-local Sea3Section = Sea3Tab:Section("Sea 3: The End Game", "Right")
+local Sea3Section = Sea3Tab:Section("Sea 3: The End Game", "Left")
 
 Sea3Section:Toggle("Auto Elite Hunter", false, function(state)
     _G.AutoEliteHunter = state
@@ -5666,7 +5667,7 @@ end)
 
 
 -- ========== WEBHOOK TAB SECTIONS ==========
-local WebhookSection = WebhookTab:Section("Discord Webhook","Right")
+local WebhookSection = WebhookTab:Section("Discord Webhook","Left")
 
 WebhookSection:Textbox("Your Webhook URL", "Paste URL here", function(value)
     _G.UserWebhookURL = value
@@ -5681,7 +5682,7 @@ WebhookSection:Button("Send Progress Now", function()
 end)
 
 -- ========== CONFIG TAB SECTIONS ==========
-local ConfigSection = ConfigTab:Section("Save & Load","Right")
+local ConfigSection = ConfigTab:Section("Save & Load","Left")
 
 ConfigSection:Button("Save Config", function()
     SaveConfig()
@@ -5695,28 +5696,28 @@ ConfigSection:Button("Delete Config", function()
     DeleteConfig()
 end)
 
-local AutoFarm = Main:Section("Auto Main Farm","Right")
+local AutoFarm = Main:Section("Auto Main Farm","Left")
 local Settings = Main:Section("Settings Mastery","Right")
 
-local Items = AutoQuest:Section("Auto Items Quest","Right")
+local Items = AutoQuest:Section("Auto Items Quest","Left")
 local Dragon = AutoQuest:Section("Auto Dragon Quest","Right")
 
-local Volcano = Events:Section("Auto Prehistoric","Right")
+local Volcano = Events:Section("Auto Prehistoric","Left")
 local Events = Events:Section("Auto Events","Right")
 
-local Trailers = Racer:Section("Auto Trailer V4","Right")
+local Trailers = Racer:Section("Auto Trailer V4","Left")
 local Espbruh = Racer:Section("Auto Esp Player","Right")
 
-local AutoRaid = RaidFruit:Section("Auto Raid Fruit","Right")
+local AutoRaid = RaidFruit:Section("Auto Raid Fruit","Left")
 local Autofruit = RaidFruit:Section("Auto Random Fruit","Right")
 
-local Teleport = Playerrss:Section("Teleport Island","Right")
+local Teleport = Playerrss:Section("Teleport Island","Left")
 local Playersss = Playerrss:Section("Players Combat","Right")
 
-local TikTokShop = MiscShop:Section("Lazada Shopee","Right")
+local TikTokShop = MiscShop:Section("Lazada Shopee","Left")
 local AutoMisc = MiscShop:Section("Misc Auto","Right")
 
-local Status = AutoStatus:Section("Status Number","Right")
+local Status = AutoStatus:Section("Status Number","Left")
 local StatusTime = AutoStatus:Section("Status Time Game","Right")
 
     _G.SelectWeapon = "Melee"
@@ -12789,7 +12790,7 @@ MiscSection3:Toggle("Fruit ESP", false, function(state)
 end)
 
 -- ========== KAITUN AUTOMATION MODE (SETTINGS TAB) ==========
-local KaitunSection = ConfigTab:Section("🔥 KAITUN MODE (Full Automation)", "Right")
+local KaitunSection = Main:Section("🔥 KAITUN MODE (Full Automation)", "Right")
 
 KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
     _G.KaitunMode = state
@@ -12802,12 +12803,18 @@ KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
         })
         
         -- Enable all essential features
-        _G.KaitunMode = true
-        _G.AutoFarm = false
         _G.AutoHaki = true
         _G.AutoKenHaki = true
         _G.AntiAFK = true
-        _G.AutoRejoin = true        
+        _G.AutoRejoin = true
+        
+        -- Ensure other farms are off
+        _G.AutoFarm = false
+        StopTween(false)
+        if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+        end        
+        
         spawn(function()
             while _G.KaitunMode do
                 wait(1)
@@ -12849,6 +12856,10 @@ KaitunSection:Toggle("🤖 ENABLE KAITUN MODE", false, function(state)
             Text = "Automation stopped",
             Duration = 5
         })
+        StopTween(false)
+        if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+        end
     end
 end)
 
