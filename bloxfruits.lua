@@ -3948,12 +3948,12 @@ UICorner.Parent = ImageButton
     r.Name = "ServerCorner"
     r.Parent = atopdiscor111
     
-	TabHolder.Name = "TabHolder"
-	TabHolder.Parent = Top
-	TabHolder.BackgroundColor3 = Color3.fromRGB(15, 15, 17)
-	TabHolder.BackgroundTransparency = 0.3
-	TabHolder.Position = UDim2.new(0, 10, 0, 60)
-	TabHolder.Size = UDim2.new(0, 150, 1, -70)
+		TabHolder.Name = "TabHolder"
+		TabHolder.Parent = Main
+		TabHolder.BackgroundColor3 = Color3.fromRGB(15, 15, 17)
+		TabHolder.BackgroundTransparency = 0.3
+		TabHolder.Position = UDim2.new(0, 10, 0, 60)
+		TabHolder.Size = UDim2.new(0, 150, 1, -70)
 
 	UICorner_2.Parent = TabHolder
 
@@ -3992,24 +3992,24 @@ UICorner.Parent = ImageButton
 	local uitoggled = false
 	UserInputService.InputBegan:Connect(
 		function(io, p)
-			if io.KeyCode == UIConfig.Bind then
-				if uitoggled == false then
-					Main:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 1, true)
-					uitoggled = true
-					wait(.5)
-					UI.Enabled = false
-				else
-					Main:TweenSize(
-						UDim2.new(0, 520, 0, 380),
-						Enum.EasingDirection.Out,
-						Enum.EasingStyle.Quart,
-						1,
-						true
-					)
-					UI.Enabled = true
-					uitoggled = false
+		if io.KeyCode == UIConfig.Bind then
+					if uitoggled == false then
+						Main:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.5, true)
+						uitoggled = true
+						task.wait(0.5)
+						UI.Enabled = false
+					else
+						UI.Enabled = true
+						Main:TweenSize(
+							UDim2.new(0, 550, 0, 400),
+							Enum.EasingDirection.Out,
+							Enum.EasingStyle.Quart,
+							0.5,
+							true
+						)
+						uitoggled = false
+					end
 				end
-			end
 		end
 	)
 
@@ -4064,9 +4064,7 @@ UICorner.Parent = ImageButton
 		TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 		TextLabel.TextTransparency = 0.200
 
-		if TextLabel.Name == Name.." " then
-			Tab.Size = UDim2.new(0, 70 + TextLabel.TextBounds.X, 0, 25)
-		end
+			Tab.Size = UDim2.new(1, -10, 0, 32)
 
 		local Page = Instance.new("ScrollingFrame")
 		local Left = Instance.new("ScrollingFrame")
@@ -4074,15 +4072,16 @@ UICorner.Parent = ImageButton
 		local UIListLayout_5 = Instance.new("UIListLayout")
 		local UIPadding_5 = Instance.new("UIPadding")
 
-		Page.Name = "Page"
-		Page.Parent = Bottom
-		Page.BackgroundColor3 = Color3.fromRGB(98, 37, 209)
-		Page.Position = UDim2.new(0.01, 0, 0.015, 0)
-		Page.BackgroundTransparency = 1.000
-		Page.Size = UDim2.new(1, -10, 1, -10)
-		Page.ScrollBarThickness = 0
-		Page.CanvasSize = UDim2.new(0, 0, 0, 0)
-		Page.Visible = false
+			Page.Name = "Page"
+			Page.Parent = Bottom
+			Page.BackgroundColor3 = Color3.fromRGB(98, 37, 209)
+			Page.Position = UDim2.new(0, 0, 0, 0)
+			Page.BackgroundTransparency = 1.000
+			Page.Size = UDim2.new(1, 0, 1, 0)
+			Page.ScrollBarThickness = 0
+			Page.CanvasSize = UDim2.new(0, 0, 0, 0)
+			Page.Visible = false
+			Page.ClipsDescendants = true
     
 		Left.Name = "Left"
 		Left.Parent = Page
@@ -4224,13 +4223,13 @@ UICorner.Parent = ImageButton
 			Top_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			Top_2.BackgroundTransparency = 1.000
 			Top_2.BorderColor3 = Color3.fromRGB(27, 42, 53)
-			Top_2.Size = UDim2.new(0, 238, 0, 35)
+				Top_2.Size = UDim2.new(1, 0, 0, 35)
 
 			Line.Name = "Line"
 			Line.Parent = Top_2
 			Line.BackgroundColor3 = _G.Color
 			Line.BorderSizePixel = 0
-			Line.Size = UDim2.new(0, 239, 0, 1.5)
+				Line.Size = UDim2.new(1, 0, 0, 1.5)
 
 			spawn(function()
 			    while wait() do
@@ -4250,8 +4249,8 @@ UICorner.Parent = ImageButton
 			Sectionname.Parent = Top_2
 			Sectionname.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			Sectionname.BackgroundTransparency = 1.000
-			Sectionname.Position = UDim2.new(0.3, 0, 0.1, 0)
-			Sectionname.Size = UDim2.new(0, 100, 0, 20)
+				Sectionname.Position = UDim2.new(0, 10, 0, 5)
+				Sectionname.Size = UDim2.new(1, -20, 0, 25)
 			Sectionname.Font = Enum.Font.GothamSemibold
 			Sectionname.Text = Name
 			Sectionname.TextColor3 = Color3.fromRGB(255, 255, 255)
