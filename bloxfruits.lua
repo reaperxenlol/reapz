@@ -12751,5 +12751,3 @@ function KaitunAutoStats()
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Sword",1)
     end
 end
-
-end)
