@@ -191,85 +191,23 @@ spawn(function()
 end)
 -- ========== END CONFIG SYSTEM ==========
 
--- ========== AUTO-SELECT TEAM (INTEGRATED) ==========
+-- ========== AUTO SELECT PIRATE TEAM ==========
 spawn(function()
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    
-    -- Wait for game to load
-    repeat wait() until game:IsLoaded()
-    wait(1)
-    
-    -- Check if player hasn't chosen a team yet
-    local function selectPirateTeam()
-        -- Try multiple times in case of delays
-        for i = 1, 10 do
-            pcall(function()
-                -- Check if team selection is needed
-                if not LocalPlayer.Team or LocalPlayer.Team.Name == "Neutral" then
-                    -- Method 1: Try RemoteEvent
-                    if ReplicatedStorage:FindFirstChild("Remotes") then
-                        local remotes = ReplicatedStorage.Remotes
-                        if remotes:FindFirstChild("CommF_") then
-                            remotes.CommF_:InvokeServer("SetTeam", "Pirates")
-                        end
-                    end
-                    
-                    -- Method 2: Try direct team assignment
-                    local teams = game:GetService("Teams")
-                    if teams:FindFirstChild("Pirates") then
-                        LocalPlayer.Team = teams.Pirates
-                    end
-                    
-                    -- Method 3: Click the pirate button if GUI exists
-                    if LocalPlayer.PlayerGui:FindFirstChild("Main") then
-                        local main = LocalPlayer.PlayerGui.Main
-                        if main:FindFirstChild("ChooseTeam") then
-                            local chooseTeam = main.ChooseTeam
-                            if chooseTeam:FindFirstChild("Container") then
-                                local container = chooseTeam.Container
-                                if container:FindFirstChild("Pirates") then
-                                    local piratesButton = container.Pirates
-                                    if piratesButton:FindFirstChild("ViewportFrame") then
-                                        -- Simulate button click
-                                        if getconnections then
-                                            for _, v in pairs(getconnections(piratesButton.MouseButton1Click)) do
-                                                v:Fire()
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-            
-            -- Check if successful
-            if LocalPlayer.Team and LocalPlayer.Team.Name == "Pirates" then
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "ReaperHub",
-                    Text = "Auto-selected Pirate team!",
-                    Duration = 3
-                })
-                break
-            end
-            
-            wait(0.5)
+    wait(3)
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        local data = player:WaitForChild("Data")
+        if data:FindFirstChild("Team") and data.Team.Value == "" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", "Pirates")
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "ReaperHub",
+                Text = "Auto-selected Pirate team!",
+                Duration = 3
+            })
         end
-    end
-    
-    -- Try to select team
-    selectPirateTeam()
-    
-    -- Also watch for respawns/resets
-    LocalPlayer.CharacterAdded:Connect(function()
-        wait(1)
-        selectPirateTeam()
     end)
 end)
--- ========== END AUTO-SELECT TEAM ==========
+-- ========== END AUTO PIRATE ==========
 
 
 
@@ -3621,7 +3559,7 @@ end
 
 local library = {}
 
-_G.Color = Color3.fromRGB(0, 255, 255) -- CHANGED FROM WHITE TO CYAN FOR VISIBILITY
+_G.Color = Color3.fromRGB(255, 255, 255)
 _G.imageLogo = "rbxassetid://129771247821193"
 _G.Logo = "rbxassetid://129771247821193"
 _G.NameHub = "BloxFruit" -- ชื่อ Hub
@@ -3654,8 +3592,8 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 ImageButton.Parent = ScreenGui
-ImageButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- DARK BACKGROUND FOR BUTTON
-	ImageButton.BackgroundTransparency = 0.5 -- SEMI-TRANSPARENT
+ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageButton.BackgroundTransparency = 1 -- Nền trong suốt
 ImageButton.BorderSizePixel = 0
 ImageButton.Position = UDim2.new(0.120833337 - 0.10, 0, 0.0952890813 + 0.01, 0)
 ImageButton.Size = UDim2.new(0, 50, 0, 50)
@@ -3831,9 +3769,9 @@ function library:NaJa()
 
 	Main.Name = "Main"
 	Main.Parent = UI
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- DARK BACKGROUND
-		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-		Main.BackgroundTransparency = 0.1 -- REDUCED TRANSPARENCY FOR BETTER VISIBILITY
+	Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15) --Color3.fromRGB(33, 33, 33)
+	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Main.BackgroundTransparency = 0.6
 	Main.Size = UDim2.new(0, 520, 0, 380)
 	Main.ClipsDescendants = true
 	Main.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3869,7 +3807,7 @@ local Disc_Title = Instance.new("TextLabel")
 Discord.Name = "Tik Tok"
 Discord.Parent = Main
 Discord.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	Discord.BackgroundTransparency = 0.5 -- SEMI-TRANSPARENT FOR VISIBILITY
+Discord.BackgroundTransparency = 1 -- Làm cho nền trong suốt
 Discord.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Discord.BorderSizePixel = 0
 Discord.Position = UDim2.new(0, 430, 0, 16)
@@ -3877,7 +3815,7 @@ Discord.Size = UDim2.new(0, 85, 0, 25)
 Discord.AutoButtonColor = false
 Discord.Font = Enum.Font.SourceSans
 Discord.Text = ""
-Discord.TextColor3 = Color3.fromRGB(255, 255, 255)
+Discord.TextColor3 = Color3.fromRGB(0, 0, 0)
 Discord.TextSize = 14.000
 
 UICorner.CornerRadius = UDim.new(0, 5)
